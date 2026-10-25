@@ -94,6 +94,7 @@
     territoryBannerDefault: document.getElementById('territoryBannerDefault'),
     territoryBannerActive: document.getElementById('territoryBannerActive'),
     bannerChallengerName: document.getElementById('bannerChallengerName'),
+    bannerSubtext: document.getElementById('bannerSubtext'),
     btnCancelChallenger: document.getElementById('btnCancelChallenger'),
     btnRerollRandomizer: document.getElementById('btnRerollRandomizer'),
 
@@ -926,7 +927,22 @@
         if (d.eventType === 'return_to_territory') {
           if (el.victoryModal) el.victoryModal.classList.remove('active');
           if (el.pauseModal) el.pauseModal.classList.remove('active');
-          clearChallengerState();
+          if (d.activeChallenger) {
+            activeChallenger = d.activeChallenger;
+            if (el.bannerChallengerName) {
+              el.bannerChallengerName.textContent = d.activeChallenger.name;
+            }
+            if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'none';
+            if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'flex';
+            if (el.bannerSubtext) {
+              el.bannerSubtext.textContent = d.isReigningWinner
+                ? 'won the duel! Decision: Challenge Again or Return to the Floor!'
+                : 'Host is selecting the defender to duel!';
+            }
+            renderTerritoryGrid();
+          } else {
+            clearChallengerState();
+          }
           switchToView('territory');
           return;
         }
@@ -1117,7 +1133,8 @@
       name: name,
       color: getPlayerColor(idx, names.length),
       territoryCount: 1,
-      active: true
+      active: true,
+      hasDueled: false
     }));
 
     const grid = players.map((p, idx) => ({
@@ -1273,6 +1290,9 @@
     if (el.bannerChallengerName) {
       el.bannerChallengerName.textContent = challenger.name;
     }
+    if (el.bannerSubtext) {
+      el.bannerSubtext.textContent = 'Host is selecting the defender to duel!';
+    }
     if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'none';
     if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'flex';
 
@@ -1412,7 +1432,7 @@
           tile.classList.add('is-challenger');
           const challengerTag = document.createElement('span');
           challengerTag.className = 'territory-tile-challenger-tag';
-          challengerTag.textContent = '👑 CHALLENGER';
+          challengerTag.textContent = (count > 1) ? '👑 WINNER' : '👑 CHALLENGER';
           tile.appendChild(challengerTag);
         } else if (adjacentPlayerIds.has(sq.playerId)) {
           tile.classList.add('is-adjacent-target');

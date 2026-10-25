@@ -556,6 +556,34 @@
         border-color: #ffffff;
       }
     }
+
+    /* Option 2: Return to the Floor Button */
+    .btn-return-floor {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(255, 211, 105, 0.2) 0%, rgba(255, 159, 28, 0.3) 100%);
+      border: 2px solid var(--gold);
+      color: #ffffff;
+      padding: 16px 14px;
+      border-radius: var(--radius-md);
+      font-size: 1.15rem;
+      font-weight: 900;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 211, 105, 0.35);
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .btn-return-floor:hover, .btn-return-floor:active {
+      transform: scale(1.02);
+      background: linear-gradient(135deg, rgba(255, 211, 105, 0.35) 0%, rgba(255, 159, 28, 0.5) 100%);
+      box-shadow: 0 0 30px rgba(255, 211, 105, 0.7);
+    }
   </style>
 </head>
 <body>
@@ -607,18 +635,32 @@
         </button>
       </div>
 
-      <!-- Challenger & Defender Selection Card (Shown once challenger is picked) -->
+      <!-- Challenger & Defender Selection Card (Shown once challenger is picked or winner returns) -->
       <div id="hostChallengerCard" class="host-challenger-card" style="display: none; margin-top: 6px;">
-        <div class="host-challenger-title">👑 CHALLENGER SELECTED</div>
+        <div id="hostChallengerTitle" class="host-challenger-title">👑 CHALLENGER SELECTED</div>
         <div id="hostChallengerName" class="host-challenger-name">Player Name</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Picked by Floor Randomizer</div>
+        <div id="hostChallengerSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Picked by Floor Randomizer</div>
 
-        <div class="host-defenders-prompt">👉 CHOOSE DEFENDER FOR DUEL:</div>
+        <!-- Section 1: Option 1 (Challenge Again / Choose Defender) -->
+        <div id="hostOption1Header" class="host-defenders-prompt">👉 CHOOSE DEFENDER FOR DUEL:</div>
         <div id="hostDefendersList" class="host-defenders-grid">
           <!-- Dynamically filled with adjacent defender buttons -->
         </div>
 
-        <div style="margin-top: 16px; display: flex; gap: 8px;">
+        <!-- Section 2: Option 2 (Return to the Floor) - Visible when isReigningWinner is true -->
+        <div id="hostOption2Card" style="display: none; margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(255, 211, 105, 0.3);">
+          <div style="font-size: 0.75rem; font-weight: 800; color: var(--gold); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px;">
+            🎲 OPTION 2: RETURN TO THE FLOOR
+          </div>
+          <button id="btnHostReturnToFloor" class="btn-return-floor">
+            <span style="font-size: 1.4rem;">🎲</span>
+            <span>RETURN TO THE FLOOR</span>
+            <span class="randomizer-subtext" style="color: rgba(255,255,255,0.8);">Relinquish turn &amp; spin randomizer (1-territory contestants)</span>
+          </button>
+        </div>
+
+        <!-- Sub Actions (Re-roll / Cancel) -->
+        <div id="hostChallengerSubActions" style="margin-top: 16px; display: flex; gap: 8px;">
           <button id="btnHostReroll" class="btn-sub-action" style="flex: 1; color: var(--gold);">🎲 Re-roll Randomizer</button>
           <button id="btnHostCancelChallenger" class="btn-sub-action" style="flex: 1; color: #ff5252;">✕ Cancel</button>
         </div>
@@ -748,8 +790,14 @@
       btnHostTriggerRandomizer: document.getElementById('btnHostTriggerRandomizer'),
       labelHostRandomize: document.getElementById('labelHostRandomize'),
       hostChallengerCard: document.getElementById('hostChallengerCard'),
+      hostChallengerTitle: document.getElementById('hostChallengerTitle'),
       hostChallengerName: document.getElementById('hostChallengerName'),
+      hostChallengerSubtitle: document.getElementById('hostChallengerSubtitle'),
+      hostOption1Header: document.getElementById('hostOption1Header'),
       hostDefendersList: document.getElementById('hostDefendersList'),
+      hostOption2Card: document.getElementById('hostOption2Card'),
+      btnHostReturnToFloor: document.getElementById('btnHostReturnToFloor'),
+      hostChallengerSubActions: document.getElementById('hostChallengerSubActions'),
       btnHostReroll: document.getElementById('btnHostReroll'),
       btnHostCancelChallenger: document.getElementById('btnHostCancelChallenger'),
 
@@ -814,13 +862,41 @@
       }
     }
 
-    function renderHostChallengerAndDefenders(challenger, defenders = []) {
+    function renderHostChallengerAndDefenders(challenger, defenders = [], isReigningWinner = false) {
       currentChallenger = challenger;
       currentAdjacentDefenders = defenders;
       el.hostRandomizerCard.style.display = 'none';
       el.hostChallengerCard.style.display = 'block';
       el.hostChallengerName.textContent = challenger.name;
       el.hostDefendersList.innerHTML = '';
+
+      if (isReigningWinner) {
+        if (el.hostChallengerTitle) {
+          el.hostChallengerTitle.textContent = '👑 REIGNING DUEL WINNER';
+          el.hostChallengerTitle.style.color = 'var(--gold)';
+        }
+        if (el.hostChallengerSubtitle) {
+          el.hostChallengerSubtitle.textContent = `Controls ${challenger.territoryCount || 2} Territories • Choose to Challenge Again or Return to the Floor`;
+        }
+        if (el.hostOption1Header) {
+          el.hostOption1Header.innerHTML = '⚔️ OPTION 1: CHALLENGE AGAIN (CHOOSE ADJACENT DEFENDER):';
+        }
+        if (el.hostOption2Card) el.hostOption2Card.style.display = 'block';
+        if (el.hostChallengerSubActions) el.hostChallengerSubActions.style.display = 'none';
+      } else {
+        if (el.hostChallengerTitle) {
+          el.hostChallengerTitle.textContent = '👑 CHALLENGER SELECTED';
+          el.hostChallengerTitle.style.color = 'var(--p1-color)';
+        }
+        if (el.hostChallengerSubtitle) {
+          el.hostChallengerSubtitle.textContent = 'Picked by Floor Randomizer • Choose Defender to Duel:';
+        }
+        if (el.hostOption1Header) {
+          el.hostOption1Header.innerHTML = '👉 CHOOSE DEFENDER FOR DUEL:';
+        }
+        if (el.hostOption2Card) el.hostOption2Card.style.display = 'none';
+        if (el.hostChallengerSubActions) el.hostChallengerSubActions.style.display = 'flex';
+      }
 
       if (!defenders || defenders.length === 0) {
         el.hostDefendersList.innerHTML = `
@@ -894,7 +970,7 @@
 
       // Handle Randomizer Spin event
       if (d.eventType === 'randomizer_spin' && d.challenger) {
-        renderHostChallengerAndDefenders(d.challenger, d.adjacentDefenders || []);
+        renderHostChallengerAndDefenders(d.challenger, d.adjacentDefenders || [], false);
         switchHostMode('territory');
         return;
       }
@@ -928,20 +1004,25 @@
           currentTerritory = d.territory;
           updateHostTerritoryUI();
         }
-        currentChallenger = null;
-        currentAdjacentDefenders = [];
-        el.hostChallengerCard.style.display = 'none';
-        el.hostRandomizerCard.style.display = 'block';
-        el.btnHostTriggerRandomizer.disabled = false;
-        el.labelHostRandomize.textContent = 'TRIGGER RANDOMIZER';
         if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'none';
         switchHostMode('territory');
+
+        if (d.activeChallenger) {
+          renderHostChallengerAndDefenders(d.activeChallenger, d.adjacentDefenders || [], d.isReigningWinner || false);
+        } else {
+          currentChallenger = null;
+          currentAdjacentDefenders = [];
+          el.hostChallengerCard.style.display = 'none';
+          el.hostRandomizerCard.style.display = 'block';
+          el.btnHostTriggerRandomizer.disabled = false;
+          el.labelHostRandomize.textContent = 'TRIGGER RANDOMIZER';
+        }
         return;
       }
 
       // Active Challenger snapshot from initial_state
       if (d.activeChallenger && !currentChallenger) {
-        renderHostChallengerAndDefenders(d.activeChallenger, d.adjacentDefenders || []);
+        renderHostChallengerAndDefenders(d.activeChallenger, d.adjacentDefenders || [], d.isReigningWinner || false);
       }
 
       // 1. Lightweight Timer Tick: ONLY update clock digits, NEVER touch answer
@@ -1193,6 +1274,17 @@
       el.btnHostCancelChallenger.addEventListener('click', () => {
         vibrate(30);
         sendCommand('cancel_challenger');
+      });
+    }
+
+    if (el.btnHostReturnToFloor) {
+      el.btnHostReturnToFloor.addEventListener('click', () => {
+        vibrate(60);
+        el.hostChallengerCard.style.display = 'none';
+        el.hostRandomizerCard.style.display = 'block';
+        el.btnHostTriggerRandomizer.disabled = true;
+        el.labelHostRandomize.textContent = '🎲 SPINNING ON BIG SCREEN...';
+        sendCommand('return_to_floor');
       });
     }
 

@@ -62,6 +62,7 @@ const state = {
   territory: null,
   activeChallenger: null,
   adjacentDefenders: [],
+  isReigningWinner: false,
   duelTerritoryResolved: false,
   lastTickTime: null,
   lastEvent: null
@@ -117,6 +118,7 @@ function broadcastClueState(eventType = 'clue_sync') {
     territory: state.territory,
     activeChallenger: state.activeChallenger,
     adjacentDefenders: state.adjacentDefenders,
+    isReigningWinner: state.isReigningWinner || false,
     passPenaltySeconds: state.passPenaltySeconds
   };
 
@@ -167,6 +169,7 @@ function resolveDuelTerritory() {
   // 3. Update winner's territory count
   const ownedCount = state.territory.grid.filter(sq => sq.playerId === winnerPlayer.id).length;
   winnerPlayer.territoryCount = ownedCount;
+  winnerPlayer.hasDueled = true;
 
   state.duelTerritoryResolved = true;
   console.log(`[Territory] Duel resolved: ${winnerPlayer.name} takes the floor! ${loserPlayer.name} eliminated. ${winnerPlayer.name} now holds ${ownedCount} squares. Remaining contestants: ${state.territory.players.length}`);
@@ -322,6 +325,34 @@ function getAdjacentCompetitors(challengerId, territory) {
   }
 
   return Array.from(map.values());
+}
+
+// Floor Randomizer Helper:
+// The randomizer can only land on players that have 1 territory and have not already dueled.
+function selectRandomChallengerFromFloor(territory) {
+  if (!territory || !territory.players || territory.players.length < 2) return null;
+  const activePlayers = territory.players.filter(p => p.active !== false);
+  if (activePlayers.length < 2) return null;
+
+  // Rule: "The randomizer can only land on players that have 1 territory. It cannot select players who have already dueled"
+  const eligible1Territory = activePlayers.filter(p => (p.territoryCount || 1) === 1 && !p.hasDueled);
+
+  let candidatePool = eligible1Territory;
+  if (candidatePool.length === 0) {
+    // If all remaining 1-territory contestants have dueled, fallback to 1-territory
+    candidatePool = activePlayers.filter(p => (p.territoryCount || 1) === 1);
+  }
+  if (candidatePool.length === 0) {
+    // Endgame fallback: all active players
+    candidatePool = activePlayers;
+  }
+
+  // Prefer candidates with adjacent competitors to challenge
+  const withNeighbors = candidatePool.filter(p => getAdjacentCompetitors(p.id, territory).length > 0);
+  const finalPool = withNeighbors.length > 0 ? withNeighbors : candidatePool;
+
+  const chosen = finalPool[Math.floor(Math.random() * finalPool.length)];
+  return chosen;
 }
 
 // Host Command Processor
@@ -570,17 +601,16 @@ function handleHostCommand(cmd, payload = {}) {
       console.warn('Cannot trigger randomizer: territory has fewer than 2 contestants');
       return;
     }
-    const activePlayers = state.territory.players.filter(p => p.active !== false);
-    if (activePlayers.length < 2) return;
-
-    // Prefer candidates with adjacent competitors to challenge
-    const candidatesWithNeighbors = activePlayers.filter(p => getAdjacentCompetitors(p.id, state.territory).length > 0);
-    const candidatePool = candidatesWithNeighbors.length > 0 ? candidatesWithNeighbors : activePlayers;
-    const chosenChallenger = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+    const chosenChallenger = selectRandomChallengerFromFloor(state.territory);
+    if (!chosenChallenger) {
+      console.warn('Cannot trigger randomizer: no eligible contestants');
+      return;
+    }
     const adjacent = getAdjacentCompetitors(chosenChallenger.id, state.territory);
 
     state.activeChallenger = chosenChallenger;
     state.adjacentDefenders = adjacent;
+    state.isReigningWinner = false;
 
     sendSse({
       eventType: 'randomizer_spin',
@@ -604,6 +634,12 @@ function handleHostCommand(cmd, payload = {}) {
         const dp = state.territory.players.find(p => p.name.trim().toLowerCase() === String(defenderName).trim().toLowerCase());
         if (dp) defenderId = dp.id;
       }
+
+      // Mark both contestants as having dueled:
+      const p1Obj = state.territory.players.find(p => p.id === challengerId);
+      const p2Obj = state.territory.players.find(p => p.id === defenderId);
+      if (p1Obj) p1Obj.hasDueled = true;
+      if (p2Obj) p2Obj.hasDueled = true;
     }
 
     if (countdownTimer) clearInterval(countdownTimer);
@@ -633,6 +669,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.lastTickTime = null;
     state.activeChallenger = null;
     state.adjacentDefenders = [];
+    state.isReigningWinner = false;
     state.duelTerritoryResolved = false;
 
     broadcastClueState('duel_players_set');
@@ -640,6 +677,7 @@ function handleHostCommand(cmd, payload = {}) {
   else if (cmd === 'cancel_challenger') {
     state.activeChallenger = null;
     state.adjacentDefenders = [];
+    state.isReigningWinner = false;
     sendSse({
       eventType: 'challenger_cancelled',
       territory: state.territory
@@ -660,21 +698,60 @@ function handleHostCommand(cmd, payload = {}) {
     state.correctAnswer = '';
     state.lastCorrectAnswer = '';
 
+    // Identify the winner of the duel that just concluded
+    let winnerPlayer = null;
+    if (state.winner && state.territory && state.territory.players) {
+      const winnerInfo = state.winner === 1 ? state.p1 : state.p2;
+      winnerPlayer = state.territory.players.find(p => 
+        (winnerInfo.id && p.id === winnerInfo.id) || 
+        p.name.trim().toLowerCase() === winnerInfo.name.trim().toLowerCase()
+      );
+    }
+
     state.status = 'ready';
     state.clueIndex = 0;
     state.activePlayer = 1;
     state.winner = null;
     state.lastTickTime = null;
-    state.activeChallenger = null;
-    state.adjacentDefenders = [];
     state.duelTerritoryResolved = false;
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
 
+    if (winnerPlayer && state.territory.players.length > 1) {
+      state.activeChallenger = winnerPlayer;
+      state.adjacentDefenders = getAdjacentCompetitors(winnerPlayer.id, state.territory);
+      state.isReigningWinner = true;
+    } else {
+      state.activeChallenger = null;
+      state.adjacentDefenders = [];
+      state.isReigningWinner = false;
+    }
+
     sendSse({
       eventType: 'return_to_territory',
       territory: state.territory,
+      activeChallenger: state.activeChallenger,
+      adjacentDefenders: state.adjacentDefenders,
+      isReigningWinner: state.isReigningWinner,
       status: 'ready'
+    });
+  }
+  else if (cmd === 'return_to_floor') {
+    const chosenChallenger = selectRandomChallengerFromFloor(state.territory);
+    if (!chosenChallenger) {
+      console.warn('Cannot return to floor: no eligible contestants');
+      return;
+    }
+    const adjacent = getAdjacentCompetitors(chosenChallenger.id, state.territory);
+    state.activeChallenger = chosenChallenger;
+    state.adjacentDefenders = adjacent;
+    state.isReigningWinner = false;
+
+    sendSse({
+      eventType: 'randomizer_spin',
+      challenger: chosenChallenger,
+      adjacentDefenders: adjacent,
+      territory: state.territory
     });
   }
   else if (cmd === 'set_clock') {
@@ -822,6 +899,7 @@ const server = http.createServer((req, res) => {
       territory: state.territory,
       activeChallenger: state.activeChallenger,
       adjacentDefenders: state.adjacentDefenders,
+      isReigningWinner: state.isReigningWinner || false,
       passPenaltySeconds: state.passPenaltySeconds
     };
     res.write(`data: ${JSON.stringify(initialData)}\n\n`);
