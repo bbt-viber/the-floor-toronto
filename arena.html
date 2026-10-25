@@ -90,8 +90,10 @@
 
   <script src="sound-engine.js"></script>
   <script>
-    // Arena Display Synchronizer via BroadcastChannel
+    // Arena Display Synchronizer - Connected to SSE & BroadcastChannel
     const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('the-floor-toronto') : null;
+    let isConnectedViaSse = false;
+    let currentClueId = null;
 
     const el = {
       categoryTitle: document.getElementById('categoryTitle'),
@@ -122,68 +124,114 @@
       return Math.ceil(seconds).toString();
     }
 
+    function flashScreen(text, className) {
+      el.flashText.textContent = text;
+      el.flashOverlay.className = `flash-overlay ${className}`;
+      setTimeout(() => {
+        el.flashOverlay.className = 'flash-overlay';
+      }, 450);
+    }
+
+    function applyArenaState(d) {
+      if (!d) return;
+
+      // 1. Lightweight Timer Tick
+      if (d.eventType === 'tick') {
+        if (d.p1Time !== undefined) {
+          el.p1TimerDigits.textContent = formatTime(d.p1Time);
+          const p1Pct = Math.max(0, Math.min(100, (d.p1Time / 45) * 100));
+          el.p1TimerBar.style.width = `${p1Pct}%`;
+          if (d.p1Time <= 10 && d.p1Time > 0 && d.activePlayer === 1) {
+            el.p1TimerBox.classList.add('urgent');
+          } else {
+            el.p1TimerBox.classList.remove('urgent');
+          }
+        }
+        if (d.p2Time !== undefined) {
+          el.p2TimerDigits.textContent = formatTime(d.p2Time);
+          const p2Pct = Math.max(0, Math.min(100, (d.p2Time / 45) * 100));
+          el.p2TimerBar.style.width = `${p2Pct}%`;
+          if (d.p2Time <= 10 && d.p2Time > 0 && d.activePlayer === 2) {
+            el.p2TimerBox.classList.add('urgent');
+          } else {
+            el.p2TimerBox.classList.remove('urgent');
+          }
+        }
+        return;
+      }
+
+      // Sounds & Visual Flashes
+      if (d.eventType === 'correct') {
+        window.soundEngine.playCorrect();
+        flashScreen('CORRECT!', 'correct-flash');
+      } else if (d.eventType === 'pass') {
+        window.soundEngine.playPass();
+        flashScreen(`PASS! -${d.passPenaltySeconds || 3}s`, 'pass-flash');
+      }
+
+      if (d.title) el.categoryTitle.textContent = d.title.toUpperCase();
+      if (d.p1?.name) el.p1Name.textContent = d.p1.name;
+      if (d.p2?.name) el.p2Name.textContent = d.p2.name;
+
+      // Active Turn
+      if (d.activePlayer === 1) {
+        el.p1Podium.classList.add('active-turn');
+        el.p2Podium.classList.remove('active-turn');
+        el.p1Status.textContent = 'ACTIVE TURN';
+        el.p2Status.textContent = 'STANDBY';
+      } else if (d.activePlayer === 2) {
+        el.p2Podium.classList.add('active-turn');
+        el.p1Podium.classList.remove('active-turn');
+        el.p1Status.textContent = 'STANDBY';
+        el.p2Status.textContent = 'ACTIVE TURN';
+      }
+
+      // Clue Image (Stable caching by promptId)
+      const newImg = d.promptImage || (d.clue && d.clue.image);
+      const newId = d.promptId || (d.clue && d.clue.id) || ('clue_' + d.clueIndex);
+      if (newImg && currentClueId !== newId) {
+        currentClueId = newId;
+        el.clueImage.src = newImg;
+      }
+      if (d.clueIndex !== undefined && d.cluesCount) {
+        el.clueCounter.textContent = `${d.clueIndex + 1} / ${d.cluesCount}`;
+      }
+
+      // Victory
+      if (d.status === 'gameover' && d.winner) {
+        const winnerName = d.winner === 1 ? (d.p1?.name || 'Player 1') : (d.p2?.name || 'Player 2');
+        const remaining = formatTime(d.winner === 1 ? d.p1?.timeRemaining : d.p2?.timeRemaining);
+        el.victoryWinnerName.textContent = `${winnerName} Wins!`;
+        el.victoryDetails.textContent = `${winnerName} takes the floor with ${remaining}s remaining!`;
+        el.victoryModal.classList.add('active');
+      } else {
+        el.victoryModal.classList.remove('active');
+      }
+    }
+
+    // Connect to SSE Stream
+    if (location.protocol.startsWith('http')) {
+      const sse = new EventSource('/api/events');
+      sse.onopen = () => { isConnectedViaSse = true; };
+      sse.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          applyArenaState(data);
+        } catch (e) {}
+      };
+      sse.onerror = () => { isConnectedViaSse = false; };
+    }
+
+    // BroadcastChannel Listener (offline file:// fallback only)
     if (channel) {
       channel.onmessage = (event) => {
-        const msg = event.data;
-        if (!msg || msg.type !== 'STATE_SYNC') return;
-        const d = msg.payload;
-
-        el.categoryTitle.textContent = (d.title || 'THE FLOOR').toUpperCase();
-        el.p1Name.textContent = d.p1.name;
-        el.p2Name.textContent = d.p2.name;
-
-        // Timers
-        el.p1TimerDigits.textContent = formatTime(d.p1.timeRemaining);
-        const p1Pct = Math.max(0, Math.min(100, (d.p1.timeRemaining / d.p1.maxTime) * 100));
-        el.p1TimerBar.style.width = `${p1Pct}%`;
-        if (d.p1.timeRemaining <= 10 && d.p1.timeRemaining > 0 && d.activePlayer === 1) {
-          el.p1TimerBox.classList.add('urgent');
-        } else {
-          el.p1TimerBox.classList.remove('urgent');
-        }
-
-        el.p2TimerDigits.textContent = formatTime(d.p2.timeRemaining);
-        const p2Pct = Math.max(0, Math.min(100, (d.p2.timeRemaining / d.p2.maxTime) * 100));
-        el.p2TimerBar.style.width = `${p2Pct}%`;
-        if (d.p2.timeRemaining <= 10 && d.p2.timeRemaining > 0 && d.activePlayer === 2) {
-          el.p2TimerBox.classList.add('urgent');
-        } else {
-          el.p2TimerBox.classList.remove('urgent');
-        }
-
-        // Active Turn
-        if (d.activePlayer === 1) {
-          el.p1Podium.classList.add('active-turn');
-          el.p2Podium.classList.remove('active-turn');
-          el.p1Status.textContent = 'ACTIVE TURN';
-          el.p2Status.textContent = 'STANDBY';
-        } else {
-          el.p2Podium.classList.add('active-turn');
-          el.p1Podium.classList.remove('active-turn');
-          el.p1Status.textContent = 'STANDBY';
-          el.p2Status.textContent = 'ACTIVE TURN';
-        }
-
-        // Clue
-        if (d.clue) {
-          if (el.clueImage.src !== d.clue.image) {
-            el.clueImage.src = d.clue.image;
-          }
-          el.clueCounter.textContent = `${d.clueIndex + 1} / ${d.cluesCount}`;
-        }
-
-        // Victory
-        if (d.status === 'gameover' && d.winner) {
-          const winnerName = d.winner === 1 ? d.p1.name : d.p2.name;
-          const remaining = (d.winner === 1 ? d.p1.timeRemaining : d.p2.timeRemaining).toFixed(1);
-          el.victoryWinnerName.textContent = `${winnerName} Wins!`;
-          el.victoryDetails.textContent = `${winnerName} takes the floor with ${remaining}s remaining!`;
-          el.victoryModal.classList.add('active');
-        } else {
-          el.victoryModal.classList.remove('active');
+        if (isConnectedViaSse) return;
+        if (event.data && event.data.type === 'STATE_SYNC') {
+          applyArenaState(event.data.payload);
         }
       };
     }
+  </script>
   </script>
 </body>
 </html>

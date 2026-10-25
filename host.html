@@ -402,8 +402,13 @@
   </div>
 
   <script>
-    // Host Controller Logic
+    // Host Controller Logic - Rock-Solid Zero-Flicker Architecture
     const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('the-floor-toronto') : null;
+
+    let currentDisplayedAnswer = '';
+    let currentNextAnswer = '';
+    let currentActivePlayer = null;
+    let isConnectedViaSse = false;
 
     const el = {
       connStatus: document.getElementById('connStatus'),
@@ -439,40 +444,67 @@
       }
     }
 
+    function updateActivePlayerTurn(activePlayer, p1Name = 'Player 1', p2Name = 'Player 2') {
+      if (currentActivePlayer === activePlayer) return;
+      currentActivePlayer = activePlayer;
+      if (activePlayer === 1) {
+        el.turnBanner.className = 'turn-banner p1';
+        el.turnBanner.textContent = `👉 ${p1Name.toUpperCase()}'S TURN`;
+      } else {
+        el.turnBanner.className = 'turn-banner p2';
+        el.turnBanner.textContent = `👉 ${p2Name.toUpperCase()}'S TURN`;
+      }
+    }
+
     // Apply Incoming State Update (from Server SSE or BroadcastChannel)
     function applyState(d) {
       if (!d) return;
 
-      if (d.title) el.gameTitleBadge.textContent = d.title.toUpperCase();
+      // 1. Lightweight Timer Tick: ONLY update clock digits, NEVER touch answer
+      if (d.eventType === 'tick') {
+        if (d.p1Time !== undefined) el.p1TimeVal.textContent = formatTime(d.p1Time);
+        if (d.p2Time !== undefined) el.p2TimeVal.textContent = formatTime(d.p2Time);
+        if (d.activePlayer !== undefined && d.activePlayer !== currentActivePlayer) {
+          updateActivePlayerTurn(d.activePlayer);
+        }
+        return; // Early return prevents any DOM recalculation or answer flicker
+      }
+
+      // 2. Full Clue & Game State Update:
+      if (d.title && el.gameTitleBadge.textContent !== d.title.toUpperCase()) {
+        el.gameTitleBadge.textContent = d.title.toUpperCase();
+      }
 
       // Active Player Turn
-      if (d.activePlayer === 1) {
-        el.turnBanner.className = 'turn-banner p1';
-        el.turnBanner.textContent = `👉 ${(d.p1.name || 'PLAYER 1').toUpperCase()}'S TURN`;
-      } else {
-        el.turnBanner.className = 'turn-banner p2';
-        el.turnBanner.textContent = `👉 ${(d.p2.name || 'PLAYER 2').toUpperCase()}'S TURN`;
+      if (d.activePlayer !== undefined) {
+        updateActivePlayerTurn(d.activePlayer, d.p1?.name, d.p2?.name);
       }
 
       // Timers
-      el.p1Label.textContent = d.p1.name || 'Player 1';
-      el.p1TimeVal.textContent = formatTime(d.p1.timeRemaining);
-
-      el.p2Label.textContent = d.p2.name || 'Player 2';
-      el.p2TimeVal.textContent = formatTime(d.p2.timeRemaining);
-
-      // The Master Answer (Shown to Host)
-      if (d.clue && d.clue.answer) {
-        el.masterAnswer.textContent = d.clue.answer;
-        el.clueNumber.textContent = `Clue ${d.clueIndex + 1} of ${d.cluesCount}`;
-      } else {
-        el.masterAnswer.textContent = '---';
+      if (d.p1) {
+        if (d.p1.name) el.p1Label.textContent = d.p1.name;
+        el.p1TimeVal.textContent = formatTime(d.p1.timeRemaining);
+      }
+      if (d.p2) {
+        if (d.p2.name) el.p2Label.textContent = d.p2.name;
+        el.p2TimeVal.textContent = formatTime(d.p2.timeRemaining);
       }
 
-      if (d.nextAnswer) {
-        el.nextClueHint.textContent = `Next: ${d.nextAnswer}`;
-      } else {
-        el.nextClueHint.textContent = '';
+      // The Master Answer (Shown to Host) - 100% STABLE, NEVER REVERTS TO EMPTY
+      const newAnswer = d.promptAnswer || (d.clue && d.clue.answer);
+      if (newAnswer && newAnswer !== currentDisplayedAnswer) {
+        currentDisplayedAnswer = newAnswer;
+        el.masterAnswer.textContent = currentDisplayedAnswer.toUpperCase();
+        if (d.clueIndex !== undefined && d.cluesCount) {
+          el.clueNumber.textContent = `Clue ${d.clueIndex + 1} of ${d.cluesCount}`;
+        }
+      }
+
+      // Next Clue Hint Preview
+      const newNext = d.nextAnswer || '';
+      if (newNext !== currentNextAnswer) {
+        currentNextAnswer = newNext;
+        el.nextClueHint.textContent = currentNextAnswer ? `Next: ${currentNextAnswer}` : '';
       }
 
       // Status
@@ -485,7 +517,7 @@
       }
 
       if (d.status === 'gameover' && d.winner) {
-        const winnerName = d.winner === 1 ? d.p1.name : d.p2.name;
+        const winnerName = d.winner === 1 ? (d.p1?.name || 'Player 1') : (d.p2?.name || 'Player 2');
         el.turnBanner.className = 'turn-banner';
         el.turnBanner.style.background = 'rgba(255,211,105,0.25)';
         el.turnBanner.style.border = '2px solid var(--gold)';
@@ -494,29 +526,31 @@
       }
     }
 
-    // Send Command to Server (and BroadcastChannel)
+    // Send Command Exclusively to Single Authority
     async function sendCommand(cmd, payload = {}) {
-      // 1. Post to Server API
-      try {
-        fetch('/api/command', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cmd, ...payload })
-        }).catch(() => {});
-      } catch (e) {}
-
-      // 2. BroadcastChannel fallback (same machine)
-      if (channel) {
+      if (location.protocol.startsWith('http')) {
+        try {
+          await fetch('/api/command', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cmd, ...payload })
+          });
+        } catch (e) {
+          console.warn('Network command failed', e);
+        }
+      } else if (channel) {
+        // Fallback only if running offline file://
         channel.postMessage({ type: 'HOST_CMD', cmd, ...payload });
       }
     }
 
-    // Connect to Server SSE Stream
+    // Connect to Server SSE Stream (Primary Authority)
     let evtSource = null;
     function connectSSE() {
       if (location.protocol.startsWith('http')) {
         evtSource = new EventSource('/api/events');
         evtSource.onopen = () => {
+          isConnectedViaSse = true;
           el.connStatus.style.color = 'var(--green)';
           el.connLabel.textContent = 'HOST CONNECTED';
         };
@@ -527,15 +561,18 @@
           } catch (e) {}
         };
         evtSource.onerror = () => {
+          isConnectedViaSse = false;
           el.connStatus.style.color = '#ff9800';
           el.connLabel.textContent = 'RECONNECTING...';
         };
       }
     }
 
-    // BroadcastChannel Listener
+    // BroadcastChannel Listener (Secondary fallback for offline file:// only)
     if (channel) {
       channel.onmessage = (event) => {
+        // CRITICAL: Ignore BroadcastChannel if SSE is connected to prevent dual-stream race flickering!
+        if (isConnectedViaSse) return;
         if (event.data && event.data.type === 'STATE_SYNC') {
           applyState(event.data.payload);
         }
@@ -547,6 +584,61 @@
       vibrate(50);
       sendCommand('correct');
     });
+
+    el.btnHostPass.addEventListener('click', () => {
+      vibrate(120);
+      sendCommand('pass');
+    });
+
+    el.btnHostPause.addEventListener('click', () => {
+      vibrate(40);
+      sendCommand('toggle_pause');
+    });
+
+    el.btnHostReset.addEventListener('click', () => {
+      if (confirm('Reset the duel round?')) {
+        vibrate(80);
+        sendCommand('reset');
+      }
+    });
+
+    // Keyboard Shortcuts for Host (Desktop)
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        vibrate(50);
+        sendCommand('correct');
+      } else if (e.code === 'Tab') {
+        e.preventDefault();
+        vibrate(120);
+        sendCommand('pass');
+      } else if (e.code === 'Escape') {
+        e.preventDefault();
+        sendCommand('toggle_pause');
+      } else if (e.code === 'KeyR') {
+        e.preventDefault();
+        if (confirm('Reset round?')) {
+          sendCommand('reset');
+        }
+      }
+    });
+
+    // Category Modal
+    el.btnCategoryModal.addEventListener('click', () => {
+      el.categoryModal.classList.add('active');
+    });
+    el.btnCloseModal.addEventListener('click', () => {
+      el.categoryModal.classList.remove('active');
+    });
+
+    window.selectGame = function (gameId) {
+      sendCommand('select_game', { gameId });
+      el.categoryModal.classList.remove('active');
+    };
+
+    // Initialize
+    connectSSE();
+  </script>
 
     el.btnHostPass.addEventListener('click', () => {
       vibrate(120);

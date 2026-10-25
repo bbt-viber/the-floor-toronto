@@ -45,7 +45,19 @@ const state = {
 // Connected SSE Clients (Players and Hosts)
 const sseClients = new Set();
 
-function broadcastState(eventType = 'state_sync') {
+function sendSse(payload) {
+  const dataStr = `data: ${JSON.stringify(payload)}\n\n`;
+  for (const res of sseClients) {
+    try {
+      res.write(dataStr);
+    } catch (e) {
+      sseClients.delete(res);
+    }
+  }
+}
+
+// Broadcast Full Clue & Game State (when clue, status, or game changes)
+function broadcastClueState(eventType = 'clue_sync') {
   const currentClue = state.clues[state.clueIndex] || null;
   const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
 
@@ -59,20 +71,16 @@ function broadcastState(eventType = 'state_sync') {
     status: state.status,
     clueIndex: state.clueIndex,
     cluesCount: state.clues.length,
-    clue: currentClue,
-    nextAnswer: nextClue ? nextClue.answer : null,
+    // Stable, explicit clue pairings for host and players:
+    promptAnswer: currentClue ? currentClue.answer : '',
+    promptId: currentClue ? currentClue.id : '',
+    promptImage: currentClue ? currentClue.image : '',
+    nextAnswer: nextClue ? nextClue.answer : '',
     winner: state.winner,
     passPenaltySeconds: state.passPenaltySeconds
   };
 
-  const dataStr = `data: ${JSON.stringify(payload)}\n\n`;
-  for (const res of sseClients) {
-    try {
-      res.write(dataStr);
-    } catch (e) {
-      sseClients.delete(res);
-    }
-  }
+  sendSse(payload);
 }
 
 // High-Precision Server Clock Loop (ticks every 100ms)
@@ -93,11 +101,17 @@ setInterval(() => {
       state.status = 'gameover';
       state.winner = state.activePlayer === 1 ? 2 : 1;
       state.lastTickTime = null;
-      broadcastState('timeout');
+      broadcastClueState('timeout');
       return;
     }
 
-    broadcastState('tick');
+    // Lightweight timer tick ONLY (NEVER touches or modifies prompt/answer):
+    sendSse({
+      eventType: 'tick',
+      p1Time: state.p1.timeRemaining,
+      p2Time: state.p2.timeRemaining,
+      activePlayer: state.activePlayer
+    });
   } else {
     state.lastTickTime = null;
   }
@@ -110,7 +124,7 @@ function handleHostCommand(cmd, payload = {}) {
     if (state.status === 'ready' || state.status === 'paused') {
       state.status = 'running';
       state.lastTickTime = Date.now();
-      broadcastState('start');
+      broadcastClueState('start');
       return;
     }
 
@@ -120,7 +134,7 @@ function handleHostCommand(cmd, payload = {}) {
     if (state.clues.length > 0) {
       state.clueIndex = (state.clueIndex + 1) % state.clues.length;
     }
-    broadcastState('correct');
+    broadcastClueState('correct');
   } 
   else if (cmd === 'pass') {
     if (state.status !== 'running') return;
@@ -135,7 +149,7 @@ function handleHostCommand(cmd, payload = {}) {
       state.status = 'gameover';
       state.winner = state.activePlayer === 1 ? 2 : 1;
       state.lastTickTime = null;
-      broadcastState('timeout');
+      broadcastClueState('timeout');
       return;
     }
 
@@ -143,18 +157,18 @@ function handleHostCommand(cmd, payload = {}) {
     if (state.clues.length > 0) {
       state.clueIndex = (state.clueIndex + 1) % state.clues.length;
     }
-    broadcastState('pass');
+    broadcastClueState('pass');
   } 
   else if (cmd === 'toggle_pause') {
     if (state.status === 'gameover') return;
     if (state.status === 'running') {
       state.status = 'paused';
       state.lastTickTime = null;
-      broadcastState('pause');
+      broadcastClueState('pause');
     } else {
       state.status = 'running';
       state.lastTickTime = Date.now();
-      broadcastState('resume');
+      broadcastClueState('resume');
     }
   } 
   else if (cmd === 'reset') {
@@ -165,7 +179,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.clueIndex = 0;
     state.winner = null;
     state.lastTickTime = null;
-    broadcastState('reset');
+    broadcastClueState('reset');
   } 
   else if (cmd === 'select_game') {
     const gameId = payload.gameId;
@@ -183,7 +197,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.p2.timeRemaining = state.roundTime;
     state.clueIndex = 0;
     state.winner = null;
-    broadcastState('game_change');
+    broadcastClueState('game_change');
   } 
   else if (cmd === 'sync_custom_game') {
     if (payload.game && Array.isArray(payload.game.clues)) {
@@ -198,7 +212,7 @@ function handleHostCommand(cmd, payload = {}) {
       state.status = 'ready';
       state.clueIndex = 0;
       state.winner = null;
-      broadcastState('game_change');
+      broadcastClueState('game_change');
     }
   }
 }
@@ -256,7 +270,7 @@ const server = http.createServer((req, res) => {
     res.write('\n');
     sseClients.add(res);
 
-    // Send immediate state on connect
+    // Send immediate full state on connect
     const currentClue = state.clues[state.clueIndex] || null;
     const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
     const initialData = {
@@ -269,8 +283,10 @@ const server = http.createServer((req, res) => {
       status: state.status,
       clueIndex: state.clueIndex,
       cluesCount: state.clues.length,
-      clue: currentClue,
-      nextAnswer: nextClue ? nextClue.answer : null,
+      promptAnswer: currentClue ? currentClue.answer : '',
+      promptId: currentClue ? currentClue.id : '',
+      promptImage: currentClue ? currentClue.image : '',
+      nextAnswer: nextClue ? nextClue.answer : '',
       winner: state.winner,
       passPenaltySeconds: state.passPenaltySeconds
     };

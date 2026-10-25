@@ -217,15 +217,6 @@
     broadcastSync();
   }
 
-  function togglePause() {
-    if (state.status === 'gameover') return;
-    if (state.status === 'running') {
-      pauseRunning();
-    } else {
-      startRunning();
-    }
-  }
-
   function handleTimeout(losingPlayerId) {
     state.status = 'gameover';
     state.winner = losingPlayerId === 1 ? 2 : 1;
@@ -249,6 +240,8 @@
 
   // Host Action: Correct Answer (SPACE)
   function handleCorrect() {
+    if (sendServerCommand('correct')) return;
+
     if (state.status === 'gameover') return;
     if (state.status === 'ready') {
       // First press starts the timer on Clue #1 for Player 1
@@ -274,6 +267,8 @@
 
   // Host Action: Pass (TAB)
   function handlePass() {
+    if (sendServerCommand('pass')) return;
+
     if (state.status !== 'running') return;
 
     window.soundEngine.playPass();
@@ -300,8 +295,21 @@
     broadcastSync();
   }
 
+  function togglePause() {
+    if (sendServerCommand('toggle_pause')) return;
+
+    if (state.status === 'gameover') return;
+    if (state.status === 'running') {
+      pauseRunning();
+    } else {
+      startRunning();
+    }
+  }
+
   // Host Action: Reset Round (R)
   function resetRound() {
+    sendServerCommand('reset');
+
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
@@ -375,13 +383,18 @@
       el.p1Podium.classList.remove('active-turn');
     }
 
-    // Current Clue Image & Counter
+    // Current Clue Image & Counter (Stable update, prevents image/DOM flicker)
     if (state.clues.length > 0 && state.clues[state.clueIndex]) {
       const cur = state.clues[state.clueIndex];
-      el.clueImage.src = cur.image;
+      const clueId = cur.id || ('clue_' + state.clueIndex);
+      if (el.clueImage.getAttribute('data-clue-id') !== clueId) {
+        el.clueImage.setAttribute('data-clue-id', clueId);
+        el.clueImage.src = cur.image;
+      }
       el.clueCounter.textContent = `${state.clueIndex + 1} / ${state.clues.length}`;
       if (el.hostAnswerText) el.hostAnswerText.textContent = cur.answer;
     } else {
+      el.clueImage.removeAttribute('data-clue-id');
       el.clueImage.src = '';
       el.clueCounter.textContent = '0 / 0';
       if (el.hostAnswerText) el.hostAnswerText.textContent = 'No Clues';
@@ -402,7 +415,7 @@
 
   // Cross-Window / Dual-Screen Broadcast Sync
   function broadcastSync() {
-    if (!channel) return;
+    if (!channel || isServerConnected) return; // Do NOT broadcast competing data when connected to live server
     channel.postMessage({
       type: 'STATE_SYNC',
       payload: {
@@ -572,16 +585,35 @@
   }
 
   // Server-Sent Events (SSE) Listener for Real-Time Wireless Sync
+  let isServerConnected = false;
   let sseSource = null;
+
   function initServerEvents() {
     if (!location.protocol.startsWith('http')) return;
 
     sseSource = new EventSource('/api/events');
+    sseSource.onopen = () => {
+      isServerConnected = true;
+    };
+    sseSource.onerror = () => {
+      isServerConnected = false;
+    };
+
     sseSource.onmessage = (event) => {
       try {
         const d = JSON.parse(event.data);
         if (!d) return;
 
+        // 1. Lightweight Timer Tick: ONLY update clock digits & progress bars!
+        if (d.eventType === 'tick') {
+          if (d.p1Time !== undefined) state.p1.timeRemaining = d.p1Time;
+          if (d.p2Time !== undefined) state.p2.timeRemaining = d.p2Time;
+          if (d.activePlayer !== undefined) state.activePlayer = d.activePlayer;
+          updateTimerUI();
+          return; // Prevents any image reloading, DOM flicker, or repainting!
+        }
+
+        // 2. Sound & Animations on Clue Progression
         if (d.eventType === 'correct') {
           window.soundEngine.playCorrect();
           flashScreen('CORRECT!', 'correct-flash');
@@ -602,15 +634,19 @@
           return;
         }
 
-        // Synchronize state from authoritative server
+        // 3. Full Clue Synchronization
         state.title = d.title || state.title;
         state.p1 = d.p1 || state.p1;
         state.p2 = d.p2 || state.p2;
         state.activePlayer = d.activePlayer || state.activePlayer;
         state.status = d.status || state.status;
         state.clueIndex = d.clueIndex !== undefined ? d.clueIndex : state.clueIndex;
-        if (d.clue) {
-          state.clues[state.clueIndex] = d.clue;
+
+        if (d.promptImage) {
+          if (!state.clues[state.clueIndex]) state.clues[state.clueIndex] = {};
+          state.clues[state.clueIndex].image = d.promptImage;
+          state.clues[state.clueIndex].id = d.promptId || ('clue_' + state.clueIndex);
+          state.clues[state.clueIndex].answer = d.promptAnswer;
         }
 
         updateArenaUI();
@@ -618,6 +654,19 @@
         console.warn('Error handling server event', err);
       }
     };
+  }
+
+  // Forward local host commands to server when connected
+  function sendServerCommand(cmd, payload = {}) {
+    if (isServerConnected && location.protocol.startsWith('http')) {
+      fetch('/api/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cmd, ...payload })
+      }).catch(() => {});
+      return true;
+    }
+    return false;
   }
 
   // Header Nav & View Switcher
