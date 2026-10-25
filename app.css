@@ -1284,3 +1284,282 @@ body {
   border-color: var(--gold);
 }
 
+/* ==================== LANDING PAGE ==================== */
+.landing-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.landing-hero {
+  background: radial-gradient(circle at center, #141b2d 0%, #060911 100%);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 50px 30px;
+  width: 100%;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 211, 105, 0.08);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 36px;
+}
+
+.landing-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--p1-color), var(--gold), var(--p2-color));
+}
+
+.landing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 211, 105, 0.15);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+
+.landing-title {
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0 40px rgba(255, 211, 105, 0.4), 0 0 80px rgba(0, 240, 255, 0.2);
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+
+.landing-tagline {
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  font-weight: 800;
+  color: var(--p1-color);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px var(--p1-glow);
+}
+
+.landing-desc {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 680px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Landing Big Action Cards */
+.landing-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 860px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 700px) {
+  .landing-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-landing-card {
+  background: var(--bg-surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-landing-card:hover {
+  transform: translateY(-6px);
+}
+
+.btn-landing-create {
+  border-color: rgba(0, 240, 255, 0.4);
+}
+
+.btn-landing-create:hover {
+  border-color: var(--p1-color);
+  box-shadow: 0 0 40px var(--p1-glow), 0 12px 35px rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle at center, rgba(0, 240, 255, 0.12) 0%, rgba(10, 15, 26, 0.98) 100%);
+}
+
+.btn-landing-load {
+  border-color: rgba(255, 211, 105, 0.4);
+}
+
+.btn-landing-load:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 40px var(--gold-glow), 0 12px 35px rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle at center, rgba(255, 211, 105, 0.12) 0%, rgba(10, 15, 26, 0.98) 100%);
+}
+
+.landing-card-icon {
+  font-size: 3.5rem;
+  margin-bottom: 14px;
+}
+
+.landing-card-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.landing-card-subtitle {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.landing-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(16, 22, 38, 0.85);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ==================== TERRITORY FLOOR SCREEN ==================== */
+.territory-view-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 20px 40px;
+}
+
+.territory-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.territory-badge-pill {
+  background: rgba(255, 211, 105, 0.12);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* The High-Tech Illuminated Floor Grid */
+.territory-stage-wrapper {
+  background: radial-gradient(circle at center, #0f172a 0%, #060911 100%);
+  border: 2px solid rgba(255, 211, 105, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.85), inset 0 0 50px rgba(0, 240, 255, 0.05);
+  min-height: 540px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.territory-grid-stage {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Individual Territory Floor Square Tile */
+.territory-tile {
+  aspect-ratio: 1 / 1;
+  min-height: 90px;
+  border-radius: 12px;
+  border: 2px solid var(--tile-color, #00f0ff);
+  background: linear-gradient(145deg, rgba(20, 27, 45, 0.92) 0%, rgba(6, 9, 17, 0.98) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.03);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  user-select: none;
+}
+
+.territory-tile:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 8px 30px var(--tile-glow, rgba(0, 240, 255, 0.5)), inset 0 0 25px rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.territory-tile-num {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 800;
+  opacity: 0.6;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.territory-player-label {
+  font-size: clamp(0.85rem, 1.7vw, 1.35rem);
+  font-weight: 900;
+  text-align: center;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  word-break: break-word;
+  line-height: 1.15;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 0 15px var(--tile-color, #fff);
+  margin: auto 0;
+  padding: 0 4px;
+}
+
+.territory-tile-footer {
+  align-self: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--tile-color, #00f0ff);
+  opacity: 0.85;
+}
+

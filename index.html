@@ -14,13 +14,15 @@
 
   <!-- Navigation / Header Bar -->
   <header class="header-bar">
-    <div class="logo-area">
+    <div class="logo-area" id="btnLogoHome" style="cursor: pointer;" title="Go to Home / Landing">
       <div class="logo-icon">🏢</div>
       <div class="logo-title">The Floor Toronto</div>
     </div>
 
     <div class="header-actions">
-      <button id="btnNavArena" class="nav-btn active">🎮 Arena</button>
+      <button id="btnNavLanding" class="nav-btn active">🏠 Home</button>
+      <button id="btnNavTerritory" class="nav-btn">🗺️ Territory</button>
+      <button id="btnNavArena" class="nav-btn">🎮 Duel Arena</button>
       <button id="btnNavDirectory" class="nav-btn">📚 Game Library</button>
       <button id="btnNavSetup" class="nav-btn">⚙️ Setup &amp; Prompts</button>
       <button id="btnHostQr" class="nav-btn" style="border-color: var(--gold); color: var(--gold); font-weight: 700;">📱 Host Remote (QR)</button>
@@ -30,8 +32,83 @@
     </div>
   </header>
 
-  <!-- ==================== VIEW 1: ARENA (DUEL STAGE) ==================== -->
-  <main id="viewArena" class="view-container active">
+  <!-- ==================== VIEW 0: LANDING PAGE ==================== -->
+  <main id="viewLanding" class="view-container active">
+    <div class="landing-container">
+      
+      <!-- Hero Section -->
+      <section class="landing-hero">
+        <div class="landing-badge">🍁 THE FLOOR TORONTO 🍁</div>
+        <h1 class="landing-title">THE FLOOR</h1>
+        <div class="landing-tagline">100 Contestants • 1 Floor • Total Dominance</div>
+        <p class="landing-desc">
+          Welcome to Toronto's ultimate battle of visual trivia and territory conquest. Take the floor, challenge neighboring squares, and battle until one player controls the entire grid!
+        </p>
+      </section>
+
+      <!-- Action Buttons: 1) Create Game  2) Load Game -->
+      <section class="landing-actions-grid">
+        <!-- Button 1: Create Game -->
+        <button id="btnLandingCreateGame" class="btn-landing-card btn-landing-create">
+          <div class="landing-card-icon">⚡</div>
+          <div class="landing-card-title">CREATE GAME</div>
+          <p class="landing-card-subtitle">
+            Enter contestant names to generate your customized territory floor grid.
+          </p>
+        </button>
+
+        <!-- Button 2: Load Game -->
+        <button id="btnLandingLoadGame" class="btn-landing-card btn-landing-load">
+          <div class="landing-card-icon">💾</div>
+          <div class="landing-card-title">LOAD GAME</div>
+          <p class="landing-card-subtitle">
+            Resume your saved territory floor battle and continue conquering squares.
+          </p>
+        </button>
+      </section>
+
+      <!-- Status Bar / Quick Hint -->
+      <div id="landingSavedStatus" class="landing-status-bar">
+        <span>💡</span>
+        <span id="landingSavedStatusText">Click <strong>CREATE GAME</strong> to start your first territory battle!</span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==================== VIEW 1: TERRITORY FLOOR ==================== -->
+  <main id="viewTerritory" class="view-container">
+    <div class="territory-view-container">
+      
+      <!-- Top Floor Control Bar -->
+      <div class="territory-control-bar">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button id="btnTerritoryHome" class="nav-btn">🏠 Home</button>
+          <button id="btnTerritoryNewGame" class="nav-btn">⚡ New Game</button>
+          <button id="btnTerritorySaveGame" class="nav-btn">💾 Save Floor</button>
+        </div>
+
+        <div id="territoryStatusBadge" class="territory-badge-pill">
+          🗺️ THE FLOOR — <span id="territoryPlayerCount">0</span> PLAYERS
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button id="btnTerritoryGoArena" class="btn-launch" style="padding: 8px 20px; font-size: 0.85rem;">🎮 Go to Duel Arena</button>
+        </div>
+      </div>
+
+      <!-- The Floor Stage Container with Grid -->
+      <div class="territory-stage-wrapper">
+        <div id="territoryGrid" class="territory-grid-stage">
+          <!-- Dynamically populated with square tiles labeled with player names -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==================== VIEW 2: ARENA (DUEL STAGE) ==================== -->
+  <main id="viewArena" class="view-container">
     
     <div class="arena-grid">
       <!-- Player 1 Podium (Cyan) -->
@@ -282,6 +359,49 @@
         <button id="btnCopyHostLink" class="btn-secondary">📋 Copy Link</button>
         <button id="btnOpenHostTab" class="btn-secondary">↗ Open in Tab</button>
         <button id="btnCloseQrModal" class="btn-launch" style="padding: 10px 24px;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CREATE GAME MODAL ==================== -->
+  <div id="modalCreateGame" class="modal-overlay">
+    <div class="modal-card" style="max-width: 620px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 class="victory-title" style="font-size: 1.8rem; margin: 0; text-align: left;">⚡ Create Game — Enter Players</h2>
+        <button id="btnCloseCreateGameModal" class="nav-btn" style="padding: 4px 10px; font-size: 1.1rem;">✕</button>
+      </div>
+      <p class="victory-subtitle" style="text-align: left; margin-bottom: 16px; font-size: 0.95rem; line-height: 1.5;">
+        Enter a list of player names below (one per line, or separated by commas). Each name will create a Player and claim a square on the territory grid.
+      </p>
+
+      <div style="margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label class="form-label" for="inputPlayerNames" style="margin-bottom: 0;">Contestant Names:</label>
+          <div style="display: flex; gap: 8px;">
+            <span id="createGameCountBadge" class="game-badge-pill" style="font-size: 0.75rem;">0 Players</span>
+            <span id="createGameGridBadge" class="game-badge-pill" style="font-size: 0.75rem; border-color: var(--p1-color); color: var(--p1-color);">Grid: 0 × 0</span>
+          </div>
+        </div>
+        <textarea id="inputPlayerNames" class="form-input" rows="8" placeholder="Alex&#10;Jordan&#10;Sam&#10;Taylor&#10;Morgan&#10;Casey&#10;Riley&#10;Chris" style="width: 100%; font-family: inherit; font-size: 1rem; line-height: 1.5; resize: vertical;"></textarea>
+      </div>
+
+      <!-- Quick Presets -->
+      <div style="margin-bottom: 20px;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px;">
+          ⚡ Or Fill Quick Sample Roster:
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="btnPreset9" class="change-game-pill" style="margin-left: 0;">🎲 9 Players (3×3)</button>
+          <button type="button" id="btnPreset16" class="change-game-pill" style="margin-left: 0;">🎲 16 Players (4×4)</button>
+          <button type="button" id="btnPreset25" class="change-game-pill" style="margin-left: 0;">🎲 25 Players (5×5)</button>
+          <button type="button" id="btnPreset49" class="change-game-pill" style="margin-left: 0;">🎲 49 Players (7×7)</button>
+          <button type="button" id="btnPreset100" class="change-game-pill" style="margin-left: 0;">🎲 100 Players (10×10)</button>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" id="btnCancelCreateGame" class="btn-secondary">Cancel</button>
+        <button type="button" id="btnSubmitPlayers" class="btn-launch" style="padding: 12px 28px;">⚡ Launch Territory Floor</button>
       </div>
     </div>
   </div>

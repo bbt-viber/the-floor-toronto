@@ -45,12 +45,48 @@
 
   // DOM Elements
   const el = {
+    // Views
+    viewLanding: document.getElementById('viewLanding'),
+    viewTerritory: document.getElementById('viewTerritory'),
     viewArena: document.getElementById('viewArena'),
     viewDirectory: document.getElementById('viewDirectory'),
     viewSetup: document.getElementById('viewSetup'),
+
+    // Nav
+    btnLogoHome: document.getElementById('btnLogoHome'),
+    btnNavLanding: document.getElementById('btnNavLanding'),
+    btnNavTerritory: document.getElementById('btnNavTerritory'),
     btnNavArena: document.getElementById('btnNavArena'),
     btnNavDirectory: document.getElementById('btnNavDirectory'),
     btnNavSetup: document.getElementById('btnNavSetup'),
+
+    // Landing Page
+    btnLandingCreateGame: document.getElementById('btnLandingCreateGame'),
+    btnLandingLoadGame: document.getElementById('btnLandingLoadGame'),
+    landingSavedStatusText: document.getElementById('landingSavedStatusText'),
+
+    // Create Game Modal
+    modalCreateGame: document.getElementById('modalCreateGame'),
+    inputPlayerNames: document.getElementById('inputPlayerNames'),
+    createGameCountBadge: document.getElementById('createGameCountBadge'),
+    createGameGridBadge: document.getElementById('createGameGridBadge'),
+    btnCloseCreateGameModal: document.getElementById('btnCloseCreateGameModal'),
+    btnCancelCreateGame: document.getElementById('btnCancelCreateGame'),
+    btnSubmitPlayers: document.getElementById('btnSubmitPlayers'),
+    btnPreset9: document.getElementById('btnPreset9'),
+    btnPreset16: document.getElementById('btnPreset16'),
+    btnPreset25: document.getElementById('btnPreset25'),
+    btnPreset49: document.getElementById('btnPreset49'),
+    btnPreset100: document.getElementById('btnPreset100'),
+
+    // Territory View
+    btnTerritoryHome: document.getElementById('btnTerritoryHome'),
+    btnTerritoryNewGame: document.getElementById('btnTerritoryNewGame'),
+    btnTerritorySaveGame: document.getElementById('btnTerritorySaveGame'),
+    btnTerritoryGoArena: document.getElementById('btnTerritoryGoArena'),
+    territoryPlayerCount: document.getElementById('territoryPlayerCount'),
+    territoryGrid: document.getElementById('territoryGrid'),
+
     btnHostQr: document.getElementById('btnHostQr'),
     btnStageQr: document.getElementById('btnStageQr'),
     btnQuickChangeGame: document.getElementById('btnQuickChangeGame'),
@@ -951,45 +987,309 @@
     return false;
   }
 
+  // Territory Floor State & Contestant Presets
+  let territoryGame = {
+    players: [],
+    cols: 4,
+    rows: 4,
+    grid: []
+  };
+
+  const SAMPLE_NAMES = [
+    "Alex", "Jordan", "Sam", "Taylor", "Morgan", "Casey", "Riley", "Chris",
+    "Avery", "Dakota", "Jamie", "Kendall", "Reese", "Quinn", "Skyler", "Jesse",
+    "Cameron", "Drew", "Hayden", "Logan", "Peyton", "Rowan", "Sydney", "Adrian",
+    "Bailey", "Harper", "Finley", "Emerson", "Sage", "River", "Dallas", "Phoenix",
+    "Elliott", "Sawyer", "Kai", "Rory", "Parker", "Eden", "Shiloh", "Amari",
+    "Lennon", "Milan", "Remy", "Oakley", "Tatum", "Blair", "Sutton", "Ellis",
+    "Hollis", "Winter", "Robin", "Frankie", "Stevie", "Murphy", "Chandler", "Corey",
+    "Marley", "Wren", "Kieran", "Briar", "Shay", "Jules", "Lennox", "August",
+    "Justice", "Monroe", "Sterling", "Campbell", "Linden", "Zephyr", "Raine", "Toby",
+    "Micah", "Nico", "Bellamy", "Bowie", "Greer", "Denver", "Harley", "Salem",
+    "Keegan", "Onyx", "Shiloh", "Sloan", "Navy", "Palmer", "Aspen", "Cypress",
+    "Indigo", "Haven", "True", "Atlas", "Echo", "Jordy", "Lyric", "Nova",
+    "Orion", "Pax", "Storm", "Vale"
+  ];
+
+  function getPlayerColor(index, total) {
+    const hue = Math.round((index * 137.508) % 360);
+    return `hsl(${hue}, 88%, 62%)`;
+  }
+
+  function parsePlayerNames(text) {
+    if (!text) return [];
+    return text
+      .split(/[\n,]+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function updateCreateGameBadges() {
+    if (!el.inputPlayerNames) return;
+    const names = parsePlayerNames(el.inputPlayerNames.value);
+    const count = names.length;
+    const cols = count > 0 ? Math.ceil(Math.sqrt(count)) : 0;
+    const rows = count > 0 ? Math.ceil(count / cols) : 0;
+
+    if (el.createGameCountBadge) {
+      el.createGameCountBadge.textContent = `${count} Player${count === 1 ? '' : 's'}`;
+    }
+    if (el.createGameGridBadge) {
+      el.createGameGridBadge.textContent = `Grid: ${cols} × ${rows}`;
+    }
+  }
+
+  function openCreateGameModal() {
+    if (el.modalCreateGame) {
+      el.modalCreateGame.classList.add('active');
+      if (el.inputPlayerNames && !el.inputPlayerNames.value.trim()) {
+        fillSamplePreset(16);
+      } else {
+        updateCreateGameBadges();
+      }
+    }
+  }
+
+  function closeCreateGameModal() {
+    if (el.modalCreateGame) el.modalCreateGame.classList.remove('active');
+  }
+
+  function fillSamplePreset(count) {
+    const subset = SAMPLE_NAMES.slice(0, count);
+    if (el.inputPlayerNames) {
+      el.inputPlayerNames.value = subset.join('\n');
+      updateCreateGameBadges();
+    }
+  }
+
+  function handleCreateGameSubmit() {
+    const names = parsePlayerNames(el.inputPlayerNames ? el.inputPlayerNames.value : '');
+    if (names.length < 2) {
+      alert('Please enter at least 2 player names to build the territory floor.');
+      return;
+    }
+
+    const cols = Math.ceil(Math.sqrt(names.length));
+    const rows = Math.ceil(names.length / cols);
+
+    const players = names.map((name, idx) => ({
+      id: 'p_' + (idx + 1),
+      number: idx + 1,
+      name: name,
+      color: getPlayerColor(idx, names.length),
+      territoryCount: 1,
+      active: true
+    }));
+
+    const grid = players.map((p, idx) => ({
+      squareIndex: idx,
+      playerId: p.id,
+      playerName: p.name,
+      color: p.color
+    }));
+
+    territoryGame = {
+      createdAt: Date.now(),
+      players: players,
+      cols: cols,
+      rows: rows,
+      grid: grid
+    };
+
+    saveTerritoryGame();
+    closeCreateGameModal();
+    renderTerritoryGrid();
+    switchToView('territory');
+  }
+
+  function saveTerritoryGame() {
+    try {
+      localStorage.setItem('the_floor_territory_game', JSON.stringify(territoryGame));
+      updateLandingSavedStatus();
+    } catch (e) {
+      console.warn('Could not persist territory game to localStorage', e);
+    }
+  }
+
+  function loadTerritoryGame() {
+    try {
+      const saved = localStorage.getItem('the_floor_territory_game');
+      if (saved) {
+        territoryGame = JSON.parse(saved);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Error loading territory game', e);
+    }
+    return false;
+  }
+
+  function handleLoadGameClick() {
+    if (loadTerritoryGame()) {
+      renderTerritoryGrid();
+      switchToView('territory');
+    } else {
+      alert('No saved territory game found! Let\'s create one now.');
+      openCreateGameModal();
+    }
+  }
+
+  function updateLandingSavedStatus() {
+    if (!el.landingSavedStatusText) return;
+    try {
+      const saved = localStorage.getItem('the_floor_territory_game');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.players && parsed.players.length > 0) {
+          el.landingSavedStatusText.innerHTML = `Saved Floor: <strong>${parsed.players.length} Players</strong> (${parsed.cols}×${parsed.rows} Grid). Click <strong>LOAD GAME</strong> to continue!`;
+          return;
+        }
+      }
+    } catch (e) {}
+    el.landingSavedStatusText.innerHTML = `Click <strong>CREATE GAME</strong> to start your first territory battle!`;
+  }
+
+  function renderTerritoryGrid() {
+    if (!el.territoryGrid) return;
+    el.territoryGrid.innerHTML = '';
+
+    if (!territoryGame || !territoryGame.grid || territoryGame.grid.length === 0) {
+      if (el.territoryPlayerCount) el.territoryPlayerCount.textContent = '0';
+      el.territoryGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 60px 20px; text-align: center; color: var(--text-muted);">
+          <div style="font-size: 3rem; margin-bottom: 12px;">🗺️</div>
+          <h3 style="color: #fff; font-size: 1.4rem; margin-bottom: 8px;">No Territory Created Yet</h3>
+          <p style="margin-bottom: 20px;">Create a game to generate the floor grid.</p>
+          <button id="btnEmptyCreateGame" class="btn-launch" style="padding: 10px 24px;">⚡ Create Game</button>
+        </div>
+      `;
+      const emptyBtn = document.getElementById('btnEmptyCreateGame');
+      if (emptyBtn) emptyBtn.addEventListener('click', openCreateGameModal);
+      return;
+    }
+
+    if (el.territoryPlayerCount) {
+      el.territoryPlayerCount.textContent = territoryGame.players.length;
+    }
+
+    el.territoryGrid.style.gridTemplateColumns = `repeat(${territoryGame.cols}, minmax(0, 1fr))`;
+
+    territoryGame.grid.forEach((sq, idx) => {
+      const tile = document.createElement('div');
+      tile.className = 'territory-tile';
+      tile.style.setProperty('--tile-color', sq.color);
+      tile.style.setProperty('--tile-glow', `${sq.color}66`);
+
+      const numSpan = document.createElement('span');
+      numSpan.className = 'territory-tile-num';
+      numSpan.textContent = `#${idx + 1}`;
+
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'territory-player-label';
+      labelDiv.textContent = sq.playerName;
+
+      const footerSpan = document.createElement('span');
+      footerSpan.className = 'territory-tile-footer';
+      footerSpan.textContent = '1 Territory';
+
+      tile.appendChild(numSpan);
+      tile.appendChild(labelDiv);
+      tile.appendChild(footerSpan);
+
+      tile.addEventListener('click', () => {
+        window.soundEngine?.playTick();
+        tile.style.transform = 'scale(0.95)';
+        setTimeout(() => tile.style.transform = '', 150);
+      });
+
+      el.territoryGrid.appendChild(tile);
+    });
+  }
+
   // Header Nav & View Switcher
   function switchToView(viewName) {
     // Hide all views & remove active nav classes
-    el.viewArena.classList.remove('active');
-    el.viewDirectory.classList.remove('active');
-    el.viewSetup.classList.remove('active');
+    if (el.viewLanding) el.viewLanding.classList.remove('active');
+    if (el.viewTerritory) el.viewTerritory.classList.remove('active');
+    if (el.viewArena) el.viewArena.classList.remove('active');
+    if (el.viewDirectory) el.viewDirectory.classList.remove('active');
+    if (el.viewSetup) el.viewSetup.classList.remove('active');
 
-    el.btnNavArena.classList.remove('active');
-    el.btnNavDirectory.classList.remove('active');
-    el.btnNavSetup.classList.remove('active');
+    if (el.btnNavLanding) el.btnNavLanding.classList.remove('active');
+    if (el.btnNavTerritory) el.btnNavTerritory.classList.remove('active');
+    if (el.btnNavArena) el.btnNavArena.classList.remove('active');
+    if (el.btnNavDirectory) el.btnNavDirectory.classList.remove('active');
+    if (el.btnNavSetup) el.btnNavSetup.classList.remove('active');
 
-    if (viewName === 'arena') {
-      el.viewArena.classList.add('active');
-      el.btnNavArena.classList.add('active');
+    if (viewName === 'landing') {
+      if (el.viewLanding) el.viewLanding.classList.add('active');
+      if (el.btnNavLanding) el.btnNavLanding.classList.add('active');
+      updateLandingSavedStatus();
+    } else if (viewName === 'territory') {
+      if (el.viewTerritory) el.viewTerritory.classList.add('active');
+      if (el.btnNavTerritory) el.btnNavTerritory.classList.add('active');
+      renderTerritoryGrid();
+    } else if (viewName === 'arena') {
+      if (el.viewArena) el.viewArena.classList.add('active');
+      if (el.btnNavArena) el.btnNavArena.classList.add('active');
       updateArenaUI();
     } else if (viewName === 'directory') {
-      el.viewDirectory.classList.add('active');
-      el.btnNavDirectory.classList.add('active');
+      if (el.viewDirectory) el.viewDirectory.classList.add('active');
+      if (el.btnNavDirectory) el.btnNavDirectory.classList.add('active');
       renderDirectory();
     } else if (viewName === 'setup') {
-      el.viewSetup.classList.add('active');
-      el.btnNavSetup.classList.add('active');
+      if (el.viewSetup) el.viewSetup.classList.add('active');
+      if (el.btnNavSetup) el.btnNavSetup.classList.add('active');
       renderSetupForm();
     }
   }
 
-  el.btnNavArena.addEventListener('click', () => switchToView('arena'));
-  el.btnNavDirectory.addEventListener('click', () => {
+  // Nav Button Listeners
+  if (el.btnLogoHome) el.btnLogoHome.addEventListener('click', () => switchToView('landing'));
+  if (el.btnNavLanding) el.btnNavLanding.addEventListener('click', () => switchToView('landing'));
+  if (el.btnNavTerritory) el.btnNavTerritory.addEventListener('click', () => switchToView('territory'));
+  if (el.btnNavArena) el.btnNavArena.addEventListener('click', () => switchToView('arena'));
+  if (el.btnNavDirectory) el.btnNavDirectory.addEventListener('click', () => {
     if (state.status === 'running') pauseRunning();
     switchToView('directory');
   });
-  el.btnQuickChangeGame.addEventListener('click', () => {
+  if (el.btnQuickChangeGame) el.btnQuickChangeGame.addEventListener('click', () => {
     if (state.status === 'running') pauseRunning();
     switchToView('directory');
   });
-  el.btnNavSetup.addEventListener('click', () => {
+  if (el.btnNavSetup) el.btnNavSetup.addEventListener('click', () => {
     if (state.status === 'running') pauseRunning();
     switchToView('setup');
   });
+
+  // Landing Page Buttons
+  if (el.btnLandingCreateGame) el.btnLandingCreateGame.addEventListener('click', openCreateGameModal);
+  if (el.btnLandingLoadGame) el.btnLandingLoadGame.addEventListener('click', handleLoadGameClick);
+
+  // Territory View Buttons
+  if (el.btnTerritoryHome) el.btnTerritoryHome.addEventListener('click', () => switchToView('landing'));
+  if (el.btnTerritoryNewGame) el.btnTerritoryNewGame.addEventListener('click', openCreateGameModal);
+  if (el.btnTerritorySaveGame) el.btnTerritorySaveGame.addEventListener('click', () => {
+    saveTerritoryGame();
+    alert('Territory floor saved successfully!');
+  });
+  if (el.btnTerritoryGoArena) el.btnTerritoryGoArena.addEventListener('click', () => switchToView('arena'));
+
+  // Create Game Modal
+  if (el.btnCloseCreateGameModal) el.btnCloseCreateGameModal.addEventListener('click', closeCreateGameModal);
+  if (el.btnCancelCreateGame) el.btnCancelCreateGame.addEventListener('click', closeCreateGameModal);
+  if (el.btnSubmitPlayers) el.btnSubmitPlayers.addEventListener('click', handleCreateGameSubmit);
+
+  if (el.inputPlayerNames) {
+    el.inputPlayerNames.addEventListener('input', updateCreateGameBadges);
+  }
+
+  // Preset Buttons
+  if (el.btnPreset9) el.btnPreset9.addEventListener('click', () => fillSamplePreset(9));
+  if (el.btnPreset16) el.btnPreset16.addEventListener('click', () => fillSamplePreset(16));
+  if (el.btnPreset25) el.btnPreset25.addEventListener('click', () => fillSamplePreset(25));
+  if (el.btnPreset49) el.btnPreset49.addEventListener('click', () => fillSamplePreset(49));
+  if (el.btnPreset100) el.btnPreset100.addEventListener('click', () => fillSamplePreset(100));
 
   // Render Game Directory / Library Index
   function renderDirectory() {
@@ -1412,8 +1712,11 @@
 
   // Initialize
   loadPersistedGame();
+  loadTerritoryGame();
   initServerEvents();
   updateArenaUI();
+  updateLandingSavedStatus();
+  switchToView('landing'); // Always the first page a user lands on!
   animationId = requestAnimationFrame(gameLoop);
 
 })();

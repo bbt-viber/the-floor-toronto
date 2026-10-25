@@ -59,6 +59,7 @@ const state = {
   roundTime: 45,
   passPenaltySeconds: 3,
   winner: null,
+  territory: null,
   lastTickTime: null,
   lastEvent: null
 };
@@ -110,6 +111,7 @@ function broadcastClueState(eventType = 'clue_sync') {
     promptImage: isPromptHidden ? '' : (currentClue ? currentClue.image : ''),
     nextAnswer: nextClue ? nextClue.answer : '',
     winner: state.winner,
+    territory: state.territory,
     passPenaltySeconds: state.passPenaltySeconds
   };
 
@@ -425,6 +427,12 @@ function handleHostCommand(cmd, payload = {}) {
       broadcastClueState('game_change');
     }
   }
+  else if (cmd === 'sync_territory') {
+    if (payload.territory) {
+      state.territory = payload.territory;
+      broadcastClueState('territory_update');
+    }
+  }
 }
 
 // MIME Types
@@ -506,6 +514,7 @@ const server = http.createServer((req, res) => {
       promptImage: isPromptHidden ? '' : (currentClue ? currentClue.image : ''),
       nextAnswer: nextClue ? nextClue.answer : '',
       winner: state.winner,
+      territory: state.territory,
       passPenaltySeconds: state.passPenaltySeconds
     };
     res.write(`data: ${JSON.stringify(initialData)}\n\n`);
@@ -531,6 +540,13 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: 'Invalid JSON command' }));
       }
     });
+    return;
+  }
+
+  // --- API: Territory Endpoint ---
+  if (pathname === '/api/territory' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(state.territory || {}));
     return;
   }
 
