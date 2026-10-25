@@ -735,19 +735,25 @@
     });
   }
 
-  el.btnResume.addEventListener('click', () => {
-    startRunning();
-  });
+  if (el.btnResume) {
+    el.btnResume.addEventListener('click', () => {
+      startRunning();
+    });
+  }
 
-  el.btnRematch.addEventListener('click', () => {
-    resetRound();
-    startRunning();
-  });
+  if (el.btnRematch) {
+    el.btnRematch.addEventListener('click', () => {
+      resetRound();
+      startRunning();
+    });
+  }
 
-  el.btnBackToSetup.addEventListener('click', () => {
-    resetRound();
-    switchToView('setup');
-  });
+  if (el.btnBackToSetup) {
+    el.btnBackToSetup.addEventListener('click', () => {
+      resetRound();
+      switchToView('setup');
+    });
+  }
 
   // Host Answer Peek Toggle (if present)
   if (el.btnToggleAnswer) {
@@ -907,7 +913,24 @@
           if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
         }
 
+        // Territory Sync
+        if (d.territory) {
+          territoryGame = d.territory;
+          try {
+            localStorage.setItem('the_floor_territory_game', JSON.stringify(territoryGame));
+            updateLandingSavedStatus();
+          } catch (e) {}
+        }
+
         // Territory Events
+        if (d.eventType === 'return_to_territory') {
+          if (el.victoryModal) el.victoryModal.classList.remove('active');
+          if (el.pauseModal) el.pauseModal.classList.remove('active');
+          clearChallengerState();
+          switchToView('territory');
+          return;
+        }
+
         if (d.eventType === 'randomizer_spin' && d.challenger) {
           runTerritoryRandomizerAnimation(d.challenger, d.adjacentDefenders || []);
           return;
@@ -1342,7 +1365,8 @@
     }
 
     if (el.territoryPlayerCount) {
-      el.territoryPlayerCount.textContent = territoryGame.players.length;
+      const activeCount = territoryGame.players.filter(p => p.active !== false).length;
+      el.territoryPlayerCount.textContent = activeCount;
     }
 
     el.territoryGrid.style.gridTemplateColumns = `repeat(${territoryGame.cols}, minmax(0, 1fr))`;
@@ -1357,8 +1381,14 @@
     territoryGame.grid.forEach((sq, idx) => {
       const tile = document.createElement('div');
       tile.className = 'territory-tile';
-      tile.style.setProperty('--tile-color', sq.color);
-      tile.style.setProperty('--tile-glow', `${sq.color}66`);
+
+      const owner = territoryGame.players.find(p => p.id === sq.playerId);
+      const tileColor = owner ? owner.color : sq.color;
+      const playerName = owner ? owner.name : sq.playerName;
+      const count = owner ? (owner.territoryCount || 1) : 1;
+
+      tile.style.setProperty('--tile-color', tileColor);
+      tile.style.setProperty('--tile-glow', `${tileColor}66`);
 
       const numSpan = document.createElement('span');
       numSpan.className = 'territory-tile-num';
@@ -1366,11 +1396,11 @@
 
       const labelDiv = document.createElement('div');
       labelDiv.className = 'territory-player-label';
-      labelDiv.textContent = sq.playerName;
+      labelDiv.textContent = playerName;
 
       const footerSpan = document.createElement('span');
       footerSpan.className = 'territory-tile-footer';
-      footerSpan.textContent = '1 Territory';
+      footerSpan.textContent = `${count} ${count === 1 ? 'Territory' : 'Territories'}`;
 
       tile.appendChild(numSpan);
       tile.appendChild(labelDiv);

@@ -516,6 +516,46 @@
       border-radius: 4px;
       letter-spacing: 0.5px;
     }
+
+    /* Return to Territory Action Button */
+    .btn-return-territory {
+      width: 100%;
+      background: linear-gradient(135deg, #00c9a7 0%, #0083b0 100%);
+      border: 2px solid #00f2fe;
+      color: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 22px 18px;
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 35px rgba(0, 201, 167, 0.45);
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      animation: pulse-return-btn 2s infinite ease-in-out;
+    }
+
+    .btn-return-territory:hover, .btn-return-territory:active {
+      transform: scale(1.02);
+      box-shadow: 0 0 50px rgba(0, 242, 254, 0.85);
+      background: linear-gradient(135deg, #00f2fe 0%, #00c9a7 100%);
+    }
+
+    @keyframes pulse-return-btn {
+      0%, 100% {
+        box-shadow: 0 0 25px rgba(0, 201, 167, 0.45);
+        border-color: #00f2fe;
+      }
+      50% {
+        box-shadow: 0 0 45px rgba(0, 242, 254, 0.85);
+        border-color: #ffffff;
+      }
+    }
   </style>
 </head>
 <body>
@@ -621,6 +661,12 @@
         <span class="hotkey-hint">SPACE</span>
       </button>
 
+      <!-- Return to Territory Button (Shown when Duel Concludes / Game Over) -->
+      <button id="btnHostReturnToTerritory" class="btn-return-territory" style="display: none;">
+        <span>🗺️ RETURN TO TERRITORY</span>
+        <span class="hotkey-hint">Sync all screens back to the Floor</span>
+      </button>
+
       <!-- Giant Thumb-Friendly Touch Controls (Active during Duel) -->
       <div id="duelActionsGrid" class="host-actions-grid" style="display: none;">
         <!-- Correct Button -->
@@ -719,6 +765,7 @@
       nextClueHint: document.getElementById('nextClueHint'),
       btnHostStartDuel: document.getElementById('btnHostStartDuel'),
       startDuelLabel: document.getElementById('startDuelLabel'),
+      btnHostReturnToTerritory: document.getElementById('btnHostReturnToTerritory'),
       duelActionsGrid: document.getElementById('duelActionsGrid'),
       btnHostCorrect: document.getElementById('btnHostCorrect'),
       btnHostPass: document.getElementById('btnHostPass'),
@@ -793,16 +840,18 @@
         `;
         btn.addEventListener('click', () => {
           vibrate(60);
-          selectDefenderForDuel(challenger.name, def.name);
+          selectDefenderForDuel(challenger, def);
         });
         el.hostDefendersList.appendChild(btn);
       });
     }
 
-    function selectDefenderForDuel(challengerName, defenderName) {
+    function selectDefenderForDuel(challenger, defender) {
       sendCommand('select_defender', {
-        challengerName: challengerName,
-        defenderName: defenderName
+        challengerId: challenger.id,
+        challengerName: challenger.name,
+        defenderId: defender.id,
+        defenderName: defender.name
       });
     }
 
@@ -869,7 +918,25 @@
         el.hostRandomizerCard.style.display = 'block';
         el.btnHostTriggerRandomizer.disabled = false;
         el.labelHostRandomize.textContent = 'TRIGGER RANDOMIZER';
+        if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'none';
         switchHostMode('duel');
+      }
+
+      // Handle Return to Territory (transition back to floor)
+      if (d.eventType === 'return_to_territory') {
+        if (d.territory) {
+          currentTerritory = d.territory;
+          updateHostTerritoryUI();
+        }
+        currentChallenger = null;
+        currentAdjacentDefenders = [];
+        el.hostChallengerCard.style.display = 'none';
+        el.hostRandomizerCard.style.display = 'block';
+        el.btnHostTriggerRandomizer.disabled = false;
+        el.labelHostRandomize.textContent = 'TRIGGER RANDOMIZER';
+        if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'none';
+        switchHostMode('territory');
+        return;
       }
 
       // Active Challenger snapshot from initial_state
@@ -1019,11 +1086,15 @@
         }
       } else if (d.status === 'paused') {
         el.btnHostPause.textContent = '▶ RESUME (ESC)';
+        if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'none';
       } else if (d.status === 'gameover') {
-        el.btnHostStartDuel.style.display = 'flex';
-        el.btnHostStartDuel.disabled = false;
-        el.startDuelLabel.textContent = '↻ PLAY AGAIN';
+        el.btnHostStartDuel.style.display = 'none';
         el.duelActionsGrid.style.display = 'none';
+        if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'flex';
+      }
+
+      if (d.status && d.status !== 'gameover') {
+        if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'none';
       }
 
       if (d.status === 'gameover' && d.winner) {
@@ -1129,11 +1200,18 @@
     el.btnHostStartDuel.addEventListener('click', () => {
       vibrate(60);
       if (currentStatus === 'gameover') {
-        sendCommand('reset');
+        sendCommand('return_to_territory');
       } else {
         sendCommand('start_duel');
       }
     });
+
+    if (el.btnHostReturnToTerritory) {
+      el.btnHostReturnToTerritory.addEventListener('click', () => {
+        vibrate(60);
+        sendCommand('return_to_territory');
+      });
+    }
 
     el.btnHostCorrect.addEventListener('click', () => {
       vibrate(50);
@@ -1164,8 +1242,16 @@
         vibrate(50);
         if (currentStatus === 'ready') {
           sendCommand('start_duel');
+        } else if (currentStatus === 'gameover') {
+          sendCommand('return_to_territory');
         } else {
           sendCommand('correct');
+        }
+      } else if (e.code === 'KeyT') {
+        if (currentStatus === 'gameover') {
+          e.preventDefault();
+          vibrate(50);
+          sendCommand('return_to_territory');
         }
       } else if (e.code === 'Tab') {
         e.preventDefault();

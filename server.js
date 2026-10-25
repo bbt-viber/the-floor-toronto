@@ -62,6 +62,7 @@ const state = {
   territory: null,
   activeChallenger: null,
   adjacentDefenders: [],
+  duelTerritoryResolved: false,
   lastTickTime: null,
   lastEvent: null
 };
@@ -122,6 +123,55 @@ function broadcastClueState(eventType = 'clue_sync') {
   sendSse(payload);
 }
 
+// Resolves duel outcome on the Floor Territory grid:
+// The loser is eliminated from the territory, and the winner claims all of the loser's squares.
+function resolveDuelTerritory() {
+  if (state.duelTerritoryResolved) return;
+  if (!state.territory || !state.territory.players || !state.territory.grid) return;
+
+  const winnerNum = state.winner; // 1 or 2
+  const winnerInfo = winnerNum === 1 ? state.p1 : state.p2;
+  const loserInfo = winnerNum === 1 ? state.p2 : state.p1;
+
+  if (!winnerInfo || !loserInfo) return;
+
+  const winnerPlayer = state.territory.players.find(p => 
+    (winnerInfo.id && p.id === winnerInfo.id) || 
+    p.name.trim().toLowerCase() === winnerInfo.name.trim().toLowerCase()
+  );
+  const loserPlayer = state.territory.players.find(p => 
+    (loserInfo.id && p.id === loserInfo.id) || 
+    p.name.trim().toLowerCase() === loserInfo.name.trim().toLowerCase()
+  );
+
+  if (!winnerPlayer || !loserPlayer) {
+    console.warn('[Territory] Winner or loser contestant not found in territory roster:', winnerInfo.name, loserInfo.name);
+    return;
+  }
+
+  // 1. All squares belonging to loser on the grid are conquered by the winner
+  state.territory.grid.forEach(sq => {
+    if (sq.playerId === loserPlayer.id || sq.playerName.trim().toLowerCase() === loserPlayer.name.trim().toLowerCase()) {
+      sq.playerId = winnerPlayer.id;
+      sq.playerName = winnerPlayer.name;
+      sq.color = winnerPlayer.color;
+    }
+  });
+
+  // 2. Remove loser from territory players roster
+  state.territory.players = state.territory.players.filter(p => 
+    p.id !== loserPlayer.id && 
+    p.name.trim().toLowerCase() !== loserPlayer.name.trim().toLowerCase()
+  );
+
+  // 3. Update winner's territory count
+  const ownedCount = state.territory.grid.filter(sq => sq.playerId === winnerPlayer.id).length;
+  winnerPlayer.territoryCount = ownedCount;
+
+  state.duelTerritoryResolved = true;
+  console.log(`[Territory] Duel resolved: ${winnerPlayer.name} takes the floor! ${loserPlayer.name} eliminated. ${winnerPlayer.name} now holds ${ownedCount} squares. Remaining contestants: ${state.territory.players.length}`);
+}
+
 // High-Precision Server Clock Loop (ticks every 100ms)
 setInterval(() => {
   if (state.status === 'running') {
@@ -145,6 +195,7 @@ setInterval(() => {
       state.status = 'gameover';
       state.winner = state.activePlayer === 1 ? 2 : 1;
       state.lastTickTime = null;
+      resolveDuelTerritory();
       broadcastClueState('timeout');
       return;
     }
@@ -541,6 +592,19 @@ function handleHostCommand(cmd, payload = {}) {
   else if (cmd === 'select_defender') {
     const challengerName = payload.challengerName || (state.activeChallenger ? state.activeChallenger.name : 'Player 1');
     const defenderName = payload.defenderName || (payload.defender ? payload.defender.name : 'Player 2');
+    let challengerId = payload.challengerId || (state.activeChallenger ? state.activeChallenger.id : null);
+    let defenderId = payload.defenderId || (payload.defender ? payload.defender.id : null);
+
+    if (state.territory && state.territory.players) {
+      if (!challengerId) {
+        const cp = state.territory.players.find(p => p.name.trim().toLowerCase() === String(challengerName).trim().toLowerCase());
+        if (cp) challengerId = cp.id;
+      }
+      if (!defenderId) {
+        const dp = state.territory.players.find(p => p.name.trim().toLowerCase() === String(defenderName).trim().toLowerCase());
+        if (dp) defenderId = dp.id;
+      }
+    }
 
     if (countdownTimer) clearInterval(countdownTimer);
     if (passTimer) clearInterval(passTimer);
@@ -556,7 +620,9 @@ function handleHostCommand(cmd, payload = {}) {
     state.correctAnswer = '';
     state.lastCorrectAnswer = '';
 
+    state.p1.id = challengerId;
     state.p1.name = String(challengerName).trim();
+    state.p2.id = defenderId;
     state.p2.name = String(defenderName).trim();
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
@@ -567,6 +633,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.lastTickTime = null;
     state.activeChallenger = null;
     state.adjacentDefenders = [];
+    state.duelTerritoryResolved = false;
 
     broadcastClueState('duel_players_set');
   }
@@ -576,6 +643,48 @@ function handleHostCommand(cmd, payload = {}) {
     sendSse({
       eventType: 'challenger_cancelled',
       territory: state.territory
+    });
+  }
+  else if (cmd === 'return_to_territory') {
+    if (countdownTimer) clearInterval(countdownTimer);
+    if (passTimer) clearInterval(passTimer);
+    if (correctTimer) clearTimeout(correctTimer);
+    countdownTimer = null;
+    passTimer = null;
+    correctTimer = null;
+    state.countdownVal = 0;
+    state.isPassing = false;
+    state.passRemaining = 0;
+    state.passedAnswer = '';
+    state.isCorrect = false;
+    state.correctAnswer = '';
+    state.lastCorrectAnswer = '';
+
+    state.status = 'ready';
+    state.clueIndex = 0;
+    state.activePlayer = 1;
+    state.winner = null;
+    state.lastTickTime = null;
+    state.activeChallenger = null;
+    state.adjacentDefenders = [];
+    state.duelTerritoryResolved = false;
+    state.p1.timeRemaining = state.roundTime;
+    state.p2.timeRemaining = state.roundTime;
+
+    sendSse({
+      eventType: 'return_to_territory',
+      territory: state.territory,
+      status: 'ready'
+    });
+  }
+  else if (cmd === 'set_clock') {
+    if (payload.p1Time !== undefined) state.p1.timeRemaining = Math.max(0, Number(payload.p1Time));
+    if (payload.p2Time !== undefined) state.p2.timeRemaining = Math.max(0, Number(payload.p2Time));
+    sendSse({
+      eventType: 'tick',
+      p1Time: state.p1.timeRemaining,
+      p2Time: state.p2.timeRemaining,
+      activePlayer: state.activePlayer
     });
   }
   else if (cmd === 'set_duel_players') {
