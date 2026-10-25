@@ -95,8 +95,8 @@ function broadcastClueState(eventType = 'clue_sync') {
     countdownVal: state.countdownVal,
     isPassing: state.isPassing,
     passRemaining: state.passRemaining,
-    passedAnswer: state.passedAnswer || (currentClue ? currentClue.answer : ''),
-    lastCorrectAnswer: state.lastCorrectAnswer || '',
+    passedAnswer: state.isPassing ? (state.passedAnswer || (currentClue ? currentClue.answer : '')) : '',
+    lastCorrectAnswer: state.isPassing ? '' : (state.lastCorrectAnswer || ''),
     clueIndex: state.clueIndex,
     cluesCount: state.clues.length,
     // Stable clue pairings for host and players:
@@ -153,6 +153,8 @@ function startDuelCountdown() {
   passTimer = null;
   state.isPassing = false;
   state.passRemaining = 0;
+  state.passedAnswer = '';
+  state.lastCorrectAnswer = '';
   state.status = 'countdown';
   state.countdownVal = 3;
   broadcastClueState('countdown_start');
@@ -226,6 +228,7 @@ function handleHostCommand(cmd, payload = {}) {
     // and 3 seconds later the next prompt is introduced.
     const currentClue = state.clues[state.clueIndex] || null;
     state.passedAnswer = currentClue ? currentClue.answer : '';
+    state.lastCorrectAnswer = '';
     state.isPassing = true;
     state.passRemaining = 3;
     broadcastClueState('pass_start');
@@ -239,6 +242,7 @@ function handleHostCommand(cmd, payload = {}) {
         state.isPassing = false;
         state.passRemaining = 0;
         state.passedAnswer = '';
+        state.lastCorrectAnswer = '';
         return;
       }
       passCount--;
@@ -248,7 +252,8 @@ function handleHostCommand(cmd, payload = {}) {
           eventType: 'pass_tick',
           isPassing: true,
           passRemaining: passCount,
-          passedAnswer: state.passedAnswer
+          passedAnswer: state.passedAnswer,
+          lastCorrectAnswer: ''
         });
       } else {
         clearInterval(passTimer);
@@ -256,6 +261,7 @@ function handleHostCommand(cmd, payload = {}) {
         state.isPassing = false;
         state.passRemaining = 0;
         state.passedAnswer = '';
+        state.lastCorrectAnswer = '';
         // 3 seconds later: introduce next prompt!
         if (state.clues.length > 0) {
           state.clueIndex = (state.clueIndex + 1) % state.clues.length;
@@ -422,8 +428,8 @@ const server = http.createServer((req, res) => {
       countdownVal: state.countdownVal,
       isPassing: state.isPassing,
       passRemaining: state.passRemaining,
-      passedAnswer: state.passedAnswer || '',
-      lastCorrectAnswer: state.lastCorrectAnswer || '',
+      passedAnswer: state.isPassing ? (state.passedAnswer || '') : '',
+      lastCorrectAnswer: state.isPassing ? '' : (state.lastCorrectAnswer || ''),
       clueIndex: state.clueIndex,
       cluesCount: state.clues.length,
       promptAnswer: currentClue ? currentClue.answer : '',

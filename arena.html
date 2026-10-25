@@ -222,6 +222,10 @@
         el.startingSoonOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
+        if (el.stageAnswerPill) {
+          el.stageAnswerPill.style.display = 'none';
+          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+        }
         if (window.soundEngine?.playCountdownBeep) {
           window.soundEngine.playCountdownBeep(false);
         }
@@ -241,10 +245,21 @@
         el.clueImage.style.display = 'none';
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'none';
+        if (el.stageAnswerPill) {
+          el.stageAnswerPill.style.display = 'none';
+          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+        }
         if (d.eventType === 'pass_start') {
           window.soundEngine?.playPass();
         }
         return;
+      }
+
+      if (d.eventType === 'pass_complete') {
+        if (el.stageAnswerPill) {
+          el.stageAnswerPill.style.display = 'none';
+          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+        }
       }
 
       // Sounds & Visual Flashes
@@ -255,6 +270,11 @@
         if (window.soundEngine?.playCountdownBeep) {
           window.soundEngine.playCountdownBeep(true);
         }
+      } else if (d.eventType === 'reset') {
+        if (el.stageAnswerPill) {
+          el.stageAnswerPill.style.display = 'none';
+          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+        }
       }
 
       // Overlays management for main states
@@ -263,23 +283,46 @@
         el.countdownOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
-        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+        if (el.stageAnswerPill) {
+          el.stageAnswerPill.style.display = 'none';
+          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+        }
       } else if (d.status === 'countdown') {
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'flex';
         el.passOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
+        if (el.stageAnswerPill) {
+          el.stageAnswerPill.style.display = 'none';
+          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+        }
       } else if (d.isPassing) {
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'none';
         el.passOverlay.style.display = 'flex';
+        if (d.passedAnswer) {
+          el.passRevealedAnswer.textContent = d.passedAnswer.toUpperCase();
+        }
         el.clueImage.style.display = 'none';
+        if (el.stageAnswerPill) {
+          el.stageAnswerPill.style.display = 'none';
+          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+        }
       } else {
         // running, paused, gameover
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';
         el.clueImage.style.display = 'block';
+        if (el.stageAnswerPill) {
+          if (d.lastCorrectAnswer && !d.isPassing) {
+            el.stageAnswerPill.style.display = 'inline-flex';
+            if (el.stageAnswerText) el.stageAnswerText.textContent = d.lastCorrectAnswer.toUpperCase();
+          } else {
+            el.stageAnswerPill.style.display = 'none';
+            if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+          }
+        }
       }
 
       if (d.title) el.categoryTitle.textContent = d.title.toUpperCase();
