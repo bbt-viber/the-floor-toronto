@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Floor Toronto - Audience Display</title>
+  <link rel="stylesheet" href="app.css">
+  <style>
+    /* Audience Display: No Host Dock, Full Viewport Center */
+    body {
+      overflow: hidden;
+    }
+    .arena-grid {
+      min-height: calc(100vh - 40px);
+      margin-top: 10px;
+    }
+    .clue-screen {
+      min-height: 520px;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <main class="view-container active" style="max-width: 1600px; padding: 10px 24px;">
+    <div class="arena-grid">
+      <!-- Player 1 Podium (Cyan) -->
+      <aside id="p1Podium" class="player-podium p1 active-turn">
+        <div class="player-badge">Player 1</div>
+        <h2 id="p1Name" class="player-name">Player 1</h2>
+
+        <div id="p1TimerBox" class="timer-box">
+          <div id="p1TimerDigits" class="timer-digits">45</div>
+          <div class="timer-bar-container">
+            <div id="p1TimerBar" class="timer-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div id="p1Status" class="turn-status-indicator">ACTIVE TURN</div>
+      </aside>
+
+      <!-- Center Stage: The Floor Visual Clue -->
+      <section class="center-stage">
+        <div class="category-banner">
+          <span id="categoryTitle" class="category-title">LANDMARKS OF TORONTO</span>
+        </div>
+
+        <!-- Visual Clue Display Screen (NO ANSWERS VISIBLE) -->
+        <div class="clue-screen">
+          <span id="clueCounter" class="clue-counter-badge">1 / 10</span>
+          <img id="clueImage" class="clue-image" alt="Visual Clue" src="" />
+
+          <!-- Flash overlay for Correct/Pass -->
+          <div id="flashOverlay" class="flash-overlay">
+            <span id="flashText" class="flash-text">CORRECT!</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px;">
+          ★ THE FLOOR TORONTO DUEL ★
+        </div>
+      </section>
+
+      <!-- Player 2 Podium (Crimson) -->
+      <aside id="p2Podium" class="player-podium p2">
+        <div class="player-badge">Player 2</div>
+        <h2 id="p2Name" class="player-name">Player 2</h2>
+
+        <div id="p2TimerBox" class="timer-box">
+          <div id="p2TimerDigits" class="timer-digits">45</div>
+          <div class="timer-bar-container">
+            <div id="p2TimerBar" class="timer-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div id="p2Status" class="turn-status-indicator">STANDBY</div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Victory Overlay -->
+  <div id="victoryModal" class="modal-overlay">
+    <div class="modal-card victory">
+      <div style="font-size: 4rem; margin-bottom: 8px;">🏆</div>
+      <h2 id="victoryWinnerName" class="victory-title">Player 1 Wins!</h2>
+      <p id="victoryDetails" class="victory-subtitle">Time Expired</p>
+    </div>
+  </div>
+
+  <script src="sound-engine.js"></script>
+  <script>
+    // Arena Display Synchronizer via BroadcastChannel
+    const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('the-floor-toronto') : null;
+
+    const el = {
+      categoryTitle: document.getElementById('categoryTitle'),
+      clueImage: document.getElementById('clueImage'),
+      clueCounter: document.getElementById('clueCounter'),
+      flashOverlay: document.getElementById('flashOverlay'),
+      flashText: document.getElementById('flashText'),
+      p1Podium: document.getElementById('p1Podium'),
+      p1Name: document.getElementById('p1Name'),
+      p1TimerBox: document.getElementById('p1TimerBox'),
+      p1TimerDigits: document.getElementById('p1TimerDigits'),
+      p1TimerBar: document.getElementById('p1TimerBar'),
+      p1Status: document.getElementById('p1Status'),
+      p2Podium: document.getElementById('p2Podium'),
+      p2Name: document.getElementById('p2Name'),
+      p2TimerBox: document.getElementById('p2TimerBox'),
+      p2TimerDigits: document.getElementById('p2TimerDigits'),
+      p2TimerBar: document.getElementById('p2TimerBar'),
+      p2Status: document.getElementById('p2Status'),
+      victoryModal: document.getElementById('victoryModal'),
+      victoryWinnerName: document.getElementById('victoryWinnerName'),
+      victoryDetails: document.getElementById('victoryDetails')
+    };
+
+    function formatTime(seconds) {
+      if (seconds <= 0) return "0.0";
+      if (seconds < 10) return seconds.toFixed(1);
+      return Math.ceil(seconds).toString();
+    }
+
+    if (channel) {
+      channel.onmessage = (event) => {
+        const msg = event.data;
+        if (!msg || msg.type !== 'STATE_SYNC') return;
+        const d = msg.payload;
+
+        el.categoryTitle.textContent = (d.title || 'THE FLOOR').toUpperCase();
+        el.p1Name.textContent = d.p1.name;
+        el.p2Name.textContent = d.p2.name;
+
+        // Timers
+        el.p1TimerDigits.textContent = formatTime(d.p1.timeRemaining);
+        const p1Pct = Math.max(0, Math.min(100, (d.p1.timeRemaining / d.p1.maxTime) * 100));
+        el.p1TimerBar.style.width = `${p1Pct}%`;
+        if (d.p1.timeRemaining <= 10 && d.p1.timeRemaining > 0 && d.activePlayer === 1) {
+          el.p1TimerBox.classList.add('urgent');
+        } else {
+          el.p1TimerBox.classList.remove('urgent');
+        }
+
+        el.p2TimerDigits.textContent = formatTime(d.p2.timeRemaining);
+        const p2Pct = Math.max(0, Math.min(100, (d.p2.timeRemaining / d.p2.maxTime) * 100));
+        el.p2TimerBar.style.width = `${p2Pct}%`;
+        if (d.p2.timeRemaining <= 10 && d.p2.timeRemaining > 0 && d.activePlayer === 2) {
+          el.p2TimerBox.classList.add('urgent');
+        } else {
+          el.p2TimerBox.classList.remove('urgent');
+        }
+
+        // Active Turn
+        if (d.activePlayer === 1) {
+          el.p1Podium.classList.add('active-turn');
+          el.p2Podium.classList.remove('active-turn');
+          el.p1Status.textContent = 'ACTIVE TURN';
+          el.p2Status.textContent = 'STANDBY';
+        } else {
+          el.p2Podium.classList.add('active-turn');
+          el.p1Podium.classList.remove('active-turn');
+          el.p1Status.textContent = 'STANDBY';
+          el.p2Status.textContent = 'ACTIVE TURN';
+        }
+
+        // Clue
+        if (d.clue) {
+          if (el.clueImage.src !== d.clue.image) {
+            el.clueImage.src = d.clue.image;
+          }
+          el.clueCounter.textContent = `${d.clueIndex + 1} / ${d.cluesCount}`;
+        }
+
+        // Victory
+        if (d.status === 'gameover' && d.winner) {
+          const winnerName = d.winner === 1 ? d.p1.name : d.p2.name;
+          const remaining = (d.winner === 1 ? d.p1.timeRemaining : d.p2.timeRemaining).toFixed(1);
+          el.victoryWinnerName.textContent = `${winnerName} Wins!`;
+          el.victoryDetails.textContent = `${winnerName} takes the floor with ${remaining}s remaining!`;
+          el.victoryModal.classList.add('active');
+        } else {
+          el.victoryModal.classList.remove('active');
+        }
+      };
+    }
+  </script>
+</body>
+</html>

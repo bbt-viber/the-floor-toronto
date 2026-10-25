@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Host Controller - The Floor Toronto</title>
+  <link rel="stylesheet" href="app.css">
+  <style>
+    body {
+      background-color: #060911;
+      padding: 12px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      touch-action: manipulation;
+    }
+
+    .host-mobile-container {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    /* Top Status Bar */
+    .host-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+    }
+
+    .conn-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .conn-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: pulseDot 2s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .game-badge-pill {
+      background: rgba(255, 211, 105, 0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    /* Active Player Banner */
+    .turn-banner {
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    .turn-banner.p1 {
+      background: rgba(0, 240, 255, 0.2);
+      border: 2px solid var(--p1-color);
+      color: var(--p1-color);
+      box-shadow: 0 0 25px var(--p1-glow);
+    }
+
+    .turn-banner.p2 {
+      background: rgba(255, 46, 99, 0.2);
+      border: 2px solid var(--p2-color);
+      color: var(--p2-color);
+      box-shadow: 0 0 25px var(--p2-glow);
+    }
+
+    /* Synchronized Mini Timers */
+    .host-timers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .host-timer-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .host-timer-card.p1 {
+      border-top: 4px solid var(--p1-color);
+    }
+
+    .host-timer-card.p2 {
+      border-top: 4px solid var(--p2-color);
+    }
+
+    .host-player-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .host-timer-val {
+      font-family: monospace;
+      font-size: 2.2rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .p1 .host-timer-val { color: var(--p1-color); }
+    .p2 .host-timer-val { color: var(--p2-color); }
+
+    /* The Host Master Answer Card */
+    .master-answer-card {
+      background: linear-gradient(180deg, #182038 0%, #101626 100%);
+      border: 2px solid var(--gold);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 30px var(--gold-glow);
+      position: relative;
+    }
+
+    .answer-tag {
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .big-answer-text {
+      font-size: 2.6rem;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.15;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 6px 0 12px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    }
+
+    .clue-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .next-clue-hint {
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    /* Giant Touch Action Buttons */
+    .host-actions-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .btn-host-action {
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: 22px 20px;
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.1s, filter 0.15s;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-host-action:active {
+      transform: scale(0.97);
+    }
+
+    .btn-host-correct {
+      background: linear-gradient(135deg, #00e676, #00c853);
+      color: #052e16;
+      border: 2px solid #69f0ae;
+      box-shadow: 0 6px 25px rgba(0, 230, 118, 0.4);
+    }
+
+    .btn-host-correct:active {
+      background: #00b248;
+    }
+
+    .btn-host-pass {
+      background: linear-gradient(135deg, #ffab00, #ff9100);
+      color: #2e1c05;
+      border: 2px solid #ffd54f;
+      box-shadow: 0 6px 25px rgba(255, 171, 0, 0.4);
+    }
+
+    .btn-host-pass:active {
+      background: #e68200;
+    }
+
+    .host-sub-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-sub-action {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 12px 8px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .btn-sub-action:active {
+      background: var(--bg-card-hover);
+      transform: scale(0.96);
+    }
+
+    .hotkey-hint {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: monospace;
+    }
+
+    /* Modal for Category Switcher on mobile */
+    .category-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 99;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .category-modal.active {
+      display: flex;
+    }
+
+    .category-modal-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--gold);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      max-width: 440px;
+      width: 100%;
+    }
+
+    .category-item-btn {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    .category-item-btn:hover, .category-item-btn:active {
+      background: rgba(255, 211, 105, 0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="host-mobile-container">
+    
+    <!-- Top Header -->
+    <header class="host-header-bar">
+      <div id="connStatus" class="conn-status">
+        <span class="conn-dot"></span>
+        <span id="connLabel">HOST CONNECTED</span>
+      </div>
+      <div id="gameTitleBadge" class="game-badge-pill">ICE CREAM FLAVOURS</div>
+    </header>
+
+    <!-- Active Turn Spotlight Banner -->
+    <div id="turnBanner" class="turn-banner p1">
+      👉 PLAYER 1'S TURN
+    </div>
+
+    <!-- Live Synchronized Timers -->
+    <div class="host-timers-grid">
+      <div id="p1TimerCard" class="host-timer-card p1">
+        <div id="p1Label" class="host-player-label">Player 1</div>
+        <div id="p1TimeVal" class="host-timer-val">45.0</div>
+      </div>
+      <div id="p2TimerCard" class="host-timer-card p2">
+        <div id="p2Label" class="host-player-label">Player 2</div>
+        <div id="p2TimeVal" class="host-timer-val">45.0</div>
+      </div>
+    </div>
+
+    <!-- Central Master Answer Card (Visible only to Host) -->
+    <section class="master-answer-card">
+      <div class="answer-tag">🎯 VERIFY PLAYER'S ANSWER:</div>
+      <div id="masterAnswer" class="big-answer-text">VANILLA</div>
+      <div class="clue-meta-row">
+        <span id="clueNumber">Clue 1 / 20</span>
+        <span>•</span>
+        <span id="nextClueHint" class="next-clue-hint">Next: Chocolate</span>
+      </div>
+    </section>
+
+    <!-- Giant Thumb-Friendly Touch Controls -->
+    <div class="host-actions-grid">
+      <!-- Correct Button -->
+      <button id="btnHostCorrect" class="btn-host-action btn-host-correct">
+        <span>✓ CORRECT</span>
+        <span class="hotkey-hint">SPACE</span>
+      </button>
+
+      <!-- Pass Button -->
+      <button id="btnHostPass" class="btn-host-action btn-host-pass">
+        <span>↷ PASS (-3s)</span>
+        <span class="hotkey-hint">TAB</span>
+      </button>
+    </div>
+
+    <!-- Secondary Utilities -->
+    <div class="host-sub-buttons">
+      <button id="btnHostPause" class="btn-sub-action">⏸ PAUSE (ESC)</button>
+      <button id="btnHostReset" class="btn-sub-action" style="color: #ff5252;">↻ RESET (R)</button>
+      <button id="btnCategoryModal" class="btn-sub-action" style="color: var(--gold);">⇄ CATEGORY</button>
+    </div>
+
+  </div>
+
+  <!-- Category Switcher Modal -->
+  <div id="categoryModal" class="category-modal">
+    <div class="category-modal-card">
+      <h3 style="font-size: 1.3rem; margin-bottom: 14px; color: #fff;">Switch Game Category</h3>
+      <button class="category-item-btn" onclick="selectGame('ice-cream-flavours')">
+        <span>🍦 Ice Cream Flavours</span>
+        <span style="font-size: 0.8rem; color: var(--gold);">20 Clues</span>
+      </button>
+      <button class="category-item-btn" onclick="selectGame('toronto-landmarks')">
+        <span>🏢 Landmarks of Toronto</span>
+        <span style="font-size: 0.8rem; color: var(--gold);">10 Clues</span>
+      </button>
+      <button id="btnCloseModal" class="btn-secondary" style="width: 100%; margin-top: 10px;">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Host Controller Logic
+    const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('the-floor-toronto') : null;
+
+    const el = {
+      connStatus: document.getElementById('connStatus'),
+      connLabel: document.getElementById('connLabel'),
+      gameTitleBadge: document.getElementById('gameTitleBadge'),
+      turnBanner: document.getElementById('turnBanner'),
+      p1Label: document.getElementById('p1Label'),
+      p1TimeVal: document.getElementById('p1TimeVal'),
+      p2Label: document.getElementById('p2Label'),
+      p2TimeVal: document.getElementById('p2TimeVal'),
+      masterAnswer: document.getElementById('masterAnswer'),
+      clueNumber: document.getElementById('clueNumber'),
+      nextClueHint: document.getElementById('nextClueHint'),
+      btnHostCorrect: document.getElementById('btnHostCorrect'),
+      btnHostPass: document.getElementById('btnHostPass'),
+      btnHostPause: document.getElementById('btnHostPause'),
+      btnHostReset: document.getElementById('btnHostReset'),
+      btnCategoryModal: document.getElementById('btnCategoryModal'),
+      categoryModal: document.getElementById('categoryModal'),
+      btnCloseModal: document.getElementById('btnCloseModal')
+    };
+
+    function formatTime(sec) {
+      if (sec <= 0) return "0.0";
+      if (sec < 10) return sec.toFixed(1);
+      return Math.ceil(sec).toString();
+    }
+
+    // Trigger haptic vibration on mobile
+    function vibrate(ms) {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(ms); } catch (e) {}
+      }
+    }
+
+    // Apply Incoming State Update (from Server SSE or BroadcastChannel)
+    function applyState(d) {
+      if (!d) return;
+
+      if (d.title) el.gameTitleBadge.textContent = d.title.toUpperCase();
+
+      // Active Player Turn
+      if (d.activePlayer === 1) {
+        el.turnBanner.className = 'turn-banner p1';
+        el.turnBanner.textContent = `👉 ${(d.p1.name || 'PLAYER 1').toUpperCase()}'S TURN`;
+      } else {
+        el.turnBanner.className = 'turn-banner p2';
+        el.turnBanner.textContent = `👉 ${(d.p2.name || 'PLAYER 2').toUpperCase()}'S TURN`;
+      }
+
+      // Timers
+      el.p1Label.textContent = d.p1.name || 'Player 1';
+      el.p1TimeVal.textContent = formatTime(d.p1.timeRemaining);
+
+      el.p2Label.textContent = d.p2.name || 'Player 2';
+      el.p2TimeVal.textContent = formatTime(d.p2.timeRemaining);
+
+      // The Master Answer (Shown to Host)
+      if (d.clue && d.clue.answer) {
+        el.masterAnswer.textContent = d.clue.answer;
+        el.clueNumber.textContent = `Clue ${d.clueIndex + 1} of ${d.cluesCount}`;
+      } else {
+        el.masterAnswer.textContent = '---';
+      }
+
+      if (d.nextAnswer) {
+        el.nextClueHint.textContent = `Next: ${d.nextAnswer}`;
+      } else {
+        el.nextClueHint.textContent = '';
+      }
+
+      // Status
+      if (d.status === 'paused') {
+        el.btnHostPause.textContent = '▶ RESUME (ESC)';
+      } else if (d.status === 'ready') {
+        el.btnHostPause.textContent = '▶ START (ESC)';
+      } else {
+        el.btnHostPause.textContent = '⏸ PAUSE (ESC)';
+      }
+
+      if (d.status === 'gameover' && d.winner) {
+        const winnerName = d.winner === 1 ? d.p1.name : d.p2.name;
+        el.turnBanner.className = 'turn-banner';
+        el.turnBanner.style.background = 'rgba(255,211,105,0.25)';
+        el.turnBanner.style.border = '2px solid var(--gold)';
+        el.turnBanner.style.color = 'var(--gold)';
+        el.turnBanner.textContent = `🏆 ${winnerName.toUpperCase()} WINS!`;
+      }
+    }
+
+    // Send Command to Server (and BroadcastChannel)
+    async function sendCommand(cmd, payload = {}) {
+      // 1. Post to Server API
+      try {
+        fetch('/api/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cmd, ...payload })
+        }).catch(() => {});
+      } catch (e) {}
+
+      // 2. BroadcastChannel fallback (same machine)
+      if (channel) {
+        channel.postMessage({ type: 'HOST_CMD', cmd, ...payload });
+      }
+    }
+
+    // Connect to Server SSE Stream
+    let evtSource = null;
+    function connectSSE() {
+      if (location.protocol.startsWith('http')) {
+        evtSource = new EventSource('/api/events');
+        evtSource.onopen = () => {
+          el.connStatus.style.color = 'var(--green)';
+          el.connLabel.textContent = 'HOST CONNECTED';
+        };
+        evtSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            applyState(data);
+          } catch (e) {}
+        };
+        evtSource.onerror = () => {
+          el.connStatus.style.color = '#ff9800';
+          el.connLabel.textContent = 'RECONNECTING...';
+        };
+      }
+    }
+
+    // BroadcastChannel Listener
+    if (channel) {
+      channel.onmessage = (event) => {
+        if (event.data && event.data.type === 'STATE_SYNC') {
+          applyState(event.data.payload);
+        }
+      };
+    }
+
+    // Touch Action Listeners
+    el.btnHostCorrect.addEventListener('click', () => {
+      vibrate(50);
+      sendCommand('correct');
+    });
+
+    el.btnHostPass.addEventListener('click', () => {
+      vibrate(120);
+      sendCommand('pass');
+    });
+
+    el.btnHostPause.addEventListener('click', () => {
+      vibrate(40);
+      sendCommand('toggle_pause');
+    });
+
+    el.btnHostReset.addEventListener('click', () => {
+      if (confirm('Reset the duel round?')) {
+        vibrate(80);
+        sendCommand('reset');
+      }
+    });
+
+    // Keyboard Shortcuts for Host (Desktop)
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        vibrate(50);
+        sendCommand('correct');
+      } else if (e.code === 'Tab') {
+        e.preventDefault();
+        vibrate(120);
+        sendCommand('pass');
+      } else if (e.code === 'Escape') {
+        e.preventDefault();
+        sendCommand('toggle_pause');
+      } else if (e.code === 'KeyR') {
+        e.preventDefault();
+        if (confirm('Reset round?')) {
+          sendCommand('reset');
+        }
+      }
+    });
+
+    // Category Modal
+    el.btnCategoryModal.addEventListener('click', () => {
+      el.categoryModal.classList.add('active');
+    });
+    el.btnCloseModal.addEventListener('click', () => {
+      el.categoryModal.classList.remove('active');
+    });
+
+    window.selectGame = function (gameId) {
+      sendCommand('select_game', { gameId });
+      el.categoryModal.classList.remove('active');
+    };
+
+    // Initialize
+    connectSSE();
+  </script>
+</body>
+</html>

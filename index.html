@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Floor Toronto</title>
+  <link rel="stylesheet" href="app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍁</text></svg>">
+</head>
+<body>
+
+  <!-- Confetti Canvas for Victory Celebration -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Navigation / Header Bar -->
+  <header class="header-bar">
+    <div class="logo-area">
+      <div class="logo-icon">🏢</div>
+      <div class="logo-title">The Floor Toronto</div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btnNavArena" class="nav-btn active">🎮 Arena</button>
+      <button id="btnNavDirectory" class="nav-btn">📚 Game Library</button>
+      <button id="btnNavSetup" class="nav-btn">⚙️ Setup &amp; Prompts</button>
+      <button id="btnHostQr" class="nav-btn" style="border-color: var(--gold); color: var(--gold); font-weight: 700;">📱 Host Remote (QR)</button>
+      <button id="btnDualScreen" class="nav-btn" title="Open audience screen in separate window">📺 Dual-Screen</button>
+      <button id="btnSoundToggle" class="nav-btn">🔊 Sound On</button>
+      <button id="btnFullscreen" class="nav-btn" title="Toggle Fullscreen">⛶ Fullscreen</button>
+    </div>
+  </header>
+
+  <!-- ==================== VIEW 1: ARENA (DUEL STAGE) ==================== -->
+  <main id="viewArena" class="view-container active">
+    
+    <div class="arena-grid">
+      <!-- Player 1 Podium (Cyan) -->
+      <aside id="p1Podium" class="player-podium p1 active-turn">
+        <div class="player-badge">Player 1</div>
+        <h2 id="p1Name" class="player-name">Player 1</h2>
+
+        <div id="p1TimerBox" class="timer-box">
+          <div id="p1TimerDigits" class="timer-digits">45</div>
+          <div class="timer-bar-container">
+            <div id="p1TimerBar" class="timer-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="turn-status-indicator">ACTIVE TURN</div>
+      </aside>
+
+      <!-- Center Stage: The Floor Visual Clue & Host Peek -->
+      <section class="center-stage">
+        <div class="category-banner">
+          <span id="categoryTitle" class="category-title">LANDMARKS OF TORONTO</span>
+          <button id="btnQuickChangeGame" class="change-game-pill" title="Choose another game">⇄ Change Game</button>
+        </div>
+
+        <!-- Visual Clue Display Screen -->
+        <div class="clue-screen">
+          <span id="clueCounter" class="clue-counter-badge">1 / 10</span>
+          <img id="clueImage" class="clue-image" alt="Visual Prompt Clue" src="" />
+
+          <!-- Flash overlay for Correct/Pass -->
+          <div id="flashOverlay" class="flash-overlay">
+            <span id="flashText" class="flash-text">CORRECT!</span>
+          </div>
+        </div>
+
+        <!-- Player View Host Remote Bar (Protects answers from players) -->
+        <div style="width: 100%; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; background: rgba(16, 22, 38, 0.7); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted);">
+            <span>📱 <strong>Host Remote:</strong> Scan QR code on your phone to see answers &amp; trigger turns</span>
+          </div>
+          <button id="btnStageQr" class="change-game-pill" style="color: var(--gold); border-color: var(--gold); font-weight: 700;">📱 Show Host QR</button>
+        </div>
+      </section>
+
+      <!-- Player 2 Podium (Crimson) -->
+      <aside id="p2Podium" class="player-podium p2">
+        <div class="player-badge">Player 2</div>
+        <h2 id="p2Name" class="player-name">Player 2</h2>
+
+        <div id="p2TimerBox" class="timer-box">
+          <div id="p2TimerDigits" class="timer-digits">45</div>
+          <div class="timer-bar-container">
+            <div id="p2TimerBar" class="timer-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="turn-status-indicator">STANDBY</div>
+      </aside>
+    </div>
+
+  </main>
+
+  <!-- Docked Host Keyboard Controller Bar -->
+  <footer class="host-dock">
+    <div class="host-btn-group">
+      <!-- Correct (Space) -->
+      <button id="btnCorrect" class="host-btn host-btn-correct" title="Award correct answer & switch timer">
+        <span>✓ CORRECT</span>
+        <span class="hotkey-badge">SPACE</span>
+      </button>
+
+      <!-- Pass (Tab) -->
+      <button id="btnPass" class="host-btn host-btn-pass" title="Pass current visual clue">
+        <span>↷ PASS</span>
+        <span class="hotkey-badge">TAB</span>
+      </button>
+
+      <!-- Pause / Resume (Esc) -->
+      <button id="btnPause" class="host-btn host-btn-pause" title="Pause or Resume Round">
+        <span id="pauseLabel">START (ESC / SPACE)</span>
+        <span class="hotkey-badge">ESC</span>
+      </button>
+
+      <!-- Reset Round (R) -->
+      <button id="btnReset" class="host-btn host-btn-reset" title="Reset current round timers and clues">
+        <span>↻ RESET</span>
+        <span class="hotkey-badge">R</span>
+      </button>
+    </div>
+
+    <div class="shortcuts-legend">
+      <span><strong style="color:var(--green)">[Space]</strong> Correct</span>
+      <span><strong style="color:var(--gold)">[Tab]</strong> Pass</span>
+      <span><strong style="color:#fff">[Esc]</strong> Pause / Resume</span>
+      <span><strong style="color:#ff5252">[R]</strong> Reset</span>
+    </div>
+  </footer>
+
+  <!-- ==================== VIEW 2: GAME DIRECTORY (INDEX) ==================== -->
+  <main id="viewDirectory" class="view-container">
+    <div class="directory-container">
+      <div class="directory-header">
+        <h1 class="directory-title">The Floor Game Library</h1>
+        <p class="directory-subtitle">Select a category to battle on the floor or build your own custom duel pack</p>
+      </div>
+
+      <!-- Grid of Available Games -->
+      <div id="directoryGrid" class="directory-grid">
+        <!-- Rendered dynamically via JavaScript from GameRegistry -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== VIEW 3: SETUP & PROMPT UPLOADER ==================== -->
+  <main id="viewSetup" class="view-container">
+    <div class="setup-container">
+
+      <div class="setup-header">
+        <h1 class="setup-title">Duel Configuration &amp; Clue Uploader</h1>
+        <p class="setup-subtitle">Configure players, starting time, and upload visual prompts (JPEGs paired with answers)</p>
+      </div>
+
+      <!-- Section 1: Duel Settings -->
+      <div class="setup-section">
+        <h2 class="section-heading"><span>⚙️</span> Game Settings</h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="inputGameTitle">Game / Category Title</label>
+            <input id="inputGameTitle" class="form-input" type="text" placeholder="e.g. Landmarks of Toronto" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputP1Name">Player 1 Name</label>
+            <input id="inputP1Name" class="form-input" type="text" placeholder="e.g. Alex" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputP2Name">Player 2 Name</label>
+            <input id="inputP2Name" class="form-input" type="text" placeholder="e.g. Jordan" />
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between;">
+              <label class="form-label" for="inputRoundTime">Starting Timer</label>
+              <span id="labelRoundTime" style="color: var(--gold); font-weight: bold;">45s</span>
+            </div>
+            <input id="inputRoundTime" type="range" min="15" max="90" step="5" value="45" style="width: 100%; accent-color: var(--gold);" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="selectPassRule">Pass Rule</label>
+            <select id="selectPassRule" class="form-input">
+              <option value="3">3-Second Penalty (The Floor Standard)</option>
+              <option value="0">Instant New Clue (0s Penalty)</option>
+              <option value="5">5-Second Heavy Penalty</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Visual Prompts Uploader -->
+      <div class="setup-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 class="section-heading" style="margin-bottom: 0;"><span>🖼️</span> Visual Prompts &amp; Answers</h2>
+          <span id="clueCountBadge" class="nav-btn" style="pointer-events: none;">0 clues</span>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div id="dropzone" class="dropzone">
+          <div class="dropzone-icon">📁</div>
+          <div class="dropzone-text">Drag &amp; Drop JPEG images here, or click to browse</div>
+          <div class="dropzone-hint">Filenames will automatically populate suggested answers! (e.g. dog.jpg → "Dog")</div>
+          <input type="file" id="fileInput" multiple accept="image/jpeg,image/png,image/webp,image/svg+xml" style="display: none;" />
+        </div>
+
+        <!-- Uploaded Clue Cards Grid -->
+        <div id="clueListGrid" class="clue-list-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Setup Action Buttons -->
+        <div class="setup-action-bar">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="btnLoadIceCream" class="btn-secondary">🍦 Load Ice Cream Pack</button>
+            <button id="btnLoadStarter" class="btn-secondary">🍁 Load Toronto Pack</button>
+            <button id="btnExportJson" class="btn-secondary">💾 Export Game Pack (.json)</button>
+            <button id="btnImportJson" class="btn-secondary">📂 Import Pack (.json)</button>
+            <input type="file" id="importFileInput" accept=".json" style="display: none;" />
+            <button id="btnClearAll" class="btn-secondary" style="color: #ff5252;">🗑️ Clear All</button>
+          </div>
+
+          <button id="btnLaunchDuel" class="btn-launch">⚡ LAUNCH DUEL</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==================== VICTORY MODAL ==================== -->
+  <div id="victoryModal" class="modal-overlay">
+    <div class="modal-card victory">
+      <div style="font-size: 3.5rem; margin-bottom: 8px;">🏆</div>
+      <h2 id="victoryWinnerName" class="victory-title">Player 1 Wins!</h2>
+      <p id="victoryDetails" class="victory-subtitle">Opponent's timer reached 0.0s</p>
+
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 24px;">
+        <button id="btnRematch" class="btn-launch" style="padding: 12px 28px;">↻ REMATCH (R)</button>
+        <button id="btnBackToSetup" class="btn-secondary" style="padding: 12px 24px;">⚙️ Setup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAUSE MODAL ==================== -->
+  <div id="pauseModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size: 2.8rem; margin-bottom: 8px;">⏸️</div>
+      <h2 class="victory-title" style="color: #fff; font-size: 2rem;">Game Paused</h2>
+      <p class="victory-subtitle">Press ESC or click Resume to continue</p>
+
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 20px;">
+        <button id="btnResume" class="btn-launch" style="padding: 12px 32px;">▶ RESUME</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== QR CODE HOST MODAL ==================== -->
+  <div id="qrModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 480px;">
+      <div style="font-size: 2.8rem; margin-bottom: 6px;">📱</div>
+      <h2 class="victory-title" style="font-size: 1.8rem; margin-bottom: 6px;">Connect Host Phone</h2>
+      <p class="victory-subtitle" style="margin-bottom: 18px; line-height: 1.4;">
+        Scan with your smartphone camera to open the Host Remote controller! You will see answers to verify and trigger turns wirelessly.
+      </p>
+
+      <!-- QR Code Canvas / Box -->
+      <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+        <div id="qrCodeContainer" style="background: #ffffff; padding: 14px; border-radius: 14px; box-shadow: 0 0 30px var(--gold-glow); line-height: 0;"></div>
+      </div>
+
+      <div id="qrHostUrlText" style="background: rgba(255,255,255,0.06); padding: 10px 14px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; word-break: break-all; margin-bottom: 18px; border: 1px solid var(--border); color: var(--gold);">
+        http://localhost:3000/host.html
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <button id="btnCopyHostLink" class="btn-secondary">📋 Copy Link</button>
+        <button id="btnOpenHostTab" class="btn-secondary">↗ Open in Tab</button>
+        <button id="btnCloseQrModal" class="btn-launch" style="padding: 10px 24px;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="qrcode.min.js"></script>
+  <script src="sample-data.js"></script>
+  <script src="games/toronto-landmarks.js"></script>
+  <script src="games/ice-cream-flavours.js"></script>
+  <script src="games/games-manifest.js"></script>
+  <script src="sound-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

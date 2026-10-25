@@ -1,0 +1,45 @@
+// Central Game Directory Manifest for The Floor Toronto
+const GAMES_DIRECTORY = [
+  GAME_ICE_CREAM,
+  GAME_TORONTO_LANDMARKS
+];
+
+// Helper functions for accessing and managing games
+const GameRegistry = {
+  getAll: function () {
+    const list = [...GAMES_DIRECTORY];
+    try {
+      const customSaved = localStorage.getItem('the_floor_custom_games');
+      if (customSaved) {
+        const parsed = JSON.parse(customSaved);
+        if (Array.isArray(parsed)) {
+          list.push(...parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load custom games', e);
+    }
+    return list;
+  },
+
+  getById: function (id) {
+    const all = this.getAll();
+    return all.find(g => g.id === id) || null;
+  },
+
+  saveCustom: function (game) {
+    try {
+      const customSaved = localStorage.getItem('the_floor_custom_games');
+      let parsed = customSaved ? JSON.parse(customSaved) : [];
+      const idx = parsed.findIndex(g => g.id === game.id);
+      if (idx >= 0) {
+        parsed[idx] = game;
+      } else {
+        parsed.unshift(game);
+      }
+      localStorage.setItem('the_floor_custom_games', JSON.stringify(parsed));
+    } catch (e) {
+      console.warn('Could not save custom game', e);
+    }
+  }
+};
