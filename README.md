@@ -64,10 +64,22 @@ Click **📚 Game Library** in the navigation bar (or **⇄ Change Game** on the
      - **Round 6–10 (Medium / Parlor Staples):** Pistachio, Neapolitan, Butter Pecan, Rocky Road, Mango
      - **Round 11–15 (Hard / Specialty):** Salted Caramel, Matcha, Ube (Purple Yam), Tiger Tail (Canadian Orange & Licorice), Rum Raisin
      - **Round 16–20 (Obscure / Gourmet):** Cotton Candy, Lavender Honey, Black Sesame, Durian (King of Fruits), Wasabi
-2. **🍁 Landmarks of Toronto (Mixed Classics)**
+3. **🍁 Landmarks of Toronto (Mixed Classics)**
    - 10 iconic Toronto landmarks & cultural staples: CN Tower, Rogers Centre, Casa Loma, Royal Ontario Museum, TTC Streetcar, Nathan Phillips Square, Raptors, BeaverTails, St. Lawrence Market, Maple Leafs.
-3. **➕ Custom Pack Builder**
+4. **➕ Custom Pack Builder**
    - Upload custom JPEG/PNG prompts, configure answers, and save your own categories.
+
+---
+
+## 🤖 Category Agent
+
+The project includes a dedicated **Category Agent** (`category-agent`) trained to invent, propose, and compile complete 45-prompt categories for *The Floor*:
+
+- **Novelty Guaranteed:** Analyzes existing game categories to propose fresh, unplayed duel topics.
+- **Difficulty & Obscurity Tuning:** Accepts user direction to make visual clues easier or more obscure.
+- **The 45-Prompt Proposal Table:** Always drafts a complete table of 45 clues with descriptions, answers, and difficulty tiers for user approval first.
+- **Automatic Packaging:** Once approved, creates the local folder `categories/[category_name]/`, generates or downloads photorealistic images named after the prompt answers (`[Answer].jpg`), and registers the pack into the game manifest.
+*(See [`.agents/category-agent.md`](.agents/category-agent.md) for full agent specifications).*
 
 ---
 
