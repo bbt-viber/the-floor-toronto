@@ -402,6 +402,56 @@ body {
   100% { transform: scale(1); }
 }
 
+.flash-answer {
+  font-size: 3.2rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 8px 36px;
+  border-radius: 40px;
+  border: 2px solid #00e676;
+  box-shadow: 0 8px 35px rgba(0, 230, 118, 0.45);
+  margin-top: 14px;
+  animation: flashAnswerPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes flashAnswerPop {
+  0% { transform: scale(0.65); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Verified Answer Pill (Persistent Display Below Stage) */
+.stage-answer-pill {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 230, 118, 0.12);
+  border: 1px solid #00e676;
+  padding: 6px 18px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.25);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.stage-answer-badge {
+  color: #00e676;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+}
+
+.stage-answer-val {
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
 /* Stage Overlays: Starting Soon, 3s Countdown, and Pass Recovery */
 .stage-overlay {
   position: absolute;

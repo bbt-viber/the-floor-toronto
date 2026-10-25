@@ -86,10 +86,17 @@
             </div>
           </div>
 
-          <!-- Flash overlay for Correct/Pass -->
+          <!-- Flash overlay for Correct/Pass (Shows Verified Answer) -->
           <div id="flashOverlay" class="flash-overlay">
-            <span id="flashText" class="flash-text">CORRECT!</span>
+            <span id="flashText" class="flash-text">✓ CORRECT!</span>
+            <span id="flashAnswer" class="flash-answer" style="display: none;"></span>
           </div>
+        </div>
+
+        <!-- Verified Answer Display Pill (Shown to Players on Correct) -->
+        <div id="stageAnswerPill" class="stage-answer-pill" style="display: none;">
+          <span class="stage-answer-badge">✓ ANSWER:</span>
+          <span id="stageAnswerText" class="stage-answer-val">...</span>
         </div>
 
         <!-- Player View Host Remote Bar (Protects answers from players) -->

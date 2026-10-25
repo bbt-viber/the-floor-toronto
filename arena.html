@@ -76,10 +76,17 @@
             </div>
           </div>
 
-          <!-- Flash overlay for Correct/Pass -->
+          <!-- Flash overlay for Correct/Pass (Shows Verified Answer) -->
           <div id="flashOverlay" class="flash-overlay">
-            <span id="flashText" class="flash-text">CORRECT!</span>
+            <span id="flashText" class="flash-text">✓ CORRECT!</span>
+            <span id="flashAnswer" class="flash-answer" style="display: none;"></span>
           </div>
+        </div>
+
+        <!-- Verified Answer Display Pill (Shown to Audience on Correct) -->
+        <div id="stageAnswerPill" class="stage-answer-pill" style="display: none;">
+          <span class="stage-answer-badge">✓ ANSWER:</span>
+          <span id="stageAnswerText" class="stage-answer-val">...</span>
         </div>
 
         <div style="margin-top: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px;">
@@ -147,7 +154,10 @@
       passRecoveryBar: document.getElementById('passRecoveryBar'),
       victoryModal: document.getElementById('victoryModal'),
       victoryWinnerName: document.getElementById('victoryWinnerName'),
-      victoryDetails: document.getElementById('victoryDetails')
+      victoryDetails: document.getElementById('victoryDetails'),
+      flashAnswer: document.getElementById('flashAnswer'),
+      stageAnswerPill: document.getElementById('stageAnswerPill'),
+      stageAnswerText: document.getElementById('stageAnswerText')
     };
 
     function formatTime(seconds) {
@@ -156,12 +166,24 @@
       return Math.ceil(seconds).toString();
     }
 
-    function flashScreen(text, className) {
+    function flashScreen(text, className, answer = '') {
       el.flashText.textContent = text;
+      if (el.flashAnswer) {
+        if (answer) {
+          el.flashAnswer.textContent = answer.toUpperCase();
+          el.flashAnswer.style.display = 'block';
+        } else {
+          el.flashAnswer.style.display = 'none';
+        }
+      }
+      if (el.stageAnswerPill && answer) {
+        el.stageAnswerPill.style.display = 'inline-flex';
+        el.stageAnswerText.textContent = answer.toUpperCase();
+      }
       el.flashOverlay.className = `flash-overlay ${className}`;
       setTimeout(() => {
         el.flashOverlay.className = 'flash-overlay';
-      }, 450);
+      }, 750);
     }
 
     function applyArenaState(d) {
@@ -228,7 +250,7 @@
       // Sounds & Visual Flashes
       if (d.eventType === 'correct') {
         window.soundEngine?.playCorrect();
-        flashScreen('CORRECT!', 'correct-flash');
+        flashScreen('✓ CORRECT!', 'correct-flash', d.lastCorrectAnswer || '');
       } else if (d.eventType === 'start') {
         if (window.soundEngine?.playCountdownBeep) {
           window.soundEngine.playCountdownBeep(true);
@@ -241,6 +263,7 @@
         el.countdownOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       } else if (d.status === 'countdown') {
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'flex';

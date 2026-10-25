@@ -27,6 +27,7 @@
     isPassing: false,
     passRemaining: 0,
     passedAnswer: '',
+    lastCorrectAnswer: '',
     countdownTimer: null,
     passTimer: null,
     clues: [...defaultGameData.clues],
@@ -67,6 +68,9 @@
     clueCounter: document.getElementById('clueCounter'),
     flashOverlay: document.getElementById('flashOverlay'),
     flashText: document.getElementById('flashText'),
+    flashAnswer: document.getElementById('flashAnswer'),
+    stageAnswerPill: document.getElementById('stageAnswerPill'),
+    stageAnswerText: document.getElementById('stageAnswerText'),
     hostAnswerText: document.getElementById('hostAnswerText'),
     btnToggleAnswer: document.getElementById('btnToggleAnswer'),
     startingSoonOverlay: document.getElementById('startingSoonOverlay'),
@@ -307,8 +311,13 @@
       return; // Ignore correct action during countdown or pass recovery
     }
 
+    // Capture the answer of the clue that was just answered correctly
+    const currentClue = state.clues[state.clueIndex] || null;
+    const ans = currentClue ? currentClue.answer : '';
+    state.lastCorrectAnswer = ans;
+
     window.soundEngine.playCorrect();
-    flashScreen('CORRECT!', 'correct-flash');
+    flashScreen('✓ CORRECT!', 'correct-flash', ans);
 
     // Switch turn to opponent
     state.activePlayer = state.activePlayer === 1 ? 2 : 1;
@@ -397,6 +406,8 @@
     state.passTimer = null;
     state.isPassing = false;
     state.passRemaining = 0;
+    state.passedAnswer = '';
+    state.lastCorrectAnswer = '';
     state.countdownVal = 0;
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
@@ -420,12 +431,24 @@
     state.clueIndex = (state.clueIndex + 1) % state.clues.length;
   }
 
-  function flashScreen(text, className) {
+  function flashScreen(text, className, answer = '') {
     el.flashText.textContent = text;
+    if (el.flashAnswer) {
+      if (answer) {
+        el.flashAnswer.textContent = answer.toUpperCase();
+        el.flashAnswer.style.display = 'block';
+      } else {
+        el.flashAnswer.style.display = 'none';
+      }
+    }
+    if (el.stageAnswerPill && answer) {
+      el.stageAnswerPill.style.display = 'inline-flex';
+      el.stageAnswerText.textContent = answer.toUpperCase();
+    }
     el.flashOverlay.className = `flash-overlay ${className}`;
     setTimeout(() => {
       el.flashOverlay.className = 'flash-overlay';
-    }, 450);
+    }, 750);
   }
 
   // Update UI Elements
@@ -503,6 +526,7 @@
       if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'flex';
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
       if (el.passOverlay) el.passOverlay.style.display = 'none';
+      if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       el.clueImage.style.display = 'none';
       el.pauseLabel.textContent = 'START DUEL (SPACE)';
     } else if (state.status === 'countdown') {
@@ -764,7 +788,7 @@
         // 4. Sound & Animations on Clue Progression
         if (d.eventType === 'correct') {
           window.soundEngine.playCorrect();
-          flashScreen('CORRECT!', 'correct-flash');
+          flashScreen('✓ CORRECT!', 'correct-flash', d.lastCorrectAnswer || '');
         } else if (d.eventType === 'start') {
           state.status = 'running';
           state.isPassing = false;
@@ -795,6 +819,7 @@
         state.countdownVal = d.countdownVal !== undefined ? d.countdownVal : state.countdownVal;
         state.isPassing = d.isPassing !== undefined ? d.isPassing : state.isPassing;
         state.passRemaining = d.passRemaining !== undefined ? d.passRemaining : state.passRemaining;
+        state.lastCorrectAnswer = d.lastCorrectAnswer !== undefined ? d.lastCorrectAnswer : state.lastCorrectAnswer;
         state.clueIndex = d.clueIndex !== undefined ? d.clueIndex : state.clueIndex;
 
         if (d.promptImage) {

@@ -51,6 +51,7 @@ const state = {
   isPassing: false,
   passRemaining: 0,
   passedAnswer: '',
+  lastCorrectAnswer: '',
   clues: iceCreamGame ? [...iceCreamGame.clues] : [],
   clueIndex: 0,
   roundTime: 45,
@@ -95,6 +96,7 @@ function broadcastClueState(eventType = 'clue_sync') {
     isPassing: state.isPassing,
     passRemaining: state.passRemaining,
     passedAnswer: state.passedAnswer || (currentClue ? currentClue.answer : ''),
+    lastCorrectAnswer: state.lastCorrectAnswer || '',
     clueIndex: state.clueIndex,
     cluesCount: state.clues.length,
     // Stable clue pairings for host and players:
@@ -203,6 +205,10 @@ function handleHostCommand(cmd, payload = {}) {
       return; // Ignore correct action during countdown or pass recovery
     }
 
+    // Capture the answer of the clue that was just answered correctly
+    const currentClue = state.clues[state.clueIndex] || null;
+    state.lastCorrectAnswer = currentClue ? currentClue.answer : '';
+
     // Switch active player
     state.activePlayer = state.activePlayer === 1 ? 2 : 1;
     // Advance clue
@@ -287,6 +293,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.isPassing = false;
     state.passRemaining = 0;
     state.passedAnswer = '';
+    state.lastCorrectAnswer = '';
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
@@ -416,6 +423,7 @@ const server = http.createServer((req, res) => {
       isPassing: state.isPassing,
       passRemaining: state.passRemaining,
       passedAnswer: state.passedAnswer || '',
+      lastCorrectAnswer: state.lastCorrectAnswer || '',
       clueIndex: state.clueIndex,
       cluesCount: state.clues.length,
       promptAnswer: currentClue ? currentClue.answer : '',
