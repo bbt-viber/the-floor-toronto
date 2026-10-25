@@ -699,40 +699,10 @@
     };
   }
 
-  // Keyboard Controller
-  window.addEventListener('keydown', (e) => {
-    // If typing in input fields, don't trigger game controls
-    const activeEl = document.activeElement;
-    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
-      return;
-    }
-
-    // Audio context initialization on first interaction
-    window.soundEngine.init();
-
-    // SPACE: Correct
-    if (e.code === 'Space') {
-      e.preventDefault();
-      handleCorrect();
-    }
-    // TAB: Pass
-    else if (e.code === 'Tab') {
-      e.preventDefault();
-      handlePass();
-    }
-    // ESCAPE: Pause / Resume
-    else if (e.code === 'Escape') {
-      e.preventDefault();
-      togglePause();
-    }
-    // R: Reset Round
-    else if (e.code === 'KeyR') {
-      e.preventDefault();
-      if (confirm('Reset the duel round?')) {
-        resetRound();
-      }
-    }
-  });
+  // Unlock audio context on first user interaction
+  window.addEventListener('pointerdown', () => {
+    window.soundEngine?.init();
+  }, { once: true });
 
   // Dock & Control Button Listeners (if present on view)
   if (el.btnCorrect) {
