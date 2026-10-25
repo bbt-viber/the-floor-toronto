@@ -1,5 +1,6 @@
 // Central Game Directory Manifest for The Floor Toronto
 const GAMES_DIRECTORY = [
+  typeof GAME_WATCH_BRANDS !== 'undefined' ? GAME_WATCH_BRANDS : null,
   typeof GAME_COUNTRIES !== 'undefined' ? GAME_COUNTRIES : null,
   typeof GAME_HAIRSTYLES !== 'undefined' ? GAME_HAIRSTYLES : null,
   typeof GAME_ICE_CREAM !== 'undefined' ? GAME_ICE_CREAM : null,

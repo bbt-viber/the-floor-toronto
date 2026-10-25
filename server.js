@@ -14,6 +14,7 @@ let sampleLandmarks = [];
 let iceCreamGame = null;
 let countriesGame = null;
 let hairstylesGame = null;
+let watchBrandsGame = null;
 
 try {
   sampleLandmarks = require('./sample-data.js');
@@ -37,6 +38,12 @@ try {
   hairstylesGame = require('./games/hairstyles.js');
 } catch (e) {
   console.warn('Could not load hairstyles.js', e.message);
+}
+
+try {
+  watchBrandsGame = require('./games/watch-brands.js');
+} catch (e) {
+  console.warn('Could not load watch-brands.js', e.message);
 }
 
 // Authoritative Server Game State
@@ -537,7 +544,11 @@ function handleHostCommand(cmd, payload = {}) {
     state.correctAnswer = '';
     state.lastCorrectAnswer = '';
     const gameId = payload.gameId;
-    if (gameId === 'hairstyles' && hairstylesGame) {
+    if (gameId === 'watch-brands' && watchBrandsGame) {
+      state.title = watchBrandsGame.title;
+      state.gameId = watchBrandsGame.id;
+      state.clues = [...watchBrandsGame.clues];
+    } else if (gameId === 'hairstyles' && hairstylesGame) {
       state.title = hairstylesGame.title;
       state.gameId = hairstylesGame.id;
       state.clues = [...hairstylesGame.clues];
@@ -786,7 +797,11 @@ function handleHostCommand(cmd, payload = {}) {
     }
     if (payload.gameId && payload.gameId !== state.gameId) {
       const gId = payload.gameId;
-      if (gId === 'hairstyles' && hairstylesGame) {
+      if (gId === 'watch-brands' && watchBrandsGame) {
+        state.title = watchBrandsGame.title;
+        state.gameId = watchBrandsGame.id;
+        state.clues = [...watchBrandsGame.clues];
+      } else if (gId === 'hairstyles' && hairstylesGame) {
         state.title = hairstylesGame.title;
         state.gameId = hairstylesGame.id;
         state.clues = [...hairstylesGame.clues];

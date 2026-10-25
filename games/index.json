@@ -1,5 +1,16 @@
 [
   {
+    "id": "watch-brands",
+    "title": "Watch Brands",
+    "description": "Identify the watch brand from its iconic timepiece silhouette, dial layout, bezel, or signature design — with no brand names shown!",
+    "difficulty": "Progressive (Tier 1 → Tier 4 Obscure)",
+    "category": "Luxury & Horology",
+    "cluesCount": 45,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #c9a227 100%)",
+    "file": "watch-brands.json"
+  },
+  {
     "id": "countries",
     "title": "Countries",
     "description": "Identify the country from cultural stereotypes, national cuisine, attire, and iconic symbols!",
