@@ -60,6 +60,8 @@ const state = {
   passPenaltySeconds: 3,
   winner: null,
   territory: null,
+  activeChallenger: null,
+  adjacentDefenders: [],
   lastTickTime: null,
   lastEvent: null
 };
@@ -112,6 +114,8 @@ function broadcastClueState(eventType = 'clue_sync') {
     nextAnswer: nextClue ? nextClue.answer : '',
     winner: state.winner,
     territory: state.territory,
+    activeChallenger: state.activeChallenger,
+    adjacentDefenders: state.adjacentDefenders,
     passPenaltySeconds: state.passPenaltySeconds
   };
 
@@ -192,6 +196,81 @@ function startDuelCountdown() {
       broadcastClueState('start');
     }
   }, 1000);
+}
+
+// Territory Adjacency Helper: finds competitors whose squares share an orthogonal edge with challenger
+function getAdjacentCompetitors(challengerId, territory) {
+  if (!territory || !territory.grid || !territory.players) return [];
+  const cols = territory.cols;
+  const rows = territory.rows;
+  const challengerSquares = territory.grid.filter(sq => sq.playerId === challengerId);
+  if (challengerSquares.length === 0) return [];
+
+  const map = new Map();
+  challengerSquares.forEach(cs => {
+    const r = Math.floor(cs.squareIndex / cols);
+    const c = cs.squareIndex % cols;
+    const neighbors = [
+      { r: r - 1, c: c },
+      { r: r + 1, c: c },
+      { r: r, c: c - 1 },
+      { r: r, c: c + 1 }
+    ];
+    neighbors.forEach(n => {
+      if (n.r >= 0 && n.r < rows && n.c >= 0 && n.c < cols) {
+        const neighborIdx = n.r * cols + n.c;
+        const neighborSq = territory.grid[neighborIdx];
+        if (neighborSq && neighborSq.playerId && neighborSq.playerId !== challengerId) {
+          const competitor = territory.players.find(p => p.id === neighborSq.playerId);
+          if (competitor && competitor.active !== false) {
+            if (!map.has(competitor.id)) {
+              map.set(competitor.id, {
+                id: competitor.id,
+                name: competitor.name,
+                color: competitor.color,
+                territoryCount: competitor.territoryCount || 1,
+                squareIndices: []
+              });
+            }
+            map.get(competitor.id).squareIndices.push(neighborIdx);
+          }
+        }
+      }
+    });
+  });
+
+  // Fallback to diagonal if no orthogonal neighbors
+  if (map.size === 0) {
+    challengerSquares.forEach(cs => {
+      const r = Math.floor(cs.squareIndex / cols);
+      const c = cs.squareIndex % cols;
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r + dr;
+          const nc = c + dc;
+          if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+            const idx = nr * cols + nc;
+            const sq = territory.grid[idx];
+            if (sq && sq.playerId && sq.playerId !== challengerId) {
+              const comp = territory.players.find(p => p.id === sq.playerId);
+              if (comp && comp.active !== false && !map.has(comp.id)) {
+                map.set(comp.id, {
+                  id: comp.id,
+                  name: comp.name,
+                  color: comp.color,
+                  territoryCount: comp.territoryCount || 1,
+                  squareIndices: [idx]
+                });
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  return Array.from(map.values());
 }
 
 // Host Command Processor
@@ -430,8 +509,74 @@ function handleHostCommand(cmd, payload = {}) {
   else if (cmd === 'sync_territory') {
     if (payload.territory) {
       state.territory = payload.territory;
+      state.activeChallenger = null;
+      state.adjacentDefenders = [];
       broadcastClueState('territory_update');
     }
+  }
+  else if (cmd === 'trigger_randomizer') {
+    if (!state.territory || !state.territory.players || state.territory.players.length < 2) {
+      console.warn('Cannot trigger randomizer: territory has fewer than 2 contestants');
+      return;
+    }
+    const activePlayers = state.territory.players.filter(p => p.active !== false);
+    if (activePlayers.length < 2) return;
+
+    // Prefer candidates with adjacent competitors to challenge
+    const candidatesWithNeighbors = activePlayers.filter(p => getAdjacentCompetitors(p.id, state.territory).length > 0);
+    const candidatePool = candidatesWithNeighbors.length > 0 ? candidatesWithNeighbors : activePlayers;
+    const chosenChallenger = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+    const adjacent = getAdjacentCompetitors(chosenChallenger.id, state.territory);
+
+    state.activeChallenger = chosenChallenger;
+    state.adjacentDefenders = adjacent;
+
+    sendSse({
+      eventType: 'randomizer_spin',
+      challenger: chosenChallenger,
+      adjacentDefenders: adjacent,
+      territory: state.territory
+    });
+  }
+  else if (cmd === 'select_defender') {
+    const challengerName = payload.challengerName || (state.activeChallenger ? state.activeChallenger.name : 'Player 1');
+    const defenderName = payload.defenderName || (payload.defender ? payload.defender.name : 'Player 2');
+
+    if (countdownTimer) clearInterval(countdownTimer);
+    if (passTimer) clearInterval(passTimer);
+    if (correctTimer) clearTimeout(correctTimer);
+    countdownTimer = null;
+    passTimer = null;
+    correctTimer = null;
+    state.countdownVal = 0;
+    state.isPassing = false;
+    state.passRemaining = 0;
+    state.passedAnswer = '';
+    state.isCorrect = false;
+    state.correctAnswer = '';
+    state.lastCorrectAnswer = '';
+
+    state.p1.name = String(challengerName).trim();
+    state.p2.name = String(defenderName).trim();
+    state.p1.timeRemaining = state.roundTime;
+    state.p2.timeRemaining = state.roundTime;
+    state.activePlayer = 1;
+    state.clueIndex = 0;
+    state.winner = null;
+    state.status = 'ready';
+    state.lastTickTime = null;
+    state.activeChallenger = null;
+    state.adjacentDefenders = [];
+
+    broadcastClueState('duel_players_set');
+  }
+  else if (cmd === 'cancel_challenger') {
+    state.activeChallenger = null;
+    state.adjacentDefenders = [];
+    sendSse({
+      eventType: 'challenger_cancelled',
+      territory: state.territory
+    });
   }
   else if (cmd === 'set_duel_players') {
     if (countdownTimer) clearInterval(countdownTimer);
@@ -480,6 +625,8 @@ function handleHostCommand(cmd, payload = {}) {
     state.winner = null;
     state.status = 'ready';
     state.lastTickTime = null;
+    state.activeChallenger = null;
+    state.adjacentDefenders = [];
     broadcastClueState('duel_players_set');
   }
 }
@@ -564,6 +711,8 @@ const server = http.createServer((req, res) => {
       nextAnswer: nextClue ? nextClue.answer : '',
       winner: state.winner,
       territory: state.territory,
+      activeChallenger: state.activeChallenger,
+      adjacentDefenders: state.adjacentDefenders,
       passPenaltySeconds: state.passPenaltySeconds
     };
     res.write(`data: ${JSON.stringify(initialData)}\n\n`);

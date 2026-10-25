@@ -93,10 +93,6 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-          <button id="btnTerritoryRandomizer" class="btn-randomizer" title="Randomly select a challenger from the floor">
-            <span class="randomizer-icon">🎲</span>
-            <span id="btnRandomizerText">RANDOMIZER</span>
-          </button>
           <button id="btnTerritoryGoArena" class="btn-launch" style="padding: 8px 20px; font-size: 0.85rem;">🎮 Go to Duel Arena</button>
         </div>
       </div>
@@ -106,7 +102,7 @@
         <div id="territoryBannerDefault" class="territory-banner-content">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span class="banner-icon" style="font-size: 1.3rem;">🎲</span>
-            <span class="banner-text">Click <strong>RANDOMIZER</strong> to select a contestant from the floor.</span>
+            <span class="banner-text">The Floor is active — Waiting for Host to trigger the Randomizer...</span>
           </div>
         </div>
         <div id="territoryBannerActive" class="territory-banner-content" style="display: none;">
@@ -114,12 +110,8 @@
             <span class="banner-icon" style="font-size: 1.3rem;">👑</span>
             <span class="banner-text">
               Challenger: <strong id="bannerChallengerName" class="highlight-challenger">...</strong>.
-              Click an adjacent competitor (glowing orange) to challenge!
+              Host is selecting the defender to duel!
             </span>
-          </div>
-          <div class="banner-actions">
-            <button type="button" id="btnCancelChallenger" class="btn-banner-action">✕ Cancel</button>
-            <button type="button" id="btnRerollRandomizer" class="btn-banner-action btn-banner-accent">🎲 Re-roll</button>
           </div>
         </div>
       </div>
@@ -429,52 +421,6 @@
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" id="btnCancelCreateGame" class="btn-secondary">Cancel</button>
         <button type="button" id="btnSubmitPlayers" class="btn-launch" style="padding: 12px 28px;">⚡ Launch Territory Floor</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL: DUEL MATCHUP (CHALLENGER VS ADJACENT) ==================== -->
-  <div id="modalDuelMatchup" class="modal-overlay">
-    <div class="modal-card duel-matchup-modal-card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div class="matchup-header-badge">⚔️ THE FLOOR DUEL CHALLENGE</div>
-        <button type="button" id="btnCloseMatchupModal" class="nav-btn" style="padding: 4px 10px; font-size: 1.1rem;">✕</button>
-      </div>
-
-      <h2 class="victory-title" style="font-size: 1.8rem; margin-bottom: 18px;">⚔️ DUEL MATCHUP</h2>
-
-      <div class="matchup-versus-container">
-        <!-- Challenger: Player 1 (Cyan) -->
-        <div class="matchup-podium-card p1-card">
-          <div class="podium-role-tag">PLAYER 1 • CHALLENGER</div>
-          <div id="matchupP1Name" class="podium-player-name">Player 1</div>
-          <div class="podium-source-tag">🎲 Picked by Floor Randomizer</div>
-        </div>
-
-        <!-- VS Divider -->
-        <div class="matchup-vs-divider">
-          <div class="vs-glow-circle">VS</div>
-        </div>
-
-        <!-- Defender: Player 2 (Crimson) -->
-        <div class="matchup-podium-card p2-card">
-          <div class="podium-role-tag">PLAYER 2 • DEFENDER</div>
-          <div id="matchupP2Name" class="podium-player-name">Player 2</div>
-          <div class="podium-source-tag">⚔️ Adjacent Competitor</div>
-        </div>
-      </div>
-
-      <!-- Duel Category Info -->
-      <div class="matchup-category-section">
-        <span class="matchup-category-label">DUEL CATEGORY:</span>
-        <select id="selectMatchupCategory" class="matchup-category-dropdown">
-          <!-- Populated dynamically with available categories -->
-        </select>
-      </div>
-
-      <div class="modal-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
-        <button type="button" id="btnCancelMatchup" class="btn-secondary">Choose Different Opponent</button>
-        <button type="button" id="btnConfirmStartDuel" class="btn-launch" style="padding: 12px 28px; font-size: 1.05rem; font-weight: 800; background: linear-gradient(135deg, #ffd369, #ff9f1c); color: #0b0e17; box-shadow: 0 0 20px rgba(255, 211, 105, 0.4);">⚔️ START DUEL</button>
       </div>
     </div>
   </div>

@@ -343,6 +343,179 @@
       border-color: var(--gold);
       color: var(--gold);
     }
+
+    /* Host Mode Navigation Tabs */
+    .host-mode-nav {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px;
+    }
+
+    .host-mode-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .host-mode-btn.active {
+      background: linear-gradient(135deg, rgba(255, 211, 105, 0.2), rgba(255, 159, 28, 0.25));
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      box-shadow: 0 0 12px rgba(255, 211, 105, 0.25);
+    }
+
+    /* Floor & Duel Panels */
+    .host-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .floor-status-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-host-randomize {
+      width: 100%;
+      background: linear-gradient(135deg, #ffd369 0%, #ff9f1c 100%);
+      color: #0b0e17;
+      padding: 24px 18px;
+      border-radius: var(--radius-md);
+      font-size: 1.35rem;
+      font-weight: 900;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 0 30px rgba(255, 211, 105, 0.45);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-transform: uppercase;
+    }
+
+    .btn-host-randomize:hover, .btn-host-randomize:active {
+      transform: scale(1.02);
+      box-shadow: 0 0 40px rgba(255, 211, 105, 0.8);
+    }
+
+    .btn-host-randomize:disabled {
+      opacity: 0.65;
+      pointer-events: none;
+      filter: grayscale(40%);
+    }
+
+    .randomizer-subtext {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: rgba(11, 14, 23, 0.85);
+      text-transform: none;
+    }
+
+    /* Challenger & Defender Selection */
+    .host-challenger-card {
+      background: linear-gradient(145deg, rgba(0, 240, 255, 0.15) 0%, rgba(6, 9, 17, 0.95) 100%);
+      border: 2px solid var(--p1-color);
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: 0 0 25px var(--p1-glow);
+    }
+
+    .host-challenger-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--p1-color);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .host-challenger-name {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .host-defenders-prompt {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #ffd369;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin: 14px 0 8px 0;
+      text-align: left;
+    }
+
+    .host-defenders-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .btn-defender-choice {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(255, 159, 28, 0.15), rgba(255, 46, 99, 0.2));
+      border: 2px solid #ff9f1c;
+      color: #ffffff;
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 15px rgba(255, 159, 28, 0.3);
+      text-transform: uppercase;
+    }
+
+    .btn-defender-choice:hover, .btn-defender-choice:active {
+      background: linear-gradient(135deg, rgba(255, 159, 28, 0.3), rgba(255, 46, 99, 0.45));
+      border-color: #ff2e63;
+      box-shadow: 0 0 25px rgba(255, 46, 99, 0.7);
+      transform: scale(1.02);
+    }
+
+    .defender-badge-tag {
+      background: rgba(255, 46, 99, 0.3);
+      border: 1px solid var(--p2-color);
+      color: var(--p2-color);
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
@@ -358,60 +531,117 @@
       <div id="gameTitleBadge" class="game-badge-pill">ICE CREAM FLAVOURS</div>
     </header>
 
-    <!-- Active Turn Spotlight Banner -->
-    <div id="turnBanner" class="turn-banner p1">
-      👉 PLAYER 1'S TURN
+    <!-- Host Mode Tabs: Floor & Randomizer vs Duel Controller -->
+    <div class="host-mode-nav">
+      <button id="btnModeTerritory" class="host-mode-btn active">
+        🗺️ Floor &amp; Randomizer
+      </button>
+      <button id="btnModeDuel" class="host-mode-btn">
+        ⚔️ Duel Remote
+      </button>
     </div>
 
-    <!-- Live Synchronized Timers -->
-    <div class="host-timers-grid">
-      <div id="p1TimerCard" class="host-timer-card p1">
-        <div id="p1Label" class="host-player-label">Player 1</div>
-        <div id="p1TimeVal" class="host-timer-val">45.0</div>
+    <!-- ==================== HOST PANEL 1: FLOOR & RANDOMIZER ==================== -->
+    <div id="panelTerritory" class="host-panel">
+      <!-- Territory Status Card -->
+      <div class="floor-status-card">
+        <div>
+          <div style="font-size: 0.72rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; text-transform: uppercase;">
+            🗺️ THE FLOOR TORONTO
+          </div>
+          <div id="hostFloorStats" style="font-size: 1.15rem; font-weight: 900; color: #ffffff; margin-top: 2px;">
+            0 Contestants • 0×0 Grid
+          </div>
+        </div>
+        <div id="hostFloorBadge" class="game-badge-pill" style="border-color: var(--p1-color); color: var(--p1-color);">
+          FLOOR READY
+        </div>
       </div>
-      <div id="p2TimerCard" class="host-timer-card p2">
-        <div id="p2Label" class="host-player-label">Player 2</div>
-        <div id="p2TimeVal" class="host-timer-val">45.0</div>
+
+      <!-- Randomizer Action Trigger Card -->
+      <div id="hostRandomizerCard" style="margin-top: 6px;">
+        <button id="btnHostTriggerRandomizer" class="btn-host-randomize">
+          <span style="font-size: 2.2rem; line-height: 1;">🎲</span>
+          <span id="labelHostRandomize">TRIGGER RANDOMIZER</span>
+          <span class="randomizer-subtext">Rolls contestant roulette on the Big Screen</span>
+        </button>
+      </div>
+
+      <!-- Challenger & Defender Selection Card (Shown once challenger is picked) -->
+      <div id="hostChallengerCard" class="host-challenger-card" style="display: none; margin-top: 6px;">
+        <div class="host-challenger-title">👑 CHALLENGER SELECTED</div>
+        <div id="hostChallengerName" class="host-challenger-name">Player Name</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Picked by Floor Randomizer</div>
+
+        <div class="host-defenders-prompt">👉 CHOOSE DEFENDER FOR DUEL:</div>
+        <div id="hostDefendersList" class="host-defenders-grid">
+          <!-- Dynamically filled with adjacent defender buttons -->
+        </div>
+
+        <div style="margin-top: 16px; display: flex; gap: 8px;">
+          <button id="btnHostReroll" class="btn-sub-action" style="flex: 1; color: var(--gold);">🎲 Re-roll Randomizer</button>
+          <button id="btnHostCancelChallenger" class="btn-sub-action" style="flex: 1; color: #ff5252;">✕ Cancel</button>
+        </div>
       </div>
     </div>
 
-    <!-- Central Master Answer Card (Visible only to Host) -->
-    <section class="master-answer-card">
-      <div id="answerTag" class="answer-tag">🎯 VERIFY PLAYER'S ANSWER:</div>
-      <div id="masterAnswer" class="big-answer-text">READY</div>
-      <div class="clue-meta-row">
-        <span id="clueNumber">Clue 1 / 45</span>
-        <span>•</span>
-        <span id="nextClueHint" class="next-clue-hint">Next: ...</span>
+    <!-- ==================== HOST PANEL 2: DUEL CONTROLLER ==================== -->
+    <div id="panelDuel" class="host-panel" style="display: none;">
+      <!-- Active Turn Spotlight Banner -->
+      <div id="turnBanner" class="turn-banner p1">
+        👉 PLAYER 1'S TURN
       </div>
-    </section>
 
-    <!-- Giant Start Game / Duel Button (Shown in Ready & Countdown States) -->
-    <button id="btnHostStartDuel" class="btn-host-action btn-host-start">
-      <span id="startDuelLabel">🚀 START GAME</span>
-      <span class="hotkey-hint">SPACE</span>
-    </button>
+      <!-- Live Synchronized Timers -->
+      <div class="host-timers-grid">
+        <div id="p1TimerCard" class="host-timer-card p1">
+          <div id="p1Label" class="host-player-label">Player 1</div>
+          <div id="p1TimeVal" class="host-timer-val">45.0</div>
+        </div>
+        <div id="p2TimerCard" class="host-timer-card p2">
+          <div id="p2Label" class="host-player-label">Player 2</div>
+          <div id="p2TimeVal" class="host-timer-val">45.0</div>
+        </div>
+      </div>
 
-    <!-- Giant Thumb-Friendly Touch Controls (Active during Duel) -->
-    <div id="duelActionsGrid" class="host-actions-grid" style="display: none;">
-      <!-- Correct Button -->
-      <button id="btnHostCorrect" class="btn-host-action btn-host-correct">
-        <span>✓ CORRECT</span>
+      <!-- Central Master Answer Card (Visible only to Host) -->
+      <section class="master-answer-card">
+        <div id="answerTag" class="answer-tag">🎯 VERIFY PLAYER'S ANSWER:</div>
+        <div id="masterAnswer" class="big-answer-text">READY</div>
+        <div class="clue-meta-row">
+          <span id="clueNumber">Clue 1 / 45</span>
+          <span>•</span>
+          <span id="nextClueHint" class="next-clue-hint">Next: ...</span>
+        </div>
+      </section>
+
+      <!-- Giant Start Game / Duel Button (Shown in Ready & Countdown States) -->
+      <button id="btnHostStartDuel" class="btn-host-action btn-host-start">
+        <span id="startDuelLabel">🚀 START GAME</span>
         <span class="hotkey-hint">SPACE</span>
       </button>
 
-      <!-- Pass Button -->
-      <button id="btnHostPass" class="btn-host-action btn-host-pass">
-        <span id="hostPassLabel">↷ PASS (3s Delay)</span>
-        <span class="hotkey-hint">TAB</span>
-      </button>
-    </div>
+      <!-- Giant Thumb-Friendly Touch Controls (Active during Duel) -->
+      <div id="duelActionsGrid" class="host-actions-grid" style="display: none;">
+        <!-- Correct Button -->
+        <button id="btnHostCorrect" class="btn-host-action btn-host-correct">
+          <span>✓ CORRECT</span>
+          <span class="hotkey-hint">SPACE</span>
+        </button>
 
-    <!-- Secondary Utilities -->
-    <div class="host-sub-buttons">
-      <button id="btnHostPause" class="btn-sub-action">⏸ PAUSE (ESC)</button>
-      <button id="btnHostReset" class="btn-sub-action" style="color: #ff5252;">↻ RESET (R)</button>
-      <button id="btnCategoryModal" class="btn-sub-action" style="color: var(--gold);">⇄ CATEGORY</button>
+        <!-- Pass Button -->
+        <button id="btnHostPass" class="btn-host-action btn-host-pass">
+          <span id="hostPassLabel">↷ PASS (3s Delay)</span>
+          <span class="hotkey-hint">TAB</span>
+        </button>
+      </div>
+
+      <!-- Secondary Utilities -->
+      <div class="host-sub-buttons">
+        <button id="btnHostPause" class="btn-sub-action">⏸ PAUSE (ESC)</button>
+        <button id="btnHostReset" class="btn-sub-action" style="color: #ff5252;">↻ RESET (R)</button>
+        <button id="btnCategoryModal" class="btn-sub-action" style="color: var(--gold);">⇄ CATEGORY</button>
+      </div>
     </div>
 
   </div>
@@ -449,11 +679,35 @@
     let currentActivePlayer = null;
     let currentStatus = 'ready';
     let isConnectedViaSse = false;
+    let currentTerritory = null;
+    let currentChallenger = null;
+    let currentAdjacentDefenders = [];
+    let hostMode = 'territory'; // 'territory' | 'duel'
 
     const el = {
       connStatus: document.getElementById('connStatus'),
       connLabel: document.getElementById('connLabel'),
       gameTitleBadge: document.getElementById('gameTitleBadge'),
+
+      // Mode Navigation
+      btnModeTerritory: document.getElementById('btnModeTerritory'),
+      btnModeDuel: document.getElementById('btnModeDuel'),
+      panelTerritory: document.getElementById('panelTerritory'),
+      panelDuel: document.getElementById('panelDuel'),
+
+      // Territory Panel Elements
+      hostFloorStats: document.getElementById('hostFloorStats'),
+      hostFloorBadge: document.getElementById('hostFloorBadge'),
+      hostRandomizerCard: document.getElementById('hostRandomizerCard'),
+      btnHostTriggerRandomizer: document.getElementById('btnHostTriggerRandomizer'),
+      labelHostRandomize: document.getElementById('labelHostRandomize'),
+      hostChallengerCard: document.getElementById('hostChallengerCard'),
+      hostChallengerName: document.getElementById('hostChallengerName'),
+      hostDefendersList: document.getElementById('hostDefendersList'),
+      btnHostReroll: document.getElementById('btnHostReroll'),
+      btnHostCancelChallenger: document.getElementById('btnHostCancelChallenger'),
+
+      // Duel Panel Elements
       turnBanner: document.getElementById('turnBanner'),
       p1Label: document.getElementById('p1Label'),
       p1TimeVal: document.getElementById('p1TimeVal'),
@@ -475,6 +729,82 @@
       categoryModal: document.getElementById('categoryModal'),
       btnCloseModal: document.getElementById('btnCloseModal')
     };
+
+    function switchHostMode(mode) {
+      hostMode = mode;
+      if (mode === 'territory') {
+        el.btnModeTerritory.classList.add('active');
+        el.btnModeDuel.classList.remove('active');
+        el.panelTerritory.style.display = 'flex';
+        el.panelDuel.style.display = 'none';
+      } else {
+        el.btnModeTerritory.classList.remove('active');
+        el.btnModeDuel.classList.add('active');
+        el.panelTerritory.style.display = 'none';
+        el.panelDuel.style.display = 'flex';
+      }
+    }
+
+    function updateHostTerritoryUI() {
+      if (!currentTerritory || !currentTerritory.players || currentTerritory.players.length === 0) {
+        el.hostFloorStats.textContent = '0 Contestants • 0×0 Grid';
+        el.hostFloorBadge.textContent = 'NO FLOOR';
+        el.hostFloorBadge.style.color = 'var(--text-muted)';
+        el.hostFloorBadge.style.borderColor = 'var(--border)';
+        el.btnHostTriggerRandomizer.disabled = true;
+        return;
+      }
+
+      const count = currentTerritory.players.length;
+      const cols = currentTerritory.cols || Math.ceil(Math.sqrt(count));
+      const rows = currentTerritory.rows || Math.ceil(count / cols);
+      el.hostFloorStats.textContent = `${count} Contestants • ${cols}×${rows} Grid`;
+      el.hostFloorBadge.textContent = 'FLOOR READY';
+      el.hostFloorBadge.style.color = 'var(--p1-color)';
+      el.hostFloorBadge.style.borderColor = 'var(--p1-color)';
+      if (!currentChallenger) {
+        el.btnHostTriggerRandomizer.disabled = false;
+      }
+    }
+
+    function renderHostChallengerAndDefenders(challenger, defenders = []) {
+      currentChallenger = challenger;
+      currentAdjacentDefenders = defenders;
+      el.hostRandomizerCard.style.display = 'none';
+      el.hostChallengerCard.style.display = 'block';
+      el.hostChallengerName.textContent = challenger.name;
+      el.hostDefendersList.innerHTML = '';
+
+      if (!defenders || defenders.length === 0) {
+        el.hostDefendersList.innerHTML = `
+          <div style="padding: 16px; color: var(--text-muted); font-size: 0.9rem;">
+            No adjacent competitors found for ${challenger.name}.
+          </div>
+        `;
+        return;
+      }
+
+      defenders.forEach(def => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-defender-choice';
+        btn.innerHTML = `
+          <span>⚔️ Challenge <strong>${def.name}</strong></span>
+          <span class="defender-badge-tag">${def.territoryCount || 1} Terr.</span>
+        `;
+        btn.addEventListener('click', () => {
+          vibrate(60);
+          selectDefenderForDuel(challenger.name, def.name);
+        });
+        el.hostDefendersList.appendChild(btn);
+      });
+    }
+
+    function selectDefenderForDuel(challengerName, defenderName) {
+      sendCommand('select_defender', {
+        challengerName: challengerName,
+        defenderName: defenderName
+      });
+    }
 
     function formatTime(sec) {
       if (sec <= 0) return "0.0";
@@ -506,6 +836,46 @@
       if (!d) return;
 
       if (d.status) currentStatus = d.status;
+
+      // Synchronize Territory Floor
+      if (d.territory) {
+        currentTerritory = d.territory;
+        updateHostTerritoryUI();
+      }
+
+      // Handle Randomizer Spin event
+      if (d.eventType === 'randomizer_spin' && d.challenger) {
+        renderHostChallengerAndDefenders(d.challenger, d.adjacentDefenders || []);
+        switchHostMode('territory');
+        return;
+      }
+
+      // Handle Challenger Cancelled
+      if (d.eventType === 'challenger_cancelled') {
+        currentChallenger = null;
+        currentAdjacentDefenders = [];
+        el.hostChallengerCard.style.display = 'none';
+        el.hostRandomizerCard.style.display = 'block';
+        el.btnHostTriggerRandomizer.disabled = false;
+        el.labelHostRandomize.textContent = 'TRIGGER RANDOMIZER';
+        return;
+      }
+
+      // Handle Duel Players Set (transition to duel)
+      if (d.eventType === 'duel_players_set') {
+        currentChallenger = null;
+        currentAdjacentDefenders = [];
+        el.hostChallengerCard.style.display = 'none';
+        el.hostRandomizerCard.style.display = 'block';
+        el.btnHostTriggerRandomizer.disabled = false;
+        el.labelHostRandomize.textContent = 'TRIGGER RANDOMIZER';
+        switchHostMode('duel');
+      }
+
+      // Active Challenger snapshot from initial_state
+      if (d.activeChallenger && !currentChallenger) {
+        renderHostChallengerAndDefenders(d.activeChallenger, d.adjacentDefenders || []);
+      }
 
       // 1. Lightweight Timer Tick: ONLY update clock digits, NEVER touch answer
       if (d.eventType === 'tick') {
@@ -687,6 +1057,14 @@
     let evtSource = null;
     function connectSSE() {
       if (location.protocol.startsWith('http')) {
+        // Fetch current territory state immediately
+        fetch('/api/territory').then(r => r.json()).then(t => {
+          if (t && t.players) {
+            currentTerritory = t;
+            updateHostTerritoryUI();
+          }
+        }).catch(() => {});
+
         evtSource = new EventSource('/api/events');
         evtSource.onopen = () => {
           isConnectedViaSse = true;
@@ -715,6 +1093,36 @@
           applyState(event.data.payload);
         }
       };
+    }
+
+    // Host Mode Tabs
+    el.btnModeTerritory.addEventListener('click', () => switchHostMode('territory'));
+    el.btnModeDuel.addEventListener('click', () => switchHostMode('duel'));
+
+    // Randomizer Trigger Listener (Only available in Host View)
+    el.btnHostTriggerRandomizer.addEventListener('click', () => {
+      vibrate(50);
+      el.btnHostTriggerRandomizer.disabled = true;
+      el.labelHostRandomize.textContent = '🎲 SPINNING ON BIG SCREEN...';
+      sendCommand('trigger_randomizer');
+    });
+
+    if (el.btnHostReroll) {
+      el.btnHostReroll.addEventListener('click', () => {
+        vibrate(40);
+        el.hostChallengerCard.style.display = 'none';
+        el.hostRandomizerCard.style.display = 'block';
+        el.btnHostTriggerRandomizer.disabled = true;
+        el.labelHostRandomize.textContent = '🎲 SPINNING ON BIG SCREEN...';
+        sendCommand('trigger_randomizer');
+      });
+    }
+
+    if (el.btnHostCancelChallenger) {
+      el.btnHostCancelChallenger.addEventListener('click', () => {
+        vibrate(30);
+        sendCommand('cancel_challenger');
+      });
     }
 
     // Touch Action Listeners

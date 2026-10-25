@@ -937,6 +937,33 @@
           if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
         }
 
+        // Territory Events
+        if (d.eventType === 'randomizer_spin' && d.challenger) {
+          runTerritoryRandomizerAnimation(d.challenger, d.adjacentDefenders || []);
+          return;
+        }
+
+        if (d.eventType === 'challenger_cancelled') {
+          clearChallengerState();
+          return;
+        }
+
+        if (d.eventType === 'duel_players_set') {
+          state.p1 = d.p1 || state.p1;
+          state.p2 = d.p2 || state.p2;
+          state.status = 'ready';
+          state.activePlayer = 1;
+          state.clueIndex = 0;
+          state.winner = null;
+          state.isPassing = false;
+          state.isCorrect = false;
+          state.correctAnswer = '';
+          state.lastCorrectAnswer = '';
+          updateArenaUI();
+          switchToView('arena');
+          return;
+        }
+
         // 5. Sound & Animations on Clue Progression
         if (d.eventType === 'start') {
           state.status = 'running';
@@ -1125,6 +1152,7 @@
     try {
       localStorage.setItem('the_floor_territory_game', JSON.stringify(territoryGame));
       updateLandingSavedStatus();
+      sendServerCommand('sync_territory', { territory: territoryGame });
     } catch (e) {
       console.warn('Could not persist territory game to localStorage', e);
     }
@@ -1135,6 +1163,7 @@
       const saved = localStorage.getItem('the_floor_territory_game');
       if (saved) {
         territoryGame = JSON.parse(saved);
+        sendServerCommand('sync_territory', { territory: territoryGame });
         return true;
       }
     } catch (e) {
@@ -1145,6 +1174,7 @@
 
   function handleLoadGameClick() {
     if (loadTerritoryGame()) {
+      sendServerCommand('sync_territory', { territory: territoryGame });
       renderTerritoryGrid();
       switchToView('territory');
     } else {
@@ -1266,38 +1296,25 @@
     renderTerritoryGrid();
   }
 
-  function runTerritoryRandomizer() {
+  // Triggered when Host Remote commands the Randomizer to run
+  function runTerritoryRandomizerAnimation(chosenPlayer, adjacentDefenders = []) {
     if (isRandomizerSpinning) return;
-    if (!territoryGame || !territoryGame.players || territoryGame.players.length === 0) {
-      alert("Please create or load a territory game first.");
-      openCreateGameModal();
-      return;
-    }
+    if (!territoryGame || !territoryGame.grid || territoryGame.grid.length === 0) return;
 
-    const activePlayers = territoryGame.players.filter(p => p.active !== false);
-    if (activePlayers.length < 2) {
-      alert("At least 2 active players are required on the floor to challenge to a duel.");
-      return;
-    }
+    switchToView('territory');
 
-    // Prefer players who have at least one adjacent competitor to challenge
-    const eligibleWithNeighbors = activePlayers.filter(p => getAdjacentCompetitors(p.id).length > 0);
-    const candidatePool = eligibleWithNeighbors.length > 0 ? eligibleWithNeighbors : activePlayers;
-    const chosenPlayer = candidatePool[Math.floor(Math.random() * candidatePool.length)];
-
-    // Clear any previous challenger highlighting during the roulette roll
     activeChallenger = null;
     pendingDefender = null;
-    if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'flex';
-    if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'none';
+    isRandomizerSpinning = true;
+
+    if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'none';
+    if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'flex';
+    if (el.bannerChallengerName) el.bannerChallengerName.textContent = '🎲 SPINNING...';
+
     renderTerritoryGrid();
 
-    isRandomizerSpinning = true;
-    if (el.btnTerritoryRandomizer) el.btnTerritoryRandomizer.classList.add('is-spinning');
-    if (el.btnRandomizerText) el.btnRandomizerText.textContent = 'SPINNING...';
-
     const tiles = Array.from(el.territoryGrid.querySelectorAll('.territory-tile'));
-    const totalHops = 22;
+    const totalHops = 24;
     let hop = 0;
 
     function stepRoulette() {
@@ -1316,9 +1333,6 @@
         setTimeout(() => {
           tiles.forEach(t => t.classList.remove('is-spin-highlight'));
           isRandomizerSpinning = false;
-          if (el.btnTerritoryRandomizer) el.btnTerritoryRandomizer.classList.remove('is-spinning');
-          if (el.btnRandomizerText) el.btnRandomizerText.textContent = 'RANDOMIZER';
-
           setChallengerState(chosenPlayer);
         }, 500);
         return;
@@ -1336,105 +1350,6 @@
     }
 
     stepRoulette();
-  }
-
-  function handleAdjacentTileClick(competitorPlayerId) {
-    if (!activeChallenger) return;
-    const defender = territoryGame.players.find(p => p.id === competitorPlayerId);
-    if (!defender) return;
-
-    window.soundEngine?.playTick();
-    openDuelMatchupModal(activeChallenger, defender);
-  }
-
-  function openDuelMatchupModal(challenger, defender) {
-    pendingDefender = defender;
-    if (el.matchupP1Name) el.matchupP1Name.textContent = challenger.name;
-    if (el.matchupP2Name) el.matchupP2Name.textContent = defender.name;
-
-    // Populate category dropdown with available games
-    if (el.selectMatchupCategory) {
-      el.selectMatchupCategory.innerHTML = '';
-      const games = (typeof GameRegistry !== 'undefined')
-        ? GameRegistry.getAll()
-        : [GAME_ICE_CREAM, GAME_TORONTO_LANDMARKS];
-
-      games.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.id;
-        opt.textContent = g.title;
-        if (state.gameId === g.id || state.title === g.title) {
-          opt.selected = true;
-        }
-        el.selectMatchupCategory.appendChild(opt);
-      });
-    }
-
-    if (el.modalDuelMatchup) el.modalDuelMatchup.classList.add('active');
-  }
-
-  function closeDuelMatchupModal() {
-    pendingDefender = null;
-    if (el.modalDuelMatchup) el.modalDuelMatchup.classList.remove('active');
-  }
-
-  function handleConfirmStartDuel() {
-    if (!activeChallenger || !pendingDefender) return;
-    const challengerName = activeChallenger.name;
-    const defenderName = pendingDefender.name;
-    const categoryId = el.selectMatchupCategory ? el.selectMatchupCategory.value : state.gameId;
-
-    launchDuelFromTerritory(challengerName, defenderName, categoryId);
-  }
-
-  function launchDuelFromTerritory(challengerName, defenderName, categoryId) {
-    // If a different category was chosen, select that game
-    if (categoryId && typeof GameRegistry !== 'undefined') {
-      const chosenGame = GameRegistry.getById(categoryId);
-      if (chosenGame) {
-        state.title = chosenGame.title;
-        state.gameId = chosenGame.id;
-        state.clues = [...chosenGame.clues];
-        state.roundTime = chosenGame.defaultTimer || 45;
-        sendServerCommand('select_game', { gameId: chosenGame.id });
-      }
-    }
-
-    // Challenger is ALWAYS Player 1; Challenged competitor is ALWAYS Player 2
-    state.p1.name = challengerName;
-    state.p2.name = defenderName;
-    state.p1.maxTime = state.roundTime;
-    state.p1.timeRemaining = state.roundTime;
-    state.p2.maxTime = state.roundTime;
-    state.p2.timeRemaining = state.roundTime;
-    state.activePlayer = 1;
-    state.status = 'ready';
-    state.clueIndex = 0;
-    state.winner = null;
-    state.isPassing = false;
-    state.passRemaining = 0;
-    state.passedAnswer = '';
-    state.isCorrect = false;
-    state.correctAnswer = '';
-    state.lastCorrectAnswer = '';
-
-    if (el.p1Name) el.p1Name.textContent = challengerName;
-    if (el.p2Name) el.p2Name.textContent = defenderName;
-    if (el.inputP1Name) el.inputP1Name.value = challengerName;
-    if (el.inputP2Name) el.inputP2Name.value = defenderName;
-
-    persistCurrentGame();
-
-    // Broadcast synchronized players to server, host remote, and dual screens!
-    sendServerCommand('set_duel_players', {
-      p1Name: challengerName,
-      p2Name: defenderName,
-      gameId: categoryId || state.gameId
-    });
-
-    closeDuelMatchupModal();
-    updateArenaUI();
-    switchToView('arena');
   }
 
   function renderTerritoryGrid() {
@@ -1505,12 +1420,7 @@
           targetTag.className = 'territory-tile-target-tag';
           targetTag.textContent = '⚔️ CAN CHALLENGE';
           tile.appendChild(targetTag);
-          tile.title = `Click to challenge ${sq.playerName} to a duel!`;
-
-          tile.addEventListener('click', (e) => {
-            e.stopPropagation();
-            handleAdjacentTileClick(sq.playerId);
-          });
+          tile.title = `Adjacent competitor: ${sq.playerName} (Awaiting Host Selection)`;
         } else {
           tile.classList.add('is-dimmed');
         }
@@ -1594,16 +1504,6 @@
     alert('Territory floor saved successfully!');
   });
   if (el.btnTerritoryGoArena) el.btnTerritoryGoArena.addEventListener('click', () => switchToView('arena'));
-
-  // Randomizer & Challenge Listeners
-  if (el.btnTerritoryRandomizer) el.btnTerritoryRandomizer.addEventListener('click', runTerritoryRandomizer);
-  if (el.btnCancelChallenger) el.btnCancelChallenger.addEventListener('click', clearChallengerState);
-  if (el.btnRerollRandomizer) el.btnRerollRandomizer.addEventListener('click', runTerritoryRandomizer);
-
-  // Duel Matchup Modal Listeners
-  if (el.btnCloseMatchupModal) el.btnCloseMatchupModal.addEventListener('click', closeDuelMatchupModal);
-  if (el.btnCancelMatchup) el.btnCancelMatchup.addEventListener('click', closeDuelMatchupModal);
-  if (el.btnConfirmStartDuel) el.btnConfirmStartDuel.addEventListener('click', handleConfirmStartDuel);
 
   // Create Game Modal
   if (el.btnCloseCreateGameModal) el.btnCloseCreateGameModal.addEventListener('click', closeCreateGameModal);
