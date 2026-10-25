@@ -729,7 +729,7 @@
 
       const icon = document.createElement('div');
       icon.className = 'game-card-icon';
-      icon.textContent = game.id === 'ice-cream-flavours' ? '🍦' : (game.id === 'toronto-landmarks' ? '🏢' : '🎯');
+      icon.textContent = game.id === 'countries' ? '🌍' : (game.id === 'ice-cream-flavours' ? '🍦' : (game.id === 'toronto-landmarks' ? '🏢' : '🎯'));
 
       const badge = document.createElement('div');
       badge.className = 'game-card-badge';
@@ -814,6 +814,7 @@
     state.p2.maxTime = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
     persistCurrentGame();
+    sendServerCommand('select_game', { gameId: game.id });
     resetRound();
     switchToView('arena');
   }

@@ -1,5 +1,16 @@
 [
   {
+    "id": "countries",
+    "title": "Countries",
+    "description": "Identify the country from cultural stereotypes, national cuisine, attire, and iconic symbols!",
+    "difficulty": "Cultural Icons",
+    "category": "World & Culture",
+    "cluesCount": 12,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #f39c12 100%)",
+    "file": "countries.json"
+  },
+  {
     "id": "ice-cream-flavours",
     "title": "Ice Cream Flavours",
     "description": "Identify the flavour from the visual clue! Progresses from parlor classics to rare and obscure gourmet creations.",

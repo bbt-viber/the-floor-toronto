@@ -1,8 +1,9 @@
 // Central Game Directory Manifest for The Floor Toronto
 const GAMES_DIRECTORY = [
-  GAME_ICE_CREAM,
-  GAME_TORONTO_LANDMARKS
-];
+  typeof GAME_COUNTRIES !== 'undefined' ? GAME_COUNTRIES : null,
+  typeof GAME_ICE_CREAM !== 'undefined' ? GAME_ICE_CREAM : null,
+  typeof GAME_TORONTO_LANDMARKS !== 'undefined' ? GAME_TORONTO_LANDMARKS : null
+].filter(Boolean);
 
 // Helper functions for accessing and managing games
 const GameRegistry = {

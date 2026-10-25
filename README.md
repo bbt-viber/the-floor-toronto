@@ -44,7 +44,21 @@ As the host, you control the pace of the duel using standard keyboard shortcuts:
 
 Click **📚 Game Library** in the navigation bar (or **⇄ Change Game** on the arena screen) to browse and select any game category:
 
-1. **🍦 Ice Cream Flavours (Progressive: Easy → Obscure)**
+1. **🌍 Countries (Cultural Stereotypes & National Icons)**
+   - 12 photorealistic cultural prompts stored in [`countries/`](countries) where the file name matches the answer:
+     - **France** (`France.jpg`): French baguette, wool beret, croissant & café coffee on a Parisian bistro table.
+     - **Canada** (`Canada.jpg`): Pure amber maple syrup bottle, red-and-black lumberjack flannel jacket, snowshoes & pine cones.
+     - **Japan** (`Japan.jpg`): Sushi and sashimi wooden platter, cherry blossoms (sakura), ceramic sake carafe & chopsticks.
+     - **Italy** (`Italy.jpg`): Wood-fired Neapolitan pizza, Parmigiano Reggiano wedge, extra virgin olive oil & moka espresso pot.
+     - **Mexico** (`Mexico.jpg`): Embroidered sombrero, vibrant serape blanket, street tacos with lime wedges & maracas.
+     - **Germany** (`Germany.jpg`): Bavarian lederhosen, giant salted soft pretzel & frothy ceramic beer stein.
+     - **United Kingdom** (`United Kingdom.jpg`): Steaming English tea, bowler hat, red telephone box & red double-decker bus.
+     - **United States** (`United States.jpg`): Juicy cheeseburger with fries, vintage baseball glove & warm apple pie.
+     - **Brazil** (`Brazil.jpg`): Rio Carnival feather headdress, yellow & green #10 soccer jersey & ball on Copacabana beach.
+     - **Switzerland** (`Switzerland.jpg`): Open Swiss Army pocket knife, Emmental cheese wedge, Alpine cowbell & chocolate.
+     - **Australia** (`Australia.jpg`): Bushman cork hat, wooden boomerang on red outback sand & Vegemite on toast.
+     - **India** (`India.jpg`): Brass bowls of colorful spices (turmeric, chili, cardamom), masala chai & marigold garland.
+2. **🍦 Ice Cream Flavours (Progressive: Easy → Obscure)**
    - 20 progressive visual identification clues. Starts with universal classics and ramps up into rare gourmet and international treats:
      - **Round 1–5 (Very Easy / Easy):** Vanilla, Chocolate, Strawberry, Mint Chocolate Chip, Cookies and Cream
      - **Round 6–10 (Medium / Parlor Staples):** Pistachio, Neapolitan, Butter Pecan, Rocky Road, Mango

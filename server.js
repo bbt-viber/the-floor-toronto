@@ -12,6 +12,7 @@ const PUBLIC_DIR = __dirname;
 // Load initial game packs
 let sampleLandmarks = [];
 let iceCreamGame = null;
+let countriesGame = null;
 
 try {
   sampleLandmarks = require('./sample-data.js');
@@ -23,6 +24,12 @@ try {
   iceCreamGame = require('./games/ice-cream-flavours.js');
 } catch (e) {
   console.warn('Could not load ice-cream-flavours.js', e.message);
+}
+
+try {
+  countriesGame = require('./games/countries.js');
+} catch (e) {
+  console.warn('Could not load countries.js', e.message);
 }
 
 // Authoritative Server Game State
@@ -183,7 +190,11 @@ function handleHostCommand(cmd, payload = {}) {
   } 
   else if (cmd === 'select_game') {
     const gameId = payload.gameId;
-    if (gameId === 'toronto-landmarks') {
+    if (gameId === 'countries' && countriesGame) {
+      state.title = countriesGame.title;
+      state.gameId = countriesGame.id;
+      state.clues = [...countriesGame.clues];
+    } else if (gameId === 'toronto-landmarks') {
       state.title = "Landmarks of Toronto";
       state.gameId = 'toronto-landmarks';
       state.clues = [...sampleLandmarks];
