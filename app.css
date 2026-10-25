@@ -128,7 +128,7 @@ body {
   grid-template-columns: 290px 1fr 290px;
   gap: 20px;
   align-items: stretch;
-  min-height: calc(100vh - 190px);
+  min-height: calc(100vh - 120px);
 }
 
 @media (max-width: 960px) {

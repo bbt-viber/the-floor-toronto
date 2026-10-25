@@ -223,7 +223,7 @@
     state.isPassing = false;
     state.lastFrameTime = null;
     lastSecondPlayed = null;
-    el.pauseLabel.textContent = 'PAUSE (ESC)';
+    if (el.pauseLabel) el.pauseLabel.textContent = 'PAUSE (ESC)';
     el.pauseModal.classList.remove('active');
     updateArenaUI();
     broadcastSync();
@@ -272,7 +272,7 @@
   function pauseRunning() {
     state.status = 'paused';
     state.lastFrameTime = null;
-    el.pauseLabel.textContent = 'RESUME (ESC)';
+    if (el.pauseLabel) el.pauseLabel.textContent = 'RESUME (ESC)';
     el.pauseModal.classList.add('active');
     updateArenaUI();
     broadcastSync();
@@ -461,7 +461,7 @@
 
     el.victoryModal.classList.remove('active');
     el.pauseModal.classList.remove('active');
-    el.pauseLabel.textContent = 'START (ESC / SPACE)';
+    if (el.pauseLabel) el.pauseLabel.textContent = 'START (ESC / SPACE)';
 
     updateArenaUI();
     broadcastSync();
@@ -570,7 +570,7 @@
       if (el.correctOverlay) el.correctOverlay.style.display = 'none';
       if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       el.clueImage.style.display = 'none';
-      el.pauseLabel.textContent = 'START DUEL (SPACE)';
+      if (el.pauseLabel) el.pauseLabel.textContent = 'START DUEL (SPACE)';
     } else if (state.status === 'countdown') {
       if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'flex';
@@ -579,7 +579,7 @@
       if (el.correctOverlay) el.correctOverlay.style.display = 'none';
       if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       el.clueImage.style.display = 'none';
-      el.pauseLabel.textContent = `STARTING IN ${state.countdownVal || 3}...`;
+      if (el.pauseLabel) el.pauseLabel.textContent = `STARTING IN ${state.countdownVal || 3}...`;
     } else if (state.isPassing) {
       if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
@@ -679,28 +679,36 @@
     }
   });
 
-  // Dock & Control Button Listeners
-  el.btnCorrect.addEventListener('click', () => {
-    window.soundEngine.init();
-    handleCorrect();
-  });
+  // Dock & Control Button Listeners (if present on view)
+  if (el.btnCorrect) {
+    el.btnCorrect.addEventListener('click', () => {
+      window.soundEngine.init();
+      handleCorrect();
+    });
+  }
 
-  el.btnPass.addEventListener('click', () => {
-    window.soundEngine.init();
-    handlePass();
-  });
+  if (el.btnPass) {
+    el.btnPass.addEventListener('click', () => {
+      window.soundEngine.init();
+      handlePass();
+    });
+  }
 
-  el.btnPause.addEventListener('click', () => {
-    window.soundEngine.init();
-    togglePause();
-  });
+  if (el.btnPause) {
+    el.btnPause.addEventListener('click', () => {
+      window.soundEngine.init();
+      togglePause();
+    });
+  }
 
-  el.btnReset.addEventListener('click', () => {
-    window.soundEngine.init();
-    if (confirm('Reset the duel round?')) {
-      resetRound();
-    }
-  });
+  if (el.btnReset) {
+    el.btnReset.addEventListener('click', () => {
+      window.soundEngine.init();
+      if (confirm('Reset the duel round?')) {
+        resetRound();
+      }
+    });
+  }
 
   el.btnResume.addEventListener('click', () => {
     startRunning();
