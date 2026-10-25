@@ -51,6 +51,8 @@ const state = {
   isPassing: false,
   passRemaining: 0,
   passedAnswer: '',
+  isCorrect: false,
+  correctAnswer: '',
   lastCorrectAnswer: '',
   clues: iceCreamGame ? [...iceCreamGame.clues] : [],
   clueIndex: 0,
@@ -63,6 +65,7 @@ const state = {
 
 let countdownTimer = null;
 let passTimer = null;
+let correctTimer = null;
 
 // Connected SSE Clients (Players and Hosts)
 const sseClients = new Set();
@@ -82,7 +85,7 @@ function sendSse(payload) {
 function broadcastClueState(eventType = 'clue_sync') {
   const currentClue = state.clues[state.clueIndex] || null;
   const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
-  const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing);
+  const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing || state.isCorrect);
 
   const payload = {
     eventType,
@@ -96,7 +99,9 @@ function broadcastClueState(eventType = 'clue_sync') {
     isPassing: state.isPassing,
     passRemaining: state.passRemaining,
     passedAnswer: state.isPassing ? (state.passedAnswer || (currentClue ? currentClue.answer : '')) : '',
-    lastCorrectAnswer: state.isPassing ? '' : (state.lastCorrectAnswer || ''),
+    isCorrect: state.isCorrect,
+    correctAnswer: state.isCorrect ? (state.correctAnswer || (currentClue ? currentClue.answer : '')) : '',
+    lastCorrectAnswer: '', // When each next prompt is displayed, previous answer is hidden
     clueIndex: state.clueIndex,
     cluesCount: state.clues.length,
     // Stable clue pairings for host and players:
@@ -114,6 +119,11 @@ function broadcastClueState(eventType = 'clue_sync') {
 // High-Precision Server Clock Loop (ticks every 100ms)
 setInterval(() => {
   if (state.status === 'running') {
+    if (state.isCorrect) {
+      // Clocks are paused during the brief correct reveal
+      state.lastTickTime = null;
+      return;
+    }
     const now = Date.now();
     if (!state.lastTickTime) {
       state.lastTickTime = now;
@@ -149,11 +159,15 @@ setInterval(() => {
 function startDuelCountdown() {
   if (countdownTimer) clearInterval(countdownTimer);
   if (passTimer) clearInterval(passTimer);
+  if (correctTimer) clearTimeout(correctTimer);
   countdownTimer = null;
   passTimer = null;
+  correctTimer = null;
   state.isPassing = false;
   state.passRemaining = 0;
   state.passedAnswer = '';
+  state.isCorrect = false;
+  state.correctAnswer = '';
   state.lastCorrectAnswer = '';
   state.status = 'countdown';
   state.countdownVal = 3;
@@ -203,24 +217,57 @@ function handleHostCommand(cmd, payload = {}) {
       broadcastClueState('resume');
       return;
     }
-    if (state.status === 'countdown' || state.isPassing) {
-      return; // Ignore correct action during countdown or pass recovery
+    if (state.status === 'countdown' || state.isPassing || state.isCorrect) {
+      return; // Ignore correct action during countdown, pass, or correct reveal
     }
 
-    // Capture the answer of the clue that was just answered correctly
+    // 1. Capture the answer of the clue that was just answered correctly
     const currentClue = state.clues[state.clueIndex] || null;
-    state.lastCorrectAnswer = currentClue ? currentClue.answer : '';
+    const ans = currentClue ? currentClue.answer : '';
+    state.isCorrect = true;
+    state.correctAnswer = ans;
+    state.lastCorrectAnswer = ans;
+    state.lastTickTime = null; // Pause clock during 1s correct answer display
 
-    // Switch active player
-    state.activePlayer = state.activePlayer === 1 ? 2 : 1;
-    // Advance clue
-    if (state.clues.length > 0) {
-      state.clueIndex = (state.clueIndex + 1) % state.clues.length;
-    }
-    broadcastClueState('correct');
+    sendSse({
+      eventType: 'correct_start',
+      isCorrect: true,
+      correctAnswer: ans,
+      activePlayer: state.activePlayer,
+      clueIndex: state.clueIndex,
+      promptAnswer: ans,
+      promptImage: currentClue ? currentClue.image : ''
+    });
+
+    if (correctTimer) clearTimeout(correctTimer);
+    correctTimer = setTimeout(() => {
+      correctTimer = null;
+      if (state.status !== 'running') {
+        state.isCorrect = false;
+        state.correctAnswer = '';
+        return;
+      }
+      state.isCorrect = false;
+      state.correctAnswer = '';
+      state.lastCorrectAnswer = ''; // When next prompt is displayed, hide previous answer!
+
+      // Switch active player turn
+      state.activePlayer = state.activePlayer === 1 ? 2 : 1;
+      // Advance to next prompt!
+      if (state.clues.length > 0) {
+        state.clueIndex = (state.clueIndex + 1) % state.clues.length;
+      }
+      state.lastTickTime = Date.now();
+      broadcastClueState('correct_complete');
+    }, 1000);
   } 
   else if (cmd === 'pass') {
-    if (state.status !== 'running' || state.isPassing) return;
+    if (state.status !== 'running' || state.isPassing || state.isCorrect) return;
+
+    if (correctTimer) clearTimeout(correctTimer);
+    correctTimer = null;
+    state.isCorrect = false;
+    state.correctAnswer = '';
 
     // DO NOT subtract 3 seconds immediately from clock!
     // Clock continues to tick down naturally during the 3-second recovery delay.
@@ -262,7 +309,7 @@ function handleHostCommand(cmd, payload = {}) {
         state.passRemaining = 0;
         state.passedAnswer = '';
         state.lastCorrectAnswer = '';
-        // 3 seconds later: introduce next prompt!
+        // 3 seconds later: introduce next prompt and hide previous answer!
         if (state.clues.length > 0) {
           state.clueIndex = (state.clueIndex + 1) % state.clues.length;
         }
@@ -293,12 +340,16 @@ function handleHostCommand(cmd, payload = {}) {
   else if (cmd === 'reset') {
     if (countdownTimer) clearInterval(countdownTimer);
     if (passTimer) clearInterval(passTimer);
+    if (correctTimer) clearTimeout(correctTimer);
     countdownTimer = null;
     passTimer = null;
+    correctTimer = null;
     state.countdownVal = 0;
     state.isPassing = false;
     state.passRemaining = 0;
     state.passedAnswer = '';
+    state.isCorrect = false;
+    state.correctAnswer = '';
     state.lastCorrectAnswer = '';
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
@@ -312,11 +363,16 @@ function handleHostCommand(cmd, payload = {}) {
   else if (cmd === 'select_game') {
     if (countdownTimer) clearInterval(countdownTimer);
     if (passTimer) clearInterval(passTimer);
+    if (correctTimer) clearTimeout(correctTimer);
     countdownTimer = null;
     passTimer = null;
+    correctTimer = null;
     state.countdownVal = 0;
     state.isPassing = false;
     state.passRemaining = 0;
+    state.isCorrect = false;
+    state.correctAnswer = '';
+    state.lastCorrectAnswer = '';
     const gameId = payload.gameId;
     if (gameId === 'hairstyles' && hairstylesGame) {
       state.title = hairstylesGame.title;
@@ -344,6 +400,17 @@ function handleHostCommand(cmd, payload = {}) {
   } 
   else if (cmd === 'sync_custom_game') {
     if (payload.game && Array.isArray(payload.game.clues)) {
+      if (countdownTimer) clearInterval(countdownTimer);
+      if (passTimer) clearInterval(passTimer);
+      if (correctTimer) clearTimeout(correctTimer);
+      countdownTimer = null;
+      passTimer = null;
+      correctTimer = null;
+      state.isPassing = false;
+      state.passRemaining = 0;
+      state.isCorrect = false;
+      state.correctAnswer = '';
+      state.lastCorrectAnswer = '';
       state.title = payload.game.title || "Custom Duel";
       state.gameId = payload.game.id || 'custom-' + Date.now();
       state.clues = [...payload.game.clues];
@@ -416,7 +483,7 @@ const server = http.createServer((req, res) => {
     // Send immediate full state on connect
     const currentClue = state.clues[state.clueIndex] || null;
     const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
-    const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing);
+    const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing || state.isCorrect);
     const initialData = {
       eventType: 'initial_state',
       title: state.title,
@@ -429,7 +496,9 @@ const server = http.createServer((req, res) => {
       isPassing: state.isPassing,
       passRemaining: state.passRemaining,
       passedAnswer: state.isPassing ? (state.passedAnswer || '') : '',
-      lastCorrectAnswer: state.isPassing ? '' : (state.lastCorrectAnswer || ''),
+      isCorrect: state.isCorrect,
+      correctAnswer: state.isCorrect ? (state.correctAnswer || '') : '',
+      lastCorrectAnswer: '',
       clueIndex: state.clueIndex,
       cluesCount: state.clues.length,
       promptAnswer: currentClue ? currentClue.answer : '',

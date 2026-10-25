@@ -76,6 +76,12 @@
             </div>
           </div>
 
+          <!-- Correct Reveal Overlay (Answer displayed for the prompt they got correct) -->
+          <div id="correctOverlay" class="stage-overlay correct-reveal-overlay" style="display: none;">
+            <div class="correct-reveal-badge">✓ CORRECT!</div>
+            <div id="correctRevealedAnswer" class="correct-revealed-answer">...</div>
+          </div>
+
           <!-- Flash overlay for Correct/Pass (Shows Verified Answer) -->
           <div id="flashOverlay" class="flash-overlay">
             <span id="flashText" class="flash-text">✓ CORRECT!</span>
@@ -152,6 +158,8 @@
       passRevealedAnswer: document.getElementById('passRevealedAnswer'),
       passRecoveryDigits: document.getElementById('passRecoveryDigits'),
       passRecoveryBar: document.getElementById('passRecoveryBar'),
+      correctOverlay: document.getElementById('correctOverlay'),
+      correctRevealedAnswer: document.getElementById('correctRevealedAnswer'),
       victoryModal: document.getElementById('victoryModal'),
       victoryWinnerName: document.getElementById('victoryWinnerName'),
       victoryDetails: document.getElementById('victoryDetails'),
@@ -221,11 +229,9 @@
         el.countdownOverlay.style.display = 'flex';
         el.startingSoonOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
-        if (el.stageAnswerPill) {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-        }
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
         if (window.soundEngine?.playCountdownBeep) {
           window.soundEngine.playCountdownBeep(false);
         }
@@ -242,39 +248,50 @@
         const pct = (rem / 3) * 100;
         el.passRecoveryBar.style.width = `${pct}%`;
         el.passOverlay.style.display = 'flex';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'none';
-        if (el.stageAnswerPill) {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-        }
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
         if (d.eventType === 'pass_start') {
           window.soundEngine?.playPass();
         }
         return;
       }
 
-      if (d.eventType === 'pass_complete') {
-        if (el.stageAnswerPill) {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
+      // 4. Correct Reveal (Display answer for prompt got correct)
+      if (d.eventType === 'correct_start' || d.isCorrect) {
+        if (el.correctOverlay) el.correctOverlay.style.display = 'flex';
+        const ans = d.correctAnswer || d.promptAnswer || '';
+        if (el.correctRevealedAnswer) {
+          el.correctRevealedAnswer.textContent = ans.toUpperCase();
         }
+        el.passOverlay.style.display = 'none';
+        el.startingSoonOverlay.style.display = 'none';
+        el.countdownOverlay.style.display = 'none';
+        el.clueImage.style.display = 'none';
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+        if (d.eventType === 'correct_start') {
+          window.soundEngine?.playCorrect();
+        }
+        return;
+      }
+
+      if (d.eventType === 'pass_complete' || d.eventType === 'correct_complete') {
+        el.passOverlay.style.display = 'none';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       }
 
       // Sounds & Visual Flashes
-      if (d.eventType === 'correct') {
-        window.soundEngine?.playCorrect();
-        flashScreen('✓ CORRECT!', 'correct-flash', d.lastCorrectAnswer || '');
-      } else if (d.eventType === 'start') {
+      if (d.eventType === 'start') {
         if (window.soundEngine?.playCountdownBeep) {
           window.soundEngine.playCountdownBeep(true);
         }
       } else if (d.eventType === 'reset') {
-        if (el.stageAnswerPill) {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-        }
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+        el.passOverlay.style.display = 'none';
       }
 
       // Overlays management for main states
@@ -282,47 +299,45 @@
         el.startingSoonOverlay.style.display = 'flex';
         el.countdownOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
-        if (el.stageAnswerPill) {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-        }
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       } else if (d.status === 'countdown') {
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'flex';
         el.passOverlay.style.display = 'none';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
         el.clueImage.style.display = 'none';
-        if (el.stageAnswerPill) {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-        }
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       } else if (d.isPassing) {
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'none';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
         el.passOverlay.style.display = 'flex';
         if (d.passedAnswer) {
           el.passRevealedAnswer.textContent = d.passedAnswer.toUpperCase();
         }
         el.clueImage.style.display = 'none';
-        if (el.stageAnswerPill) {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-        }
-      } else {
-        // running, paused, gameover
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+      } else if (d.isCorrect) {
         el.startingSoonOverlay.style.display = 'none';
         el.countdownOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';
-        el.clueImage.style.display = 'block';
-        if (el.stageAnswerPill) {
-          if (d.lastCorrectAnswer && !d.isPassing) {
-            el.stageAnswerPill.style.display = 'inline-flex';
-            if (el.stageAnswerText) el.stageAnswerText.textContent = d.lastCorrectAnswer.toUpperCase();
-          } else {
-            el.stageAnswerPill.style.display = 'none';
-            if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-          }
+        if (el.correctOverlay) el.correctOverlay.style.display = 'flex';
+        const ans = d.correctAnswer || d.promptAnswer || '';
+        if (el.correctRevealedAnswer) {
+          el.correctRevealedAnswer.textContent = ans.toUpperCase();
         }
+        el.clueImage.style.display = 'none';
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+      } else {
+        // running, paused, gameover (NEXT PROMPT DISPLAYED - HIDE ALL PREVIOUS ANSWERS)
+        el.startingSoonOverlay.style.display = 'none';
+        el.countdownOverlay.style.display = 'none';
+        el.passOverlay.style.display = 'none';
+        if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+        if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+        el.clueImage.style.display = 'block';
       }
 
       if (d.title) el.categoryTitle.textContent = d.title.toUpperCase();

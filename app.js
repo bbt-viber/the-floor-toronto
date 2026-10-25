@@ -27,6 +27,9 @@
     isPassing: false,
     passRemaining: 0,
     passedAnswer: '',
+    isCorrect: false,
+    correctAnswer: '',
+    correctTimer: null,
     lastCorrectAnswer: '',
     countdownTimer: null,
     passTimer: null,
@@ -80,6 +83,8 @@
     passRevealedAnswer: document.getElementById('passRevealedAnswer'),
     passRecoveryDigits: document.getElementById('passRecoveryDigits'),
     passRecoveryBar: document.getElementById('passRecoveryBar'),
+    correctOverlay: document.getElementById('correctOverlay'),
+    correctRevealedAnswer: document.getElementById('correctRevealedAnswer'),
 
     p1Podium: document.getElementById('p1Podium'),
     p1Name: document.getElementById('p1Name'),
@@ -307,33 +312,54 @@
       startRunning();
       return;
     }
-    if (state.status === 'countdown' || state.isPassing) {
-      return; // Ignore correct action during countdown or pass recovery
+    if (state.status === 'countdown' || state.isPassing || state.isCorrect) {
+      return; // Ignore correct action during countdown, pass, or correct reveal
     }
 
-    // Capture the answer of the clue that was just answered correctly
+    // 1. Capture the answer of the clue that was just answered correctly
     const currentClue = state.clues[state.clueIndex] || null;
     const ans = currentClue ? currentClue.answer : '';
+    state.isCorrect = true;
+    state.correctAnswer = ans;
     state.lastCorrectAnswer = ans;
+    state.lastFrameTime = null; // Pause clock during 1s display
 
     window.soundEngine.playCorrect();
-    flashScreen('✓ CORRECT!', 'correct-flash', ans);
-
-    // Switch turn to opponent
-    state.activePlayer = state.activePlayer === 1 ? 2 : 1;
-
-    // Advance to next clue
-    nextClue();
-
     updateArenaUI();
     broadcastSync();
+
+    if (state.correctTimer) clearTimeout(state.correctTimer);
+    state.correctTimer = setTimeout(() => {
+      state.correctTimer = null;
+      if (state.status !== 'running') {
+        state.isCorrect = false;
+        state.correctAnswer = '';
+        return;
+      }
+      state.isCorrect = false;
+      state.correctAnswer = '';
+      state.lastCorrectAnswer = ''; // When next prompt is displayed, hide previous answer!
+
+      // Switch turn to opponent
+      state.activePlayer = state.activePlayer === 1 ? 2 : 1;
+      // Advance to next clue
+      nextClue();
+
+      updateArenaUI();
+      broadcastSync();
+    }, 1000);
   }
 
   // Host Action: Pass (TAB)
   function handlePass() {
     if (sendServerCommand('pass')) return;
 
-    if (state.status !== 'running' || state.isPassing) return;
+    if (state.status !== 'running' || state.isPassing || state.isCorrect) return;
+
+    if (state.correctTimer) clearTimeout(state.correctTimer);
+    state.correctTimer = null;
+    state.isCorrect = false;
+    state.correctAnswer = '';
 
     window.soundEngine.playPass();
 
@@ -541,10 +567,8 @@
       if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'flex';
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
       if (el.passOverlay) el.passOverlay.style.display = 'none';
-      if (el.stageAnswerPill) {
-        el.stageAnswerPill.style.display = 'none';
-        if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-      }
+      if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+      if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       el.clueImage.style.display = 'none';
       el.pauseLabel.textContent = 'START DUEL (SPACE)';
     } else if (state.status === 'countdown') {
@@ -552,39 +576,36 @@
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'flex';
       if (el.countdownNumber) el.countdownNumber.textContent = state.countdownVal || 3;
       if (el.passOverlay) el.passOverlay.style.display = 'none';
-      if (el.stageAnswerPill) {
-        el.stageAnswerPill.style.display = 'none';
-        if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-      }
+      if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+      if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       el.clueImage.style.display = 'none';
       el.pauseLabel.textContent = `STARTING IN ${state.countdownVal || 3}...`;
     } else if (state.isPassing) {
       if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
+      if (el.correctOverlay) el.correctOverlay.style.display = 'none';
       if (el.passOverlay) el.passOverlay.style.display = 'flex';
       if (el.passRevealedAnswer) el.passRevealedAnswer.textContent = (state.passedAnswer || '').toUpperCase();
       if (el.passRecoveryDigits) el.passRecoveryDigits.textContent = `${state.passRemaining || 3}s`;
       if (el.passRecoveryBar) el.passRecoveryBar.style.width = `${((state.passRemaining || 3) / 3) * 100}%`;
-      if (el.stageAnswerPill) {
-        el.stageAnswerPill.style.display = 'none';
-        if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-      }
+      if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       el.clueImage.style.display = 'none';
-    } else {
-      // running, paused, gameover
+    } else if (state.isCorrect) {
       if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
       if (el.passOverlay) el.passOverlay.style.display = 'none';
+      if (el.correctOverlay) el.correctOverlay.style.display = 'flex';
+      if (el.correctRevealedAnswer) el.correctRevealedAnswer.textContent = (state.correctAnswer || '').toUpperCase();
+      if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+      el.clueImage.style.display = 'none';
+    } else {
+      // running, paused, gameover (NEXT PROMPT DISPLAYED - HIDE ALL PREVIOUS ANSWERS!)
+      if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
+      if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
+      if (el.passOverlay) el.passOverlay.style.display = 'none';
+      if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+      if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
       el.clueImage.style.display = 'block';
-      if (el.stageAnswerPill) {
-        if (state.lastCorrectAnswer && !state.isPassing) {
-          el.stageAnswerPill.style.display = 'inline-flex';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = state.lastCorrectAnswer.toUpperCase();
-        } else {
-          el.stageAnswerPill.style.display = 'none';
-          if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-        }
-      }
     }
 
     updateTimerUI();
@@ -805,13 +826,12 @@
         // 3. Pass Recovery Ticks (Prompt removed, Answer displayed to all for 3s recovery)
         if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
           state.isPassing = true;
+          state.isCorrect = false;
           state.passRemaining = d.passRemaining !== undefined ? d.passRemaining : 3;
           if (d.passedAnswer) state.passedAnswer = d.passedAnswer;
           state.lastCorrectAnswer = '';
-          if (el.stageAnswerPill) {
-            el.stageAnswerPill.style.display = 'none';
-            if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-          }
+          if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+          if (el.correctOverlay) el.correctOverlay.style.display = 'none';
           if (d.eventType === 'pass_start') {
             window.soundEngine?.playPass();
           }
@@ -824,19 +844,41 @@
           state.passRemaining = 0;
           state.passedAnswer = '';
           state.lastCorrectAnswer = '';
-          if (el.stageAnswerPill) {
-            el.stageAnswerPill.style.display = 'none';
-            if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-          }
+          if (el.passOverlay) el.passOverlay.style.display = 'none';
+          if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
         }
 
-        // 4. Sound & Animations on Clue Progression
-        if (d.eventType === 'correct') {
-          window.soundEngine.playCorrect();
-          flashScreen('✓ CORRECT!', 'correct-flash', d.lastCorrectAnswer || '');
-        } else if (d.eventType === 'start') {
+        // 4. Correct Reveal (Display answer for prompt gotten correct)
+        if (d.eventType === 'correct_start' || d.isCorrect) {
+          state.isCorrect = true;
+          state.isPassing = false;
+          state.correctAnswer = d.correctAnswer || d.promptAnswer || '';
+          if (el.correctOverlay) el.correctOverlay.style.display = 'flex';
+          if (el.correctRevealedAnswer) {
+            el.correctRevealedAnswer.textContent = state.correctAnswer.toUpperCase();
+          }
+          if (el.passOverlay) el.passOverlay.style.display = 'none';
+          if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+          if (d.eventType === 'correct_start') {
+            window.soundEngine?.playCorrect();
+          }
+          updateArenaUI();
+          return;
+        }
+
+        if (d.eventType === 'correct_complete') {
+          state.isCorrect = false;
+          state.correctAnswer = '';
+          state.lastCorrectAnswer = '';
+          if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+          if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+        }
+
+        // 5. Sound & Animations on Clue Progression
+        if (d.eventType === 'start') {
           state.status = 'running';
           state.isPassing = false;
+          state.isCorrect = false;
           state.countdownVal = 0;
           if (window.soundEngine?.playCountdownBeep) {
             window.soundEngine.playCountdownBeep(true);
@@ -847,12 +889,12 @@
           el.pauseModal.classList.remove('active');
         } else if (d.eventType === 'reset') {
           state.isPassing = false;
+          state.isCorrect = false;
           state.countdownVal = 0;
           state.lastCorrectAnswer = '';
-          if (el.stageAnswerPill) {
-            el.stageAnswerPill.style.display = 'none';
-            if (el.stageAnswerText) el.stageAnswerText.textContent = '';
-          }
+          if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
+          if (el.correctOverlay) el.correctOverlay.style.display = 'none';
+          if (el.passOverlay) el.passOverlay.style.display = 'none';
           el.victoryModal.classList.remove('active');
           el.pauseModal.classList.remove('active');
         } else if (d.eventType === 'timeout') {
@@ -860,7 +902,7 @@
           return;
         }
 
-        // 5. Full Clue Synchronization
+        // 6. Full Clue Synchronization
         state.title = d.title || state.title;
         state.p1 = d.p1 || state.p1;
         state.p2 = d.p2 || state.p2;
@@ -868,8 +910,10 @@
         state.status = d.status || state.status;
         state.countdownVal = d.countdownVal !== undefined ? d.countdownVal : state.countdownVal;
         state.isPassing = d.isPassing !== undefined ? d.isPassing : state.isPassing;
+        state.isCorrect = d.isCorrect !== undefined ? d.isCorrect : state.isCorrect;
+        state.correctAnswer = d.correctAnswer || '';
         state.passRemaining = d.passRemaining !== undefined ? d.passRemaining : state.passRemaining;
-        state.lastCorrectAnswer = d.lastCorrectAnswer !== undefined ? d.lastCorrectAnswer : state.lastCorrectAnswer;
+        state.lastCorrectAnswer = ''; // When next prompt is displayed, hide previous answer!
         state.clueIndex = d.clueIndex !== undefined ? d.clueIndex : state.clueIndex;
 
         if (d.promptImage) {

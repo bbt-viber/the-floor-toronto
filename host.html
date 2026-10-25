@@ -532,6 +532,8 @@
       if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
         const rem = d.passRemaining !== undefined ? d.passRemaining : 3;
         el.btnHostPass.classList.add('recovering');
+        el.btnHostPass.disabled = true;
+        el.btnHostCorrect.disabled = true;
         el.hostPassLabel.textContent = `⏳ RECOVERING (${rem}s...)`;
         el.answerTag.textContent = '↷ PASSED PROMPT ANSWER:';
         if (d.passedAnswer) {
@@ -540,7 +542,25 @@
         return;
       }
 
-      // 4. Full Clue & Game State Update:
+      // 4. Correct Reveal (Display answer for prompt gotten correct)
+      if (d.eventType === 'correct_start' || d.isCorrect) {
+        el.btnHostPass.disabled = true;
+        el.btnHostCorrect.disabled = true;
+        el.answerTag.textContent = '✓ CORRECT ANSWER:';
+        if (d.correctAnswer) {
+          el.masterAnswer.textContent = d.correctAnswer.toUpperCase();
+        }
+        return;
+      }
+
+      if (d.eventType === 'correct_complete' || d.eventType === 'pass_complete') {
+        el.btnHostPass.disabled = false;
+        el.btnHostCorrect.disabled = false;
+        el.btnHostPass.classList.remove('recovering');
+        el.hostPassLabel.textContent = '↷ PASS';
+      }
+
+      // 5. Full Clue & Game State Update:
       if (d.title && el.gameTitleBadge.textContent !== d.title.toUpperCase()) {
         el.gameTitleBadge.textContent = d.title.toUpperCase();
       }
@@ -564,7 +584,7 @@
       const newAnswer = d.promptAnswer || (d.clue && d.clue.answer);
       if (newAnswer && newAnswer !== currentDisplayedAnswer) {
         currentDisplayedAnswer = newAnswer;
-        if (!d.isPassing) {
+        if (!d.isPassing && !d.isCorrect) {
           el.masterAnswer.textContent = currentDisplayedAnswer.toUpperCase();
         }
         if (d.clueIndex !== undefined && d.cluesCount) {
@@ -588,6 +608,8 @@
         el.answerTag.textContent = '🎯 FIRST CLUE:';
         el.btnHostPause.textContent = '▶ START (ESC)';
         el.btnHostPass.classList.remove('recovering');
+        el.btnHostPass.disabled = false;
+        el.btnHostCorrect.disabled = false;
         el.hostPassLabel.textContent = '↷ PASS';
       } else if (d.status === 'countdown') {
         el.btnHostStartDuel.style.display = 'flex';
@@ -598,18 +620,29 @@
       } else if (d.status === 'running') {
         el.btnHostStartDuel.style.display = 'none';
         el.duelActionsGrid.style.display = 'flex';
-        el.answerTag.textContent = "🎯 VERIFY PLAYER'S ANSWER:";
         el.btnHostPause.textContent = '⏸ PAUSE (ESC)';
         if (d.isPassing) {
           el.btnHostPass.classList.add('recovering');
+          el.btnHostPass.disabled = true;
+          el.btnHostCorrect.disabled = true;
           el.hostPassLabel.textContent = `⏳ RECOVERING (${d.passRemaining || 3}s...)`;
           el.answerTag.textContent = '↷ PASSED PROMPT ANSWER:';
           if (d.passedAnswer) {
             el.masterAnswer.textContent = d.passedAnswer.toUpperCase();
           }
+        } else if (d.isCorrect) {
+          el.btnHostPass.disabled = true;
+          el.btnHostCorrect.disabled = true;
+          el.answerTag.textContent = '✓ CORRECT ANSWER:';
+          if (d.correctAnswer) {
+            el.masterAnswer.textContent = d.correctAnswer.toUpperCase();
+          }
         } else {
           el.btnHostPass.classList.remove('recovering');
+          el.btnHostPass.disabled = false;
+          el.btnHostCorrect.disabled = false;
           el.hostPassLabel.textContent = '↷ PASS';
+          el.answerTag.textContent = "🎯 VERIFY PLAYER'S ANSWER:";
           if (currentDisplayedAnswer) {
             el.masterAnswer.textContent = currentDisplayedAnswer.toUpperCase();
           }
