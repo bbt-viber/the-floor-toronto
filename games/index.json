@@ -11,6 +11,17 @@
     "file": "countries.json"
   },
   {
+    "id": "hairstyles",
+    "title": "Hairstyles",
+    "description": "Identify the iconic hairstyle, haircut, or silhouette from classic looks to rare and historical cuts!",
+    "difficulty": "Progressive (Tier 1 → Tier 4 Obscure)",
+    "category": "Fashion & Style",
+    "cluesCount": 45,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #4a154b 0%, #6b11ff 50%, #e056fd 100%)",
+    "file": "hairstyles.json"
+  },
+  {
     "id": "ice-cream-flavours",
     "title": "Ice Cream Flavours",
     "description": "Identify the flavour from the visual clue! Progresses from parlor classics to rare and obscure gourmet creations.",

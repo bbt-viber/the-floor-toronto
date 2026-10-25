@@ -1,0 +1,282 @@
+{
+  "id": "hairstyles",
+  "title": "Hairstyles",
+  "description": "Identify the iconic hairstyle, haircut, or silhouette from classic looks to rare and historical cuts!",
+  "category": "Fashion & Style",
+  "difficulty": "Progressive (Tier 1 → Tier 4 Obscure)",
+  "cluesCount": 45,
+  "defaultTimer": 45,
+  "bannerColor": "linear-gradient(135deg, #4a154b 0%, #6b11ff 50%, #e056fd 100%)",
+  "clues": [
+    {
+      "id": "clue_hair_ponytail",
+      "answer": "Ponytail",
+      "image": "hairstyles/Ponytail.jpg",
+      "hint": "Hair drawn back and secured at the back of the head"
+    },
+    {
+      "id": "clue_hair_afro",
+      "answer": "Afro",
+      "image": "hairstyles/Afro.jpg",
+      "hint": "Rounded voluminous cloud of natural coily hair"
+    },
+    {
+      "id": "clue_hair_dreadlocks",
+      "answer": "Dreadlocks",
+      "image": "hairstyles/Dreadlocks.jpg",
+      "hint": "Rope-like strands formed by locking or matting hair"
+    },
+    {
+      "id": "clue_hair_bob",
+      "answer": "Bob",
+      "image": "hairstyles/Bob.jpg",
+      "hint": "Short to medium classic cut level with chin and jawline"
+    },
+    {
+      "id": "clue_hair_buzz_cut",
+      "answer": "Buzz Cut",
+      "image": "hairstyles/Buzz Cut.jpg",
+      "hint": "Clipper-shaved ultra-short uniform military cut"
+    },
+    {
+      "id": "clue_hair_braid",
+      "answer": "Braid",
+      "image": "hairstyles/Braid.jpg",
+      "hint": "Three or more interwoven strands of hair"
+    },
+    {
+      "id": "clue_hair_mohawk",
+      "answer": "Mohawk",
+      "image": "hairstyles/Mohawk.jpg",
+      "hint": "Shaved sides with a central upright strip of hair"
+    },
+    {
+      "id": "clue_hair_pigtails",
+      "answer": "Pigtails",
+      "image": "hairstyles/Pigtails.jpg",
+      "hint": "Twin symmetrical tails or braids on either side of the head"
+    },
+    {
+      "id": "clue_hair_pixie_cut",
+      "answer": "Pixie Cut",
+      "image": "hairstyles/Pixie Cut.jpg",
+      "hint": "Short cropped feminine cut with soft layers"
+    },
+    {
+      "id": "clue_hair_mullet",
+      "answer": "Mullet",
+      "image": "hairstyles/Mullet.jpg",
+      "hint": "Business in the front, party in the back"
+    },
+    {
+      "id": "clue_hair_bald",
+      "answer": "Bald",
+      "image": "hairstyles/Bald.jpg",
+      "hint": "Completely shaved smooth scalp"
+    },
+    {
+      "id": "clue_hair_bun",
+      "answer": "Bun",
+      "image": "hairstyles/Bun.jpg",
+      "hint": "Hair tightly wound or coiled into a circular knot"
+    },
+    {
+      "id": "clue_hair_bangs",
+      "answer": "Bangs",
+      "image": "hairstyles/Bangs.jpg",
+      "hint": "Strands combed straight forward over the forehead (fringe)"
+    },
+    {
+      "id": "clue_hair_cornrows",
+      "answer": "Cornrows",
+      "image": "hairstyles/Cornrows.jpg",
+      "hint": "Tight flat three-strand braids woven close along the scalp"
+    },
+    {
+      "id": "clue_hair_spiky_hair",
+      "answer": "Spiky Hair",
+      "image": "hairstyles/Spiky Hair.jpg",
+      "hint": "Textured short hair styled upward into gelled points"
+    },
+    {
+      "id": "clue_hair_pompadour",
+      "answer": "Pompadour",
+      "image": "hairstyles/Pompadour.jpg",
+      "hint": "Swept high up and back over forehead (rockabilly / Elvis style)"
+    },
+    {
+      "id": "clue_hair_fade",
+      "answer": "Fade",
+      "image": "hairstyles/Fade.jpg",
+      "hint": "Smooth gradient taper transitioning into bare skin at the base"
+    },
+    {
+      "id": "clue_hair_crew_cut",
+      "answer": "Crew Cut",
+      "image": "hairstyles/Crew Cut.jpg",
+      "hint": "Short tapered cut longer on top graduated to shorter at back"
+    },
+    {
+      "id": "clue_hair_perm",
+      "answer": "Perm",
+      "image": "hairstyles/Perm.jpg",
+      "hint": "Chemically set curls or waves with high volume"
+    },
+    {
+      "id": "clue_hair_undercut",
+      "answer": "Undercut",
+      "image": "hairstyles/Undercut.jpg",
+      "hint": "Sides and back closely shaved with top left distinctly long"
+    },
+    {
+      "id": "clue_hair_man_bun",
+      "answer": "Man Bun",
+      "image": "hairstyles/Man Bun.jpg",
+      "hint": "Men's topknot or bun gathered at the crown of the head"
+    },
+    {
+      "id": "clue_hair_curtain_bangs",
+      "answer": "Curtain Bangs",
+      "image": "hairstyles/Curtain Bangs.jpg",
+      "hint": "Center-parted wispy fringe framing both cheekbones"
+    },
+    {
+      "id": "clue_hair_side_part",
+      "answer": "Side Part",
+      "image": "hairstyles/Side Part.jpg",
+      "hint": "Clean defined part along one side of the head"
+    },
+    {
+      "id": "clue_hair_quiff",
+      "answer": "Quiff",
+      "image": "hairstyles/Quiff.jpg",
+      "hint": "Upward and backward forelock wave combining pompadour and flat top"
+    },
+    {
+      "id": "clue_hair_bowl_cut",
+      "answer": "Bowl Cut",
+      "image": "hairstyles/Bowl Cut.jpg",
+      "hint": "Even horizontal fringe and perimeter cut as if using a bowl"
+    },
+    {
+      "id": "clue_hair_beehive",
+      "answer": "Beehive",
+      "image": "hairstyles/Beehive.jpg",
+      "hint": "Heavily teased conical high-rise updo popular in the 1960s"
+    },
+    {
+      "id": "clue_hair_space_buns",
+      "answer": "Space Buns",
+      "image": "hairstyles/Space Buns.jpg",
+      "hint": "Twin high buns sitting on both top sides of the head"
+    },
+    {
+      "id": "clue_hair_french_crop",
+      "answer": "French Crop",
+      "image": "hairstyles/French Crop.jpg",
+      "hint": "Short textured top with blunt horizontal fringe and faded sides"
+    },
+    {
+      "id": "clue_hair_comb_over",
+      "answer": "Comb Over",
+      "image": "hairstyles/Comb Over.jpg",
+      "hint": "Long side strands combed across a balding scalp"
+    },
+    {
+      "id": "clue_hair_slicked_back",
+      "answer": "Slicked Back",
+      "image": "hairstyles/Slicked Back.jpg",
+      "hint": "Hair combed straight back with glossy pomade or gel"
+    },
+    {
+      "id": "clue_hair_pageboy",
+      "answer": "Pageboy",
+      "image": "hairstyles/Pageboy.jpg",
+      "hint": "Shoulder-length bob curled under at the bottom with straight bangs"
+    },
+    {
+      "id": "clue_hair_flat_top",
+      "answer": "Flat Top",
+      "image": "hairstyles/Flat Top.jpg",
+      "hint": "Hair on top stood vertically and trimmed horizontally flat"
+    },
+    {
+      "id": "clue_hair_finger_waves",
+      "answer": "Finger Waves",
+      "image": "hairstyles/Finger Waves.jpg",
+      "hint": "1920s flapper S-shaped sculpted wet waves set against the head"
+    },
+    {
+      "id": "clue_hair_the_rachel",
+      "answer": "The Rachel",
+      "image": "hairstyles/The Rachel.jpg",
+      "hint": "Bouncy shoulder-length voluminous layered shag from Friends"
+    },
+    {
+      "id": "clue_hair_liberty_spikes",
+      "answer": "Liberty Spikes",
+      "image": "hairstyles/Liberty Spikes.jpg",
+      "hint": "Tall rigid punk spikes radiating like the Statue of Liberty crown"
+    },
+    {
+      "id": "clue_hair_chignon",
+      "answer": "Chignon",
+      "image": "hairstyles/Chignon.jpg",
+      "hint": "Formal low elegant knot gathered at the nape of the neck"
+    },
+    {
+      "id": "clue_hair_asymmetrical_bob",
+      "answer": "Asymmetrical Bob",
+      "image": "hairstyles/Asymmetrical Bob.jpg",
+      "hint": "Bob cut distinctly longer on one side than the other"
+    },
+    {
+      "id": "clue_hair_feathered_hair",
+      "answer": "Feathered Hair",
+      "image": "hairstyles/Feathered Hair.jpg",
+      "hint": "1970s layered wing-like swept-back look popularized by Farrah Fawcett"
+    },
+    {
+      "id": "clue_hair_jheri_curl",
+      "answer": "Jheri Curl",
+      "image": "hairstyles/Jheri Curl.jpg",
+      "hint": "Glossy, wet-look curly perm popular in the 1980s"
+    },
+    {
+      "id": "clue_hair_topknot",
+      "answer": "Topknot",
+      "image": "hairstyles/Topknot.jpg",
+      "hint": "Traditional Samurai chonmage or high knot tied tight at crown"
+    },
+    {
+      "id": "clue_hair_tonsure",
+      "answer": "Tonsure",
+      "image": "hairstyles/Tonsure.jpg",
+      "hint": "Medieval monastic style with shaved crown surrounded by ring of hair"
+    },
+    {
+      "id": "clue_hair_devilock",
+      "answer": "Devilock",
+      "image": "hairstyles/Devilock.jpg",
+      "hint": "Misfits punk style with long pointed central forelock hanging down past chin"
+    },
+    {
+      "id": "clue_hair_chelsea_cut",
+      "answer": "Chelsea Cut",
+      "image": "hairstyles/Chelsea Cut.jpg",
+      "hint": "Skinhead girl style with shaved head except for bangs and long sideburns"
+    },
+    {
+      "id": "clue_hair_hime_cut",
+      "answer": "Hime Cut",
+      "image": "hairstyles/Hime Cut.jpg",
+      "hint": "Japanese noble style with straight bangs, cheek-length sidelocks, and long back"
+    },
+    {
+      "id": "clue_hair_queue",
+      "answer": "Queue",
+      "image": "hairstyles/Queue.jpg",
+      "hint": "Qing dynasty style: shaved forehead with hair grown long and braided down back"
+    }
+  ]
+}

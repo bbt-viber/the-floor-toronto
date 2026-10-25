@@ -44,7 +44,13 @@ As the host, you control the pace of the duel using standard keyboard shortcuts:
 
 Click **📚 Game Library** in the navigation bar (or **⇄ Change Game** on the arena screen) to browse and select any game category:
 
-1. **🌍 Countries (Cultural Stereotypes & National Icons)**
+1. **💈 Hairstyles (45 Prompts: Tier 1 Universal → Tier 4 Obscure Trivia)**
+   - 45 high-detail visual prompt images in [`hairstyles/`](hairstyles) with answers as filenames (`[Answer].jpg`):
+     - **Tier 1 (Universal Classics):** Ponytail, Afro, Dreadlocks, Bob, Buzz Cut, Braid, Mohawk, Pigtails, Pixie Cut, Mullet, Bald, Bun
+     - **Tier 2 (Contemporary Styles):** Bangs, Cornrows, Spiky Hair, Pompadour, Fade, Crew Cut, Perm, Undercut, Man Bun, Curtain Bangs, Side Part, Quiff
+     - **Tier 3 (Retro & Subculture):** Bowl Cut, Beehive, Space Buns, French Crop, Comb Over, Slicked Back, Pageboy, Flat Top, Finger Waves, The Rachel, Liberty Spikes, Chignon
+     - **Tier 4 (Historical & Silhouette Trivia):** Asymmetrical Bob, Feathered Hair, Jheri Curl, Topknot, Tonsure, Devilock, Chelsea Cut, Hime Cut, Queue
+2. **🌍 Countries (Cultural Stereotypes & National Icons)**
    - 12 photorealistic cultural prompts stored in [`countries/`](countries) where the file name matches the answer:
      - **France** (`France.jpg`): French baguette, wool beret, croissant & café coffee on a Parisian bistro table.
      - **Canada** (`Canada.jpg`): Pure amber maple syrup bottle, red-and-black lumberjack flannel jacket, snowshoes & pine cones.

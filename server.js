@@ -13,6 +13,7 @@ const PUBLIC_DIR = __dirname;
 let sampleLandmarks = [];
 let iceCreamGame = null;
 let countriesGame = null;
+let hairstylesGame = null;
 
 try {
   sampleLandmarks = require('./sample-data.js');
@@ -30,6 +31,12 @@ try {
   countriesGame = require('./games/countries.js');
 } catch (e) {
   console.warn('Could not load countries.js', e.message);
+}
+
+try {
+  hairstylesGame = require('./games/hairstyles.js');
+} catch (e) {
+  console.warn('Could not load hairstyles.js', e.message);
 }
 
 // Authoritative Server Game State
@@ -190,7 +197,11 @@ function handleHostCommand(cmd, payload = {}) {
   } 
   else if (cmd === 'select_game') {
     const gameId = payload.gameId;
-    if (gameId === 'countries' && countriesGame) {
+    if (gameId === 'hairstyles' && hairstylesGame) {
+      state.title = hairstylesGame.title;
+      state.gameId = hairstylesGame.id;
+      state.clues = [...hairstylesGame.clues];
+    } else if (gameId === 'countries' && countriesGame) {
       state.title = countriesGame.title;
       state.gameId = countriesGame.id;
       state.clues = [...countriesGame.clues];
