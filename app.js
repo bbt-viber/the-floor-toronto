@@ -87,6 +87,25 @@
     territoryPlayerCount: document.getElementById('territoryPlayerCount'),
     territoryGrid: document.getElementById('territoryGrid'),
 
+    // Territory Randomizer & Challenge Elements
+    btnTerritoryRandomizer: document.getElementById('btnTerritoryRandomizer'),
+    btnRandomizerText: document.getElementById('btnRandomizerText'),
+    territoryBanner: document.getElementById('territoryBanner'),
+    territoryBannerDefault: document.getElementById('territoryBannerDefault'),
+    territoryBannerActive: document.getElementById('territoryBannerActive'),
+    bannerChallengerName: document.getElementById('bannerChallengerName'),
+    btnCancelChallenger: document.getElementById('btnCancelChallenger'),
+    btnRerollRandomizer: document.getElementById('btnRerollRandomizer'),
+
+    // Duel Matchup Modal
+    modalDuelMatchup: document.getElementById('modalDuelMatchup'),
+    btnCloseMatchupModal: document.getElementById('btnCloseMatchupModal'),
+    matchupP1Name: document.getElementById('matchupP1Name'),
+    matchupP2Name: document.getElementById('matchupP2Name'),
+    selectMatchupCategory: document.getElementById('selectMatchupCategory'),
+    btnCancelMatchup: document.getElementById('btnCancelMatchup'),
+    btnConfirmStartDuel: document.getElementById('btnConfirmStartDuel'),
+
     btnHostQr: document.getElementById('btnHostQr'),
     btnStageQr: document.getElementById('btnStageQr'),
     btnQuickChangeGame: document.getElementById('btnQuickChangeGame'),
@@ -1149,6 +1168,275 @@
     el.landingSavedStatusText.innerHTML = `Click <strong>CREATE GAME</strong> to start your first territory battle!`;
   }
 
+  let activeChallenger = null;
+  let pendingDefender = null;
+  let isRandomizerSpinning = false;
+
+  // Calculate all competitors whose territory directly shares an orthogonal edge with challenger's territory
+  function getAdjacentCompetitors(challengerId) {
+    if (!territoryGame || !territoryGame.grid || !territoryGame.players) return [];
+    const cols = territoryGame.cols;
+    const rows = territoryGame.rows;
+
+    const challengerSquares = territoryGame.grid.filter(sq => sq.playerId === challengerId);
+    if (challengerSquares.length === 0) return [];
+
+    const adjacentPlayerMap = new Map();
+
+    challengerSquares.forEach(cs => {
+      const r = Math.floor(cs.squareIndex / cols);
+      const c = cs.squareIndex % cols;
+
+      // Orthogonal neighbors: North, South, West, East
+      const neighbors = [
+        { r: r - 1, c: c },
+        { r: r + 1, c: c },
+        { r: r, c: c - 1 },
+        { r: r, c: c + 1 }
+      ];
+
+      neighbors.forEach(n => {
+        if (n.r >= 0 && n.r < rows && n.c >= 0 && n.c < cols) {
+          const neighborIdx = n.r * cols + n.c;
+          const neighborSq = territoryGame.grid[neighborIdx];
+          if (neighborSq && neighborSq.playerId && neighborSq.playerId !== challengerId) {
+            const competitor = territoryGame.players.find(p => p.id === neighborSq.playerId);
+            if (competitor && competitor.active !== false) {
+              if (!adjacentPlayerMap.has(competitor.id)) {
+                adjacentPlayerMap.set(competitor.id, {
+                  player: competitor,
+                  squareIndices: []
+                });
+              }
+              adjacentPlayerMap.get(competitor.id).squareIndices.push(neighborIdx);
+            }
+          }
+        }
+      });
+    });
+
+    // Fallback: If no orthogonal neighbors found (e.g., small or diagonal-only layout), check 8-way diagonal neighbors
+    if (adjacentPlayerMap.size === 0) {
+      challengerSquares.forEach(cs => {
+        const r = Math.floor(cs.squareIndex / cols);
+        const c = cs.squareIndex % cols;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = r + dr;
+            const nc = c + dc;
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+              const idx = nr * cols + nc;
+              const sq = territoryGame.grid[idx];
+              if (sq && sq.playerId && sq.playerId !== challengerId) {
+                const comp = territoryGame.players.find(p => p.id === sq.playerId);
+                if (comp && comp.active !== false && !adjacentPlayerMap.has(comp.id)) {
+                  adjacentPlayerMap.set(comp.id, { player: comp, squareIndices: [idx] });
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    return Array.from(adjacentPlayerMap.values());
+  }
+
+  function setChallengerState(challenger) {
+    activeChallenger = challenger;
+    pendingDefender = null;
+
+    if (el.bannerChallengerName) {
+      el.bannerChallengerName.textContent = challenger.name;
+    }
+    if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'none';
+    if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'flex';
+
+    renderTerritoryGrid();
+  }
+
+  function clearChallengerState() {
+    activeChallenger = null;
+    pendingDefender = null;
+
+    if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'flex';
+    if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'none';
+
+    renderTerritoryGrid();
+  }
+
+  function runTerritoryRandomizer() {
+    if (isRandomizerSpinning) return;
+    if (!territoryGame || !territoryGame.players || territoryGame.players.length === 0) {
+      alert("Please create or load a territory game first.");
+      openCreateGameModal();
+      return;
+    }
+
+    const activePlayers = territoryGame.players.filter(p => p.active !== false);
+    if (activePlayers.length < 2) {
+      alert("At least 2 active players are required on the floor to challenge to a duel.");
+      return;
+    }
+
+    // Prefer players who have at least one adjacent competitor to challenge
+    const eligibleWithNeighbors = activePlayers.filter(p => getAdjacentCompetitors(p.id).length > 0);
+    const candidatePool = eligibleWithNeighbors.length > 0 ? eligibleWithNeighbors : activePlayers;
+    const chosenPlayer = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+
+    // Clear any previous challenger highlighting during the roulette roll
+    activeChallenger = null;
+    pendingDefender = null;
+    if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'flex';
+    if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'none';
+    renderTerritoryGrid();
+
+    isRandomizerSpinning = true;
+    if (el.btnTerritoryRandomizer) el.btnTerritoryRandomizer.classList.add('is-spinning');
+    if (el.btnRandomizerText) el.btnRandomizerText.textContent = 'SPINNING...';
+
+    const tiles = Array.from(el.territoryGrid.querySelectorAll('.territory-tile'));
+    const totalHops = 22;
+    let hop = 0;
+
+    function stepRoulette() {
+      tiles.forEach(t => t.classList.remove('is-spin-highlight'));
+
+      if (hop >= totalHops) {
+        // Find tiles for chosen player
+        const targetTiles = tiles.filter((_, i) => {
+          const sq = territoryGame.grid[i];
+          return sq && sq.playerId === chosenPlayer.id;
+        });
+
+        targetTiles.forEach(t => t.classList.add('is-spin-highlight'));
+        window.soundEngine?.playVictory();
+
+        setTimeout(() => {
+          tiles.forEach(t => t.classList.remove('is-spin-highlight'));
+          isRandomizerSpinning = false;
+          if (el.btnTerritoryRandomizer) el.btnTerritoryRandomizer.classList.remove('is-spinning');
+          if (el.btnRandomizerText) el.btnRandomizerText.textContent = 'RANDOMIZER';
+
+          setChallengerState(chosenPlayer);
+        }, 500);
+        return;
+      }
+
+      const randomTile = tiles[Math.floor(Math.random() * tiles.length)];
+      if (randomTile) {
+        randomTile.classList.add('is-spin-highlight');
+        window.soundEngine?.playTick();
+      }
+
+      hop++;
+      const delay = Math.round(40 + Math.pow(hop / totalHops, 2) * 140);
+      setTimeout(stepRoulette, delay);
+    }
+
+    stepRoulette();
+  }
+
+  function handleAdjacentTileClick(competitorPlayerId) {
+    if (!activeChallenger) return;
+    const defender = territoryGame.players.find(p => p.id === competitorPlayerId);
+    if (!defender) return;
+
+    window.soundEngine?.playTick();
+    openDuelMatchupModal(activeChallenger, defender);
+  }
+
+  function openDuelMatchupModal(challenger, defender) {
+    pendingDefender = defender;
+    if (el.matchupP1Name) el.matchupP1Name.textContent = challenger.name;
+    if (el.matchupP2Name) el.matchupP2Name.textContent = defender.name;
+
+    // Populate category dropdown with available games
+    if (el.selectMatchupCategory) {
+      el.selectMatchupCategory.innerHTML = '';
+      const games = (typeof GameRegistry !== 'undefined')
+        ? GameRegistry.getAll()
+        : [GAME_ICE_CREAM, GAME_TORONTO_LANDMARKS];
+
+      games.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = g.title;
+        if (state.gameId === g.id || state.title === g.title) {
+          opt.selected = true;
+        }
+        el.selectMatchupCategory.appendChild(opt);
+      });
+    }
+
+    if (el.modalDuelMatchup) el.modalDuelMatchup.classList.add('active');
+  }
+
+  function closeDuelMatchupModal() {
+    pendingDefender = null;
+    if (el.modalDuelMatchup) el.modalDuelMatchup.classList.remove('active');
+  }
+
+  function handleConfirmStartDuel() {
+    if (!activeChallenger || !pendingDefender) return;
+    const challengerName = activeChallenger.name;
+    const defenderName = pendingDefender.name;
+    const categoryId = el.selectMatchupCategory ? el.selectMatchupCategory.value : state.gameId;
+
+    launchDuelFromTerritory(challengerName, defenderName, categoryId);
+  }
+
+  function launchDuelFromTerritory(challengerName, defenderName, categoryId) {
+    // If a different category was chosen, select that game
+    if (categoryId && typeof GameRegistry !== 'undefined') {
+      const chosenGame = GameRegistry.getById(categoryId);
+      if (chosenGame) {
+        state.title = chosenGame.title;
+        state.gameId = chosenGame.id;
+        state.clues = [...chosenGame.clues];
+        state.roundTime = chosenGame.defaultTimer || 45;
+        sendServerCommand('select_game', { gameId: chosenGame.id });
+      }
+    }
+
+    // Challenger is ALWAYS Player 1; Challenged competitor is ALWAYS Player 2
+    state.p1.name = challengerName;
+    state.p2.name = defenderName;
+    state.p1.maxTime = state.roundTime;
+    state.p1.timeRemaining = state.roundTime;
+    state.p2.maxTime = state.roundTime;
+    state.p2.timeRemaining = state.roundTime;
+    state.activePlayer = 1;
+    state.status = 'ready';
+    state.clueIndex = 0;
+    state.winner = null;
+    state.isPassing = false;
+    state.passRemaining = 0;
+    state.passedAnswer = '';
+    state.isCorrect = false;
+    state.correctAnswer = '';
+    state.lastCorrectAnswer = '';
+
+    if (el.p1Name) el.p1Name.textContent = challengerName;
+    if (el.p2Name) el.p2Name.textContent = defenderName;
+    if (el.inputP1Name) el.inputP1Name.value = challengerName;
+    if (el.inputP2Name) el.inputP2Name.value = defenderName;
+
+    persistCurrentGame();
+
+    // Broadcast synchronized players to server, host remote, and dual screens!
+    sendServerCommand('set_duel_players', {
+      p1Name: challengerName,
+      p2Name: defenderName,
+      gameId: categoryId || state.gameId
+    });
+
+    closeDuelMatchupModal();
+    updateArenaUI();
+    switchToView('arena');
+  }
+
   function renderTerritoryGrid() {
     if (!el.territoryGrid) return;
     el.territoryGrid.innerHTML = '';
@@ -1174,6 +1462,13 @@
 
     el.territoryGrid.style.gridTemplateColumns = `repeat(${territoryGame.cols}, minmax(0, 1fr))`;
 
+    // Determine adjacent targets if a challenger is selected
+    let adjacentPlayerIds = new Set();
+    if (activeChallenger) {
+      const adjCompetitors = getAdjacentCompetitors(activeChallenger.id);
+      adjacentPlayerIds = new Set(adjCompetitors.map(c => c.player.id));
+    }
+
     territoryGame.grid.forEach((sq, idx) => {
       const tile = document.createElement('div');
       tile.className = 'territory-tile';
@@ -1196,11 +1491,36 @@
       tile.appendChild(labelDiv);
       tile.appendChild(footerSpan);
 
-      tile.addEventListener('click', () => {
-        window.soundEngine?.playTick();
-        tile.style.transform = 'scale(0.95)';
-        setTimeout(() => tile.style.transform = '', 150);
-      });
+      // Apply Challenger, Adjacent Target, or Dimmed visual states
+      if (activeChallenger) {
+        if (sq.playerId === activeChallenger.id) {
+          tile.classList.add('is-challenger');
+          const challengerTag = document.createElement('span');
+          challengerTag.className = 'territory-tile-challenger-tag';
+          challengerTag.textContent = '👑 CHALLENGER';
+          tile.appendChild(challengerTag);
+        } else if (adjacentPlayerIds.has(sq.playerId)) {
+          tile.classList.add('is-adjacent-target');
+          const targetTag = document.createElement('span');
+          targetTag.className = 'territory-tile-target-tag';
+          targetTag.textContent = '⚔️ CAN CHALLENGE';
+          tile.appendChild(targetTag);
+          tile.title = `Click to challenge ${sq.playerName} to a duel!`;
+
+          tile.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleAdjacentTileClick(sq.playerId);
+          });
+        } else {
+          tile.classList.add('is-dimmed');
+        }
+      } else {
+        tile.addEventListener('click', () => {
+          window.soundEngine?.playTick();
+          tile.style.transform = 'scale(0.95)';
+          setTimeout(() => tile.style.transform = '', 150);
+        });
+      }
 
       el.territoryGrid.appendChild(tile);
     });
@@ -1274,6 +1594,16 @@
     alert('Territory floor saved successfully!');
   });
   if (el.btnTerritoryGoArena) el.btnTerritoryGoArena.addEventListener('click', () => switchToView('arena'));
+
+  // Randomizer & Challenge Listeners
+  if (el.btnTerritoryRandomizer) el.btnTerritoryRandomizer.addEventListener('click', runTerritoryRandomizer);
+  if (el.btnCancelChallenger) el.btnCancelChallenger.addEventListener('click', clearChallengerState);
+  if (el.btnRerollRandomizer) el.btnRerollRandomizer.addEventListener('click', runTerritoryRandomizer);
+
+  // Duel Matchup Modal Listeners
+  if (el.btnCloseMatchupModal) el.btnCloseMatchupModal.addEventListener('click', closeDuelMatchupModal);
+  if (el.btnCancelMatchup) el.btnCancelMatchup.addEventListener('click', closeDuelMatchupModal);
+  if (el.btnConfirmStartDuel) el.btnConfirmStartDuel.addEventListener('click', handleConfirmStartDuel);
 
   // Create Game Modal
   if (el.btnCloseCreateGameModal) el.btnCloseCreateGameModal.addEventListener('click', closeCreateGameModal);

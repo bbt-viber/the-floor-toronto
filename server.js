@@ -433,6 +433,55 @@ function handleHostCommand(cmd, payload = {}) {
       broadcastClueState('territory_update');
     }
   }
+  else if (cmd === 'set_duel_players') {
+    if (countdownTimer) clearInterval(countdownTimer);
+    if (passTimer) clearInterval(passTimer);
+    if (correctTimer) clearTimeout(correctTimer);
+    countdownTimer = null;
+    passTimer = null;
+    correctTimer = null;
+    state.countdownVal = 0;
+    state.isPassing = false;
+    state.passRemaining = 0;
+    state.passedAnswer = '';
+    state.isCorrect = false;
+    state.correctAnswer = '';
+    state.lastCorrectAnswer = '';
+    if (payload.p1Name) {
+      state.p1.name = String(payload.p1Name).trim();
+    }
+    if (payload.p2Name) {
+      state.p2.name = String(payload.p2Name).trim();
+    }
+    if (payload.gameId && payload.gameId !== state.gameId) {
+      const gId = payload.gameId;
+      if (gId === 'hairstyles' && hairstylesGame) {
+        state.title = hairstylesGame.title;
+        state.gameId = hairstylesGame.id;
+        state.clues = [...hairstylesGame.clues];
+      } else if (gId === 'countries' && countriesGame) {
+        state.title = countriesGame.title;
+        state.gameId = countriesGame.id;
+        state.clues = [...countriesGame.clues];
+      } else if (gId === 'toronto-landmarks') {
+        state.title = "Landmarks of Toronto";
+        state.gameId = 'toronto-landmarks';
+        state.clues = [...sampleLandmarks];
+      } else if (gId === 'ice-cream-flavours' && iceCreamGame) {
+        state.title = iceCreamGame.title;
+        state.gameId = iceCreamGame.id;
+        state.clues = [...iceCreamGame.clues];
+      }
+    }
+    state.p1.timeRemaining = state.roundTime;
+    state.p2.timeRemaining = state.roundTime;
+    state.activePlayer = 1;
+    state.clueIndex = 0;
+    state.winner = null;
+    state.status = 'ready';
+    state.lastTickTime = null;
+    broadcastClueState('duel_players_set');
+  }
 }
 
 // MIME Types
