@@ -402,6 +402,144 @@ body {
   100% { transform: scale(1); }
 }
 
+/* Stage Overlays: Starting Soon, 3s Countdown, and Pass Recovery */
+.stage-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;
+  background: radial-gradient(circle at center, #141b2d 0%, #080c14 100%);
+  text-align: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+/* Starting Soon Screen */
+.starting-soon-overlay {
+  background: radial-gradient(circle at center, #18223c 0%, #080d1a 100%);
+}
+
+.starting-soon-badge {
+  background: rgba(255, 211, 105, 0.15);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+
+.starting-soon-title {
+  font-size: 3.6rem;
+  font-weight: 900;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0 35px var(--gold-glow), 0 0 60px rgba(255, 211, 105, 0.3);
+  margin-bottom: 12px;
+  animation: pulseSoon 2s infinite ease-in-out;
+}
+
+.starting-soon-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  font-weight: 500;
+}
+
+@keyframes pulseSoon {
+  0%, 100% { opacity: 0.88; transform: scale(0.99); }
+  50% { opacity: 1; transform: scale(1.02); text-shadow: 0 0 50px var(--gold-glow); }
+}
+
+/* Countdown Overlay (3, 2, 1, GO!) */
+.countdown-overlay {
+  background: radial-gradient(circle at center, rgba(16, 22, 38, 0.96) 0%, rgba(5, 8, 15, 0.98) 100%);
+  backdrop-filter: blur(12px);
+}
+
+.countdown-digits {
+  font-size: 8.5rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 60px var(--gold-glow), 0 0 100px rgba(255, 211, 105, 0.5);
+  animation: countdownPop 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.countdown-label {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 5px;
+  color: #ffffff;
+  margin-top: 14px;
+  text-transform: uppercase;
+}
+
+@keyframes countdownPop {
+  0% { transform: scale(2.2); opacity: 0; }
+  50% { transform: scale(1); opacity: 1; }
+  85% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.7); opacity: 0.2; }
+}
+
+/* Pass Recovery Screen (Prompt removed for 3s recovery) */
+.pass-recovery-overlay {
+  background: radial-gradient(circle at center, #2b1704 0%, #0d0701 100%);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.pass-recovery-badge {
+  background: rgba(255, 171, 0, 0.2);
+  border: 1px solid #ffd54f;
+  color: #ffd54f;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.pass-recovery-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.pass-recovery-digits {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 25px rgba(255, 211, 105, 0.6);
+  margin-bottom: 14px;
+}
+
+.pass-recovery-bar-container {
+  width: 260px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pass-recovery-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff9100, #ffd54f);
+  transition: width 1s linear;
+}
+
 /* Host Answer Peek (On Single Screen) */
 .host-peek-card {
   width: 100%;

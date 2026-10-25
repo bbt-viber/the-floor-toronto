@@ -61,6 +61,29 @@
           <span id="clueCounter" class="clue-counter-badge">1 / 10</span>
           <img id="clueImage" class="clue-image" alt="Visual Prompt Clue" src="" />
 
+          <!-- Starting Soon Screen (shown before duel starts) -->
+          <div id="startingSoonOverlay" class="stage-overlay starting-soon-overlay">
+            <div class="starting-soon-badge">DUEL PREPARED</div>
+            <h1 class="starting-soon-title">STARTING SOON</h1>
+            <p class="starting-soon-subtitle">Waiting for host to start duel...</p>
+          </div>
+
+          <!-- 3-Second Countdown Overlay -->
+          <div id="countdownOverlay" class="stage-overlay countdown-overlay" style="display: none;">
+            <div id="countdownNumber" class="countdown-digits">3</div>
+            <div class="countdown-label">GET READY!</div>
+          </div>
+
+          <!-- Pass 3-Second Recovery Overlay (Prompt removed) -->
+          <div id="passOverlay" class="stage-overlay pass-recovery-overlay" style="display: none;">
+            <div class="pass-recovery-badge">↷ PASSED</div>
+            <div class="pass-recovery-title">RECOVERING...</div>
+            <div id="passRecoveryDigits" class="pass-recovery-digits">3s</div>
+            <div class="pass-recovery-bar-container">
+              <div id="passRecoveryBar" class="pass-recovery-bar" style="width: 100%;"></div>
+            </div>
+          </div>
+
           <!-- Flash overlay for Correct/Pass -->
           <div id="flashOverlay" class="flash-overlay">
             <span id="flashText" class="flash-text">CORRECT!</span>

@@ -22,7 +22,12 @@
     p1: { name: defaultGameData.p1Name, timeRemaining: 45, maxTime: 45 },
     p2: { name: defaultGameData.p2Name, timeRemaining: 45, maxTime: 45 },
     activePlayer: 1, // 1 or 2
-    status: 'ready', // 'ready' | 'running' | 'paused' | 'gameover'
+    status: 'ready', // 'ready' | 'countdown' | 'running' | 'paused' | 'gameover'
+    countdownVal: 0,
+    isPassing: false,
+    passRemaining: 0,
+    countdownTimer: null,
+    passTimer: null,
     clues: [...defaultGameData.clues],
     clueIndex: 0,
     roundTime: 45,
@@ -63,6 +68,12 @@
     flashText: document.getElementById('flashText'),
     hostAnswerText: document.getElementById('hostAnswerText'),
     btnToggleAnswer: document.getElementById('btnToggleAnswer'),
+    startingSoonOverlay: document.getElementById('startingSoonOverlay'),
+    countdownOverlay: document.getElementById('countdownOverlay'),
+    countdownNumber: document.getElementById('countdownNumber'),
+    passOverlay: document.getElementById('passOverlay'),
+    passRecoveryDigits: document.getElementById('passRecoveryDigits'),
+    passRecoveryBar: document.getElementById('passRecoveryBar'),
 
     p1Podium: document.getElementById('p1Podium'),
     p1Name: document.getElementById('p1Name'),
@@ -195,8 +206,10 @@
     animationId = requestAnimationFrame(gameLoop);
   }
 
-  function startRunning() {
+  function startRunningDirect() {
     state.status = 'running';
+    state.countdownVal = 0;
+    state.isPassing = false;
     state.lastFrameTime = null;
     lastSecondPlayed = null;
     el.pauseLabel.textContent = 'PAUSE (ESC)';
@@ -206,6 +219,43 @@
     if (!animationId) {
       animationId = requestAnimationFrame(gameLoop);
     }
+  }
+
+  function startRunning() {
+    if (sendServerCommand('start_duel')) return;
+    if (state.status === 'ready') {
+      startDuelCountdownLocal();
+    } else {
+      startRunningDirect();
+    }
+  }
+
+  function startDuelCountdownLocal() {
+    if (state.countdownTimer) clearInterval(state.countdownTimer);
+    if (state.passTimer) clearInterval(state.passTimer);
+    state.countdownTimer = null;
+    state.passTimer = null;
+    state.isPassing = false;
+    state.passRemaining = 0;
+    state.status = 'countdown';
+    state.countdownVal = 3;
+    if (window.soundEngine?.playCountdownBeep) window.soundEngine.playCountdownBeep(false);
+    updateArenaUI();
+    broadcastSync();
+
+    state.countdownTimer = setInterval(() => {
+      state.countdownVal--;
+      if (state.countdownVal > 0) {
+        if (window.soundEngine?.playCountdownBeep) window.soundEngine.playCountdownBeep(false);
+        updateArenaUI();
+        broadcastSync();
+      } else {
+        clearInterval(state.countdownTimer);
+        state.countdownTimer = null;
+        if (window.soundEngine?.playCountdownBeep) window.soundEngine.playCountdownBeep(true);
+        startRunningDirect();
+      }
+    }, 1000);
   }
 
   function pauseRunning() {
@@ -244,12 +294,15 @@
 
     if (state.status === 'gameover') return;
     if (state.status === 'ready') {
-      // First press starts the timer on Clue #1 for Player 1
       startRunning();
       return;
     }
     if (state.status === 'paused') {
       startRunning();
+      return;
+    }
+    if (state.status === 'countdown' || state.isPassing) {
+      return; // Ignore correct action during countdown or pass recovery
     }
 
     window.soundEngine.playCorrect();
@@ -269,36 +322,57 @@
   function handlePass() {
     if (sendServerCommand('pass')) return;
 
-    if (state.status !== 'running') return;
+    if (state.status !== 'running' || state.isPassing) return;
 
     window.soundEngine.playPass();
 
-    const penalty = state.passPenaltySeconds || 0;
-    const player = state.activePlayer === 1 ? state.p1 : state.p2;
-
-    if (penalty > 0) {
-      player.timeRemaining = Math.max(0, player.timeRemaining - penalty);
-      flashScreen(`PASS! -${penalty}s`, 'pass-flash');
-    } else {
-      flashScreen('PASS!', 'pass-flash');
-    }
-
-    if (player.timeRemaining <= 0) {
-      handleTimeout(state.activePlayer);
-      return;
-    }
-
-    // In The Floor, current player keeps turn after pass, gets new clue
-    nextClue();
-
+    // DO NOT subtract 3 seconds immediately from clock!
+    // Clock continues to tick down naturally during the 3-second recovery delay.
+    // The current prompt is removed immediately, and 3 seconds later the next prompt is introduced.
+    state.isPassing = true;
+    state.passRemaining = 3;
     updateArenaUI();
     broadcastSync();
+
+    let pCount = 3;
+    if (state.passTimer) clearInterval(state.passTimer);
+    state.passTimer = setInterval(() => {
+      if (state.status !== 'running') {
+        clearInterval(state.passTimer);
+        state.isPassing = false;
+        state.passRemaining = 0;
+        return;
+      }
+      pCount--;
+      if (pCount > 0) {
+        state.passRemaining = pCount;
+        updateArenaUI();
+        broadcastSync();
+      } else {
+        clearInterval(state.passTimer);
+        state.passTimer = null;
+        state.isPassing = false;
+        state.passRemaining = 0;
+        nextClue();
+        updateArenaUI();
+        broadcastSync();
+      }
+    }, 1000);
   }
 
   function togglePause() {
     if (sendServerCommand('toggle_pause')) return;
 
     if (state.status === 'gameover') return;
+    if (state.status === 'countdown') {
+      if (state.countdownTimer) clearInterval(state.countdownTimer);
+      state.countdownTimer = null;
+      state.status = 'ready';
+      state.countdownVal = 0;
+      updateArenaUI();
+      broadcastSync();
+      return;
+    }
     if (state.status === 'running') {
       pauseRunning();
     } else {
@@ -310,6 +384,13 @@
   function resetRound() {
     sendServerCommand('reset');
 
+    if (state.countdownTimer) clearInterval(state.countdownTimer);
+    if (state.passTimer) clearInterval(state.passTimer);
+    state.countdownTimer = null;
+    state.passTimer = null;
+    state.isPassing = false;
+    state.passRemaining = 0;
+    state.countdownVal = 0;
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
@@ -408,6 +489,35 @@
         el.hostAnswerText.classList.remove('blurred');
         el.btnToggleAnswer.textContent = 'HIDE';
       }
+    }
+
+    // Stage Overlay Management
+    if (state.status === 'ready') {
+      if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'flex';
+      if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
+      if (el.passOverlay) el.passOverlay.style.display = 'none';
+      el.clueImage.style.display = 'none';
+      el.pauseLabel.textContent = 'START DUEL (SPACE)';
+    } else if (state.status === 'countdown') {
+      if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
+      if (el.countdownOverlay) el.countdownOverlay.style.display = 'flex';
+      if (el.countdownNumber) el.countdownNumber.textContent = state.countdownVal || 3;
+      if (el.passOverlay) el.passOverlay.style.display = 'none';
+      el.clueImage.style.display = 'none';
+      el.pauseLabel.textContent = `STARTING IN ${state.countdownVal || 3}...`;
+    } else if (state.isPassing) {
+      if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
+      if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
+      if (el.passOverlay) el.passOverlay.style.display = 'flex';
+      if (el.passRecoveryDigits) el.passRecoveryDigits.textContent = `${state.passRemaining || 3}s`;
+      if (el.passRecoveryBar) el.passRecoveryBar.style.width = `${((state.passRemaining || 3) / 3) * 100}%`;
+      el.clueImage.style.display = 'none';
+    } else {
+      // running, paused, gameover
+      if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
+      if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
+      if (el.passOverlay) el.passOverlay.style.display = 'none';
+      el.clueImage.style.display = 'block';
     }
 
     updateTimerUI();
@@ -613,20 +723,52 @@
           return; // Prevents any image reloading, DOM flicker, or repainting!
         }
 
-        // 2. Sound & Animations on Clue Progression
+        // 2. Countdown Ticks
+        if (d.eventType === 'countdown_start' || d.eventType === 'countdown_tick') {
+          state.status = 'countdown';
+          state.countdownVal = d.countdownVal !== undefined ? d.countdownVal : 3;
+          state.isPassing = false;
+          if (window.soundEngine?.playCountdownBeep) {
+            window.soundEngine.playCountdownBeep(false);
+          }
+          updateArenaUI();
+          return;
+        }
+
+        // 3. Pass Recovery Ticks (Prompt removed for 3s recovery)
+        if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
+          state.isPassing = true;
+          state.passRemaining = d.passRemaining !== undefined ? d.passRemaining : 3;
+          if (d.eventType === 'pass_start') {
+            window.soundEngine?.playPass();
+          }
+          updateArenaUI();
+          return;
+        }
+
+        if (d.eventType === 'pass_complete') {
+          state.isPassing = false;
+          state.passRemaining = 0;
+        }
+
+        // 4. Sound & Animations on Clue Progression
         if (d.eventType === 'correct') {
           window.soundEngine.playCorrect();
           flashScreen('CORRECT!', 'correct-flash');
-        } else if (d.eventType === 'pass') {
-          window.soundEngine.playPass();
-          flashScreen(`PASS! -${d.passPenaltySeconds || 3}s`, 'pass-flash');
         } else if (d.eventType === 'start') {
-          window.soundEngine.playCorrect();
+          state.status = 'running';
+          state.isPassing = false;
+          state.countdownVal = 0;
+          if (window.soundEngine?.playCountdownBeep) {
+            window.soundEngine.playCountdownBeep(true);
+          }
         } else if (d.eventType === 'pause') {
           el.pauseModal.classList.add('active');
         } else if (d.eventType === 'resume') {
           el.pauseModal.classList.remove('active');
         } else if (d.eventType === 'reset') {
+          state.isPassing = false;
+          state.countdownVal = 0;
           el.victoryModal.classList.remove('active');
           el.pauseModal.classList.remove('active');
         } else if (d.eventType === 'timeout') {
@@ -634,12 +776,15 @@
           return;
         }
 
-        // 3. Full Clue Synchronization
+        // 5. Full Clue Synchronization
         state.title = d.title || state.title;
         state.p1 = d.p1 || state.p1;
         state.p2 = d.p2 || state.p2;
         state.activePlayer = d.activePlayer || state.activePlayer;
         state.status = d.status || state.status;
+        state.countdownVal = d.countdownVal !== undefined ? d.countdownVal : state.countdownVal;
+        state.isPassing = d.isPassing !== undefined ? d.isPassing : state.isPassing;
+        state.passRemaining = d.passRemaining !== undefined ? d.passRemaining : state.passRemaining;
         state.clueIndex = d.clueIndex !== undefined ? d.clueIndex : state.clueIndex;
 
         if (d.promptImage) {

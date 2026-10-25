@@ -51,6 +51,29 @@
           <span id="clueCounter" class="clue-counter-badge">1 / 10</span>
           <img id="clueImage" class="clue-image" alt="Visual Clue" src="" />
 
+          <!-- Starting Soon Screen (shown before duel starts) -->
+          <div id="startingSoonOverlay" class="stage-overlay starting-soon-overlay">
+            <div class="starting-soon-badge">DUEL PREPARED</div>
+            <h1 class="starting-soon-title">STARTING SOON</h1>
+            <p class="starting-soon-subtitle">Waiting for host to start duel...</p>
+          </div>
+
+          <!-- 3-Second Countdown Overlay -->
+          <div id="countdownOverlay" class="stage-overlay countdown-overlay" style="display: none;">
+            <div id="countdownNumber" class="countdown-digits">3</div>
+            <div class="countdown-label">GET READY!</div>
+          </div>
+
+          <!-- Pass 3-Second Recovery Overlay (Prompt removed) -->
+          <div id="passOverlay" class="stage-overlay pass-recovery-overlay" style="display: none;">
+            <div class="pass-recovery-badge">↷ PASSED</div>
+            <div class="pass-recovery-title">RECOVERING...</div>
+            <div id="passRecoveryDigits" class="pass-recovery-digits">3s</div>
+            <div class="pass-recovery-bar-container">
+              <div id="passRecoveryBar" class="pass-recovery-bar" style="width: 100%;"></div>
+            </div>
+          </div>
+
           <!-- Flash overlay for Correct/Pass -->
           <div id="flashOverlay" class="flash-overlay">
             <span id="flashText" class="flash-text">CORRECT!</span>
@@ -113,6 +136,12 @@
       p2TimerDigits: document.getElementById('p2TimerDigits'),
       p2TimerBar: document.getElementById('p2TimerBar'),
       p2Status: document.getElementById('p2Status'),
+      startingSoonOverlay: document.getElementById('startingSoonOverlay'),
+      countdownOverlay: document.getElementById('countdownOverlay'),
+      countdownNumber: document.getElementById('countdownNumber'),
+      passOverlay: document.getElementById('passOverlay'),
+      passRecoveryDigits: document.getElementById('passRecoveryDigits'),
+      passRecoveryBar: document.getElementById('passRecoveryBar'),
       victoryModal: document.getElementById('victoryModal'),
       victoryWinnerName: document.getElementById('victoryWinnerName'),
       victoryDetails: document.getElementById('victoryDetails')
@@ -160,13 +189,68 @@
         return;
       }
 
+      // 2. Countdown Ticks
+      if (d.eventType === 'countdown_start' || d.eventType === 'countdown_tick') {
+        const val = d.countdownVal !== undefined ? d.countdownVal : 3;
+        el.countdownNumber.textContent = val;
+        el.countdownOverlay.style.display = 'flex';
+        el.startingSoonOverlay.style.display = 'none';
+        el.passOverlay.style.display = 'none';
+        el.clueImage.style.display = 'none';
+        if (window.soundEngine?.playCountdownBeep) {
+          window.soundEngine.playCountdownBeep(false);
+        }
+        return;
+      }
+
+      // 3. Pass Recovery Ticks (Prompt removed for 3s)
+      if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
+        const rem = d.passRemaining !== undefined ? d.passRemaining : 3;
+        el.passRecoveryDigits.textContent = `${rem}s`;
+        const pct = (rem / 3) * 100;
+        el.passRecoveryBar.style.width = `${pct}%`;
+        el.passOverlay.style.display = 'flex';
+        el.clueImage.style.display = 'none';
+        el.startingSoonOverlay.style.display = 'none';
+        el.countdownOverlay.style.display = 'none';
+        if (d.eventType === 'pass_start') {
+          window.soundEngine?.playPass();
+        }
+        return;
+      }
+
       // Sounds & Visual Flashes
       if (d.eventType === 'correct') {
-        window.soundEngine.playCorrect();
+        window.soundEngine?.playCorrect();
         flashScreen('CORRECT!', 'correct-flash');
-      } else if (d.eventType === 'pass') {
-        window.soundEngine.playPass();
-        flashScreen(`PASS! -${d.passPenaltySeconds || 3}s`, 'pass-flash');
+      } else if (d.eventType === 'start') {
+        if (window.soundEngine?.playCountdownBeep) {
+          window.soundEngine.playCountdownBeep(true);
+        }
+      }
+
+      // Overlays management for main states
+      if (d.status === 'ready') {
+        el.startingSoonOverlay.style.display = 'flex';
+        el.countdownOverlay.style.display = 'none';
+        el.passOverlay.style.display = 'none';
+        el.clueImage.style.display = 'none';
+      } else if (d.status === 'countdown') {
+        el.startingSoonOverlay.style.display = 'none';
+        el.countdownOverlay.style.display = 'flex';
+        el.passOverlay.style.display = 'none';
+        el.clueImage.style.display = 'none';
+      } else if (d.isPassing) {
+        el.startingSoonOverlay.style.display = 'none';
+        el.countdownOverlay.style.display = 'none';
+        el.passOverlay.style.display = 'flex';
+        el.clueImage.style.display = 'none';
+      } else {
+        // running, paused, gameover
+        el.startingSoonOverlay.style.display = 'none';
+        el.countdownOverlay.style.display = 'none';
+        el.passOverlay.style.display = 'none';
+        el.clueImage.style.display = 'block';
       }
 
       if (d.title) el.categoryTitle.textContent = d.title.toUpperCase();
@@ -231,7 +315,6 @@
         }
       };
     }
-  </script>
   </script>
 </body>
 </html>

@@ -166,6 +166,30 @@ class GameSoundEngine {
       osc.stop(t + 1.5);
     });
   }
+
+  playCountdownBeep(isFinal = false) {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = isFinal ? 'triangle' : 'sine';
+    const freq = isFinal ? 1046.50 : 523.25; // High C6 for GO! / C5 for 3, 2, 1
+    osc.frequency.setValueAtTime(freq, t);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(isFinal ? 0.35 : 0.22, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + (isFinal ? 0.6 : 0.25));
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(t);
+    osc.stop(t + (isFinal ? 0.65 : 0.3));
+  }
 }
 
 const soundEngine = new GameSoundEngine();

@@ -237,6 +237,31 @@
       background: #e68200;
     }
 
+    .btn-host-pass.recovering {
+      opacity: 0.55;
+      pointer-events: none;
+      filter: grayscale(0.4);
+    }
+
+    .btn-host-start {
+      background: linear-gradient(135deg, #ffd369, #f59e0b);
+      color: #0c101c;
+      border: 2px solid #fff;
+      box-shadow: 0 8px 30px rgba(255, 211, 105, 0.5);
+      animation: pulseStart 2s infinite ease-in-out;
+      margin-top: 6px;
+    }
+
+    .btn-host-start:active {
+      transform: scale(0.97);
+      background: #e5a910;
+    }
+
+    @keyframes pulseStart {
+      0%, 100% { box-shadow: 0 8px 25px rgba(255, 211, 105, 0.4); }
+      50% { box-shadow: 0 8px 45px rgba(255, 211, 105, 0.85); transform: scale(1.02); }
+    }
+
     .host-sub-buttons {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -352,17 +377,23 @@
 
     <!-- Central Master Answer Card (Visible only to Host) -->
     <section class="master-answer-card">
-      <div class="answer-tag">🎯 VERIFY PLAYER'S ANSWER:</div>
-      <div id="masterAnswer" class="big-answer-text">VANILLA</div>
+      <div id="answerTag" class="answer-tag">🎯 VERIFY PLAYER'S ANSWER:</div>
+      <div id="masterAnswer" class="big-answer-text">READY</div>
       <div class="clue-meta-row">
-        <span id="clueNumber">Clue 1 / 20</span>
+        <span id="clueNumber">Clue 1 / 45</span>
         <span>•</span>
-        <span id="nextClueHint" class="next-clue-hint">Next: Chocolate</span>
+        <span id="nextClueHint" class="next-clue-hint">Next: ...</span>
       </div>
     </section>
 
-    <!-- Giant Thumb-Friendly Touch Controls -->
-    <div class="host-actions-grid">
+    <!-- Giant Start Game / Duel Button (Shown in Ready & Countdown States) -->
+    <button id="btnHostStartDuel" class="btn-host-action btn-host-start">
+      <span id="startDuelLabel">🚀 START GAME</span>
+      <span class="hotkey-hint">SPACE</span>
+    </button>
+
+    <!-- Giant Thumb-Friendly Touch Controls (Active during Duel) -->
+    <div id="duelActionsGrid" class="host-actions-grid" style="display: none;">
       <!-- Correct Button -->
       <button id="btnHostCorrect" class="btn-host-action btn-host-correct">
         <span>✓ CORRECT</span>
@@ -371,7 +402,7 @@
 
       <!-- Pass Button -->
       <button id="btnHostPass" class="btn-host-action btn-host-pass">
-        <span>↷ PASS (-3s)</span>
+        <span id="hostPassLabel">↷ PASS (3s Delay)</span>
         <span class="hotkey-hint">TAB</span>
       </button>
     </div>
@@ -416,6 +447,7 @@
     let currentDisplayedAnswer = '';
     let currentNextAnswer = '';
     let currentActivePlayer = null;
+    let currentStatus = 'ready';
     let isConnectedViaSse = false;
 
     const el = {
@@ -427,11 +459,16 @@
       p1TimeVal: document.getElementById('p1TimeVal'),
       p2Label: document.getElementById('p2Label'),
       p2TimeVal: document.getElementById('p2TimeVal'),
+      answerTag: document.getElementById('answerTag'),
       masterAnswer: document.getElementById('masterAnswer'),
       clueNumber: document.getElementById('clueNumber'),
       nextClueHint: document.getElementById('nextClueHint'),
+      btnHostStartDuel: document.getElementById('btnHostStartDuel'),
+      startDuelLabel: document.getElementById('startDuelLabel'),
+      duelActionsGrid: document.getElementById('duelActionsGrid'),
       btnHostCorrect: document.getElementById('btnHostCorrect'),
       btnHostPass: document.getElementById('btnHostPass'),
+      hostPassLabel: document.getElementById('hostPassLabel'),
       btnHostPause: document.getElementById('btnHostPause'),
       btnHostReset: document.getElementById('btnHostReset'),
       btnCategoryModal: document.getElementById('btnCategoryModal'),
@@ -468,6 +505,8 @@
     function applyState(d) {
       if (!d) return;
 
+      if (d.status) currentStatus = d.status;
+
       // 1. Lightweight Timer Tick: ONLY update clock digits, NEVER touch answer
       if (d.eventType === 'tick') {
         if (d.p1Time !== undefined) el.p1TimeVal.textContent = formatTime(d.p1Time);
@@ -478,7 +517,27 @@
         return; // Early return prevents any DOM recalculation or answer flicker
       }
 
-      // 2. Full Clue & Game State Update:
+      // 2. Countdown Ticks
+      if (d.eventType === 'countdown_start' || d.eventType === 'countdown_tick') {
+        const val = d.countdownVal !== undefined ? d.countdownVal : 3;
+        el.btnHostStartDuel.style.display = 'flex';
+        el.btnHostStartDuel.disabled = true;
+        el.startDuelLabel.textContent = `⏳ STARTING IN ${val}...`;
+        el.duelActionsGrid.style.display = 'none';
+        el.answerTag.textContent = '🎯 FIRST CLUE:';
+        return;
+      }
+
+      // 3. Pass Recovery Ticks (Prompt removed for 3s recovery)
+      if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
+        const rem = d.passRemaining !== undefined ? d.passRemaining : 3;
+        el.btnHostPass.classList.add('recovering');
+        el.hostPassLabel.textContent = `⏳ RECOVERING (${rem}s...)`;
+        el.masterAnswer.textContent = '↷ PASSED';
+        return;
+      }
+
+      // 4. Full Clue & Game State Update:
       if (d.title && el.gameTitleBadge.textContent !== d.title.toUpperCase()) {
         el.gameTitleBadge.textContent = d.title.toUpperCase();
       }
@@ -502,7 +561,9 @@
       const newAnswer = d.promptAnswer || (d.clue && d.clue.answer);
       if (newAnswer && newAnswer !== currentDisplayedAnswer) {
         currentDisplayedAnswer = newAnswer;
-        el.masterAnswer.textContent = currentDisplayedAnswer.toUpperCase();
+        if (!d.isPassing) {
+          el.masterAnswer.textContent = currentDisplayedAnswer.toUpperCase();
+        }
         if (d.clueIndex !== undefined && d.cluesCount) {
           el.clueNumber.textContent = `Clue ${d.clueIndex + 1} of ${d.cluesCount}`;
         }
@@ -515,13 +576,45 @@
         el.nextClueHint.textContent = currentNextAnswer ? `Next: ${currentNextAnswer}` : '';
       }
 
-      // Status
-      if (d.status === 'paused') {
-        el.btnHostPause.textContent = '▶ RESUME (ESC)';
-      } else if (d.status === 'ready') {
+      // Control Buttons Visibility by Duel Status
+      if (d.status === 'ready') {
+        el.btnHostStartDuel.style.display = 'flex';
+        el.btnHostStartDuel.disabled = false;
+        el.startDuelLabel.textContent = '🚀 START GAME';
+        el.duelActionsGrid.style.display = 'none';
+        el.answerTag.textContent = '🎯 FIRST CLUE:';
         el.btnHostPause.textContent = '▶ START (ESC)';
-      } else {
+        el.btnHostPass.classList.remove('recovering');
+        el.hostPassLabel.textContent = '↷ PASS';
+      } else if (d.status === 'countdown') {
+        el.btnHostStartDuel.style.display = 'flex';
+        el.btnHostStartDuel.disabled = true;
+        el.startDuelLabel.textContent = `⏳ STARTING IN ${d.countdownVal || 3}...`;
+        el.duelActionsGrid.style.display = 'none';
+        el.answerTag.textContent = '🎯 FIRST CLUE:';
+      } else if (d.status === 'running') {
+        el.btnHostStartDuel.style.display = 'none';
+        el.duelActionsGrid.style.display = 'flex';
+        el.answerTag.textContent = "🎯 VERIFY PLAYER'S ANSWER:";
         el.btnHostPause.textContent = '⏸ PAUSE (ESC)';
+        if (d.isPassing) {
+          el.btnHostPass.classList.add('recovering');
+          el.hostPassLabel.textContent = `⏳ RECOVERING (${d.passRemaining || 3}s...)`;
+          el.masterAnswer.textContent = '↷ PASSED';
+        } else {
+          el.btnHostPass.classList.remove('recovering');
+          el.hostPassLabel.textContent = '↷ PASS';
+          if (currentDisplayedAnswer) {
+            el.masterAnswer.textContent = currentDisplayedAnswer.toUpperCase();
+          }
+        }
+      } else if (d.status === 'paused') {
+        el.btnHostPause.textContent = '▶ RESUME (ESC)';
+      } else if (d.status === 'gameover') {
+        el.btnHostStartDuel.style.display = 'flex';
+        el.btnHostStartDuel.disabled = false;
+        el.startDuelLabel.textContent = '↻ PLAY AGAIN';
+        el.duelActionsGrid.style.display = 'none';
       }
 
       if (d.status === 'gameover' && d.winner) {
@@ -547,7 +640,6 @@
           console.warn('Network command failed', e);
         }
       } else if (channel) {
-        // Fallback only if running offline file://
         channel.postMessage({ type: 'HOST_CMD', cmd, ...payload });
       }
     }
@@ -579,7 +671,6 @@
     // BroadcastChannel Listener (Secondary fallback for offline file:// only)
     if (channel) {
       channel.onmessage = (event) => {
-        // CRITICAL: Ignore BroadcastChannel if SSE is connected to prevent dual-stream race flickering!
         if (isConnectedViaSse) return;
         if (event.data && event.data.type === 'STATE_SYNC') {
           applyState(event.data.payload);
@@ -588,6 +679,15 @@
     }
 
     // Touch Action Listeners
+    el.btnHostStartDuel.addEventListener('click', () => {
+      vibrate(60);
+      if (currentStatus === 'gameover') {
+        sendCommand('reset');
+      } else {
+        sendCommand('start_duel');
+      }
+    });
+
     el.btnHostCorrect.addEventListener('click', () => {
       vibrate(50);
       sendCommand('correct');
@@ -615,62 +715,11 @@
       if (e.code === 'Space') {
         e.preventDefault();
         vibrate(50);
-        sendCommand('correct');
-      } else if (e.code === 'Tab') {
-        e.preventDefault();
-        vibrate(120);
-        sendCommand('pass');
-      } else if (e.code === 'Escape') {
-        e.preventDefault();
-        sendCommand('toggle_pause');
-      } else if (e.code === 'KeyR') {
-        e.preventDefault();
-        if (confirm('Reset round?')) {
-          sendCommand('reset');
+        if (currentStatus === 'ready') {
+          sendCommand('start_duel');
+        } else {
+          sendCommand('correct');
         }
-      }
-    });
-
-    // Category Modal
-    el.btnCategoryModal.addEventListener('click', () => {
-      el.categoryModal.classList.add('active');
-    });
-    el.btnCloseModal.addEventListener('click', () => {
-      el.categoryModal.classList.remove('active');
-    });
-
-    window.selectGame = function (gameId) {
-      sendCommand('select_game', { gameId });
-      el.categoryModal.classList.remove('active');
-    };
-
-    // Initialize
-    connectSSE();
-  </script>
-
-    el.btnHostPass.addEventListener('click', () => {
-      vibrate(120);
-      sendCommand('pass');
-    });
-
-    el.btnHostPause.addEventListener('click', () => {
-      vibrate(40);
-      sendCommand('toggle_pause');
-    });
-
-    el.btnHostReset.addEventListener('click', () => {
-      if (confirm('Reset the duel round?')) {
-        vibrate(80);
-        sendCommand('reset');
-      }
-    });
-
-    // Keyboard Shortcuts for Host (Desktop)
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        vibrate(50);
-        sendCommand('correct');
       } else if (e.code === 'Tab') {
         e.preventDefault();
         vibrate(120);

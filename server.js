@@ -46,7 +46,10 @@ const state = {
   p1: { name: "Player 1", timeRemaining: 45, maxTime: 45 },
   p2: { name: "Player 2", timeRemaining: 45, maxTime: 45 },
   activePlayer: 1, // 1 or 2
-  status: 'ready', // 'ready' | 'running' | 'paused' | 'gameover'
+  status: 'ready', // 'ready' | 'countdown' | 'running' | 'paused' | 'gameover'
+  countdownVal: 0,
+  isPassing: false,
+  passRemaining: 0,
   clues: iceCreamGame ? [...iceCreamGame.clues] : [],
   clueIndex: 0,
   roundTime: 45,
@@ -55,6 +58,9 @@ const state = {
   lastTickTime: null,
   lastEvent: null
 };
+
+let countdownTimer = null;
+let passTimer = null;
 
 // Connected SSE Clients (Players and Hosts)
 const sseClients = new Set();
@@ -74,6 +80,7 @@ function sendSse(payload) {
 function broadcastClueState(eventType = 'clue_sync') {
   const currentClue = state.clues[state.clueIndex] || null;
   const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
+  const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing);
 
   const payload = {
     eventType,
@@ -83,12 +90,15 @@ function broadcastClueState(eventType = 'clue_sync') {
     p2: state.p2,
     activePlayer: state.activePlayer,
     status: state.status,
+    countdownVal: state.countdownVal,
+    isPassing: state.isPassing,
+    passRemaining: state.passRemaining,
     clueIndex: state.clueIndex,
     cluesCount: state.clues.length,
-    // Stable, explicit clue pairings for host and players:
+    // Stable clue pairings for host and players:
     promptAnswer: currentClue ? currentClue.answer : '',
     promptId: currentClue ? currentClue.id : '',
-    promptImage: currentClue ? currentClue.image : '',
+    promptImage: isPromptHidden ? '' : (currentClue ? currentClue.image : ''),
     nextAnswer: nextClue ? nextClue.answer : '',
     winner: state.winner,
     passPenaltySeconds: state.passPenaltySeconds
@@ -131,15 +141,64 @@ setInterval(() => {
   }
 }, 100);
 
-// Host Command Processor
-function handleHostCommand(cmd, payload = {}) {
-  if (cmd === 'correct') {
-    if (state.status === 'gameover') return;
-    if (state.status === 'ready' || state.status === 'paused') {
+// 3-Second Start Countdown Engine
+function startDuelCountdown() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  if (passTimer) clearInterval(passTimer);
+  countdownTimer = null;
+  passTimer = null;
+  state.isPassing = false;
+  state.passRemaining = 0;
+  state.status = 'countdown';
+  state.countdownVal = 3;
+  broadcastClueState('countdown_start');
+
+  countdownTimer = setInterval(() => {
+    state.countdownVal--;
+    if (state.countdownVal > 0) {
+      sendSse({
+        eventType: 'countdown_tick',
+        countdownVal: state.countdownVal,
+        status: 'countdown'
+      });
+    } else {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
       state.status = 'running';
+      state.countdownVal = 0;
       state.lastTickTime = Date.now();
       broadcastClueState('start');
+    }
+  }, 1000);
+}
+
+// Host Command Processor
+function handleHostCommand(cmd, payload = {}) {
+  if (cmd === 'start_duel' || cmd === 'start_game') {
+    if (state.status === 'ready') {
+      startDuelCountdown();
       return;
+    } else if (state.status === 'paused') {
+      state.status = 'running';
+      state.lastTickTime = Date.now();
+      broadcastClueState('resume');
+      return;
+    }
+  }
+  else if (cmd === 'correct') {
+    if (state.status === 'gameover') return;
+    if (state.status === 'ready') {
+      startDuelCountdown();
+      return;
+    }
+    if (state.status === 'paused') {
+      state.status = 'running';
+      state.lastTickTime = Date.now();
+      broadcastClueState('resume');
+      return;
+    }
+    if (state.status === 'countdown' || state.isPassing) {
+      return; // Ignore correct action during countdown or pass recovery
     }
 
     // Switch active player
@@ -151,30 +210,56 @@ function handleHostCommand(cmd, payload = {}) {
     broadcastClueState('correct');
   } 
   else if (cmd === 'pass') {
-    if (state.status !== 'running') return;
-    const penalty = state.passPenaltySeconds || 0;
-    const player = state.activePlayer === 1 ? state.p1 : state.p2;
+    if (state.status !== 'running' || state.isPassing) return;
 
-    if (penalty > 0) {
-      player.timeRemaining = Math.max(0, player.timeRemaining - penalty);
-    }
+    // DO NOT subtract 3 seconds immediately from clock!
+    // Clock continues to tick down naturally during the 3-second recovery delay.
+    // The current prompt is removed immediately, and 3 seconds later the next prompt is introduced.
+    state.isPassing = true;
+    state.passRemaining = 3;
+    broadcastClueState('pass_start');
 
-    if (player.timeRemaining <= 0) {
-      state.status = 'gameover';
-      state.winner = state.activePlayer === 1 ? 2 : 1;
-      state.lastTickTime = null;
-      broadcastClueState('timeout');
-      return;
-    }
-
-    // Keep turn with same player, serve next clue
-    if (state.clues.length > 0) {
-      state.clueIndex = (state.clueIndex + 1) % state.clues.length;
-    }
-    broadcastClueState('pass');
+    let passCount = 3;
+    if (passTimer) clearInterval(passTimer);
+    passTimer = setInterval(() => {
+      if (state.status !== 'running') {
+        clearInterval(passTimer);
+        passTimer = null;
+        state.isPassing = false;
+        state.passRemaining = 0;
+        return;
+      }
+      passCount--;
+      if (passCount > 0) {
+        state.passRemaining = passCount;
+        sendSse({
+          eventType: 'pass_tick',
+          isPassing: true,
+          passRemaining: passCount
+        });
+      } else {
+        clearInterval(passTimer);
+        passTimer = null;
+        state.isPassing = false;
+        state.passRemaining = 0;
+        // 3 seconds later: introduce next prompt!
+        if (state.clues.length > 0) {
+          state.clueIndex = (state.clueIndex + 1) % state.clues.length;
+        }
+        broadcastClueState('pass_complete');
+      }
+    }, 1000);
   } 
   else if (cmd === 'toggle_pause') {
     if (state.status === 'gameover') return;
+    if (state.status === 'countdown') {
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = null;
+      state.status = 'ready';
+      state.countdownVal = 0;
+      broadcastClueState('reset');
+      return;
+    }
     if (state.status === 'running') {
       state.status = 'paused';
       state.lastTickTime = null;
@@ -186,6 +271,13 @@ function handleHostCommand(cmd, payload = {}) {
     }
   } 
   else if (cmd === 'reset') {
+    if (countdownTimer) clearInterval(countdownTimer);
+    if (passTimer) clearInterval(passTimer);
+    countdownTimer = null;
+    passTimer = null;
+    state.countdownVal = 0;
+    state.isPassing = false;
+    state.passRemaining = 0;
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
@@ -196,6 +288,13 @@ function handleHostCommand(cmd, payload = {}) {
     broadcastClueState('reset');
   } 
   else if (cmd === 'select_game') {
+    if (countdownTimer) clearInterval(countdownTimer);
+    if (passTimer) clearInterval(passTimer);
+    countdownTimer = null;
+    passTimer = null;
+    state.countdownVal = 0;
+    state.isPassing = false;
+    state.passRemaining = 0;
     const gameId = payload.gameId;
     if (gameId === 'hairstyles' && hairstylesGame) {
       state.title = hairstylesGame.title;
@@ -295,6 +394,7 @@ const server = http.createServer((req, res) => {
     // Send immediate full state on connect
     const currentClue = state.clues[state.clueIndex] || null;
     const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
+    const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing);
     const initialData = {
       eventType: 'initial_state',
       title: state.title,
@@ -303,11 +403,14 @@ const server = http.createServer((req, res) => {
       p2: state.p2,
       activePlayer: state.activePlayer,
       status: state.status,
+      countdownVal: state.countdownVal,
+      isPassing: state.isPassing,
+      passRemaining: state.passRemaining,
       clueIndex: state.clueIndex,
       cluesCount: state.clues.length,
       promptAnswer: currentClue ? currentClue.answer : '',
       promptId: currentClue ? currentClue.id : '',
-      promptImage: currentClue ? currentClue.image : '',
+      promptImage: isPromptHidden ? '' : (currentClue ? currentClue.image : ''),
       nextAnswer: nextClue ? nextClue.answer : '',
       winner: state.winner,
       passPenaltySeconds: state.passPenaltySeconds
