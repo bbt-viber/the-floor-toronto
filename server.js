@@ -50,6 +50,7 @@ const state = {
   countdownVal: 0,
   isPassing: false,
   passRemaining: 0,
+  passedAnswer: '',
   clues: iceCreamGame ? [...iceCreamGame.clues] : [],
   clueIndex: 0,
   roundTime: 45,
@@ -93,6 +94,7 @@ function broadcastClueState(eventType = 'clue_sync') {
     countdownVal: state.countdownVal,
     isPassing: state.isPassing,
     passRemaining: state.passRemaining,
+    passedAnswer: state.passedAnswer || (currentClue ? currentClue.answer : ''),
     clueIndex: state.clueIndex,
     cluesCount: state.clues.length,
     // Stable clue pairings for host and players:
@@ -214,7 +216,10 @@ function handleHostCommand(cmd, payload = {}) {
 
     // DO NOT subtract 3 seconds immediately from clock!
     // Clock continues to tick down naturally during the 3-second recovery delay.
-    // The current prompt is removed immediately, and 3 seconds later the next prompt is introduced.
+    // The current prompt is removed immediately, the answer is displayed to all players,
+    // and 3 seconds later the next prompt is introduced.
+    const currentClue = state.clues[state.clueIndex] || null;
+    state.passedAnswer = currentClue ? currentClue.answer : '';
     state.isPassing = true;
     state.passRemaining = 3;
     broadcastClueState('pass_start');
@@ -227,6 +232,7 @@ function handleHostCommand(cmd, payload = {}) {
         passTimer = null;
         state.isPassing = false;
         state.passRemaining = 0;
+        state.passedAnswer = '';
         return;
       }
       passCount--;
@@ -235,13 +241,15 @@ function handleHostCommand(cmd, payload = {}) {
         sendSse({
           eventType: 'pass_tick',
           isPassing: true,
-          passRemaining: passCount
+          passRemaining: passCount,
+          passedAnswer: state.passedAnswer
         });
       } else {
         clearInterval(passTimer);
         passTimer = null;
         state.isPassing = false;
         state.passRemaining = 0;
+        state.passedAnswer = '';
         // 3 seconds later: introduce next prompt!
         if (state.clues.length > 0) {
           state.clueIndex = (state.clueIndex + 1) % state.clues.length;
@@ -278,6 +286,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.countdownVal = 0;
     state.isPassing = false;
     state.passRemaining = 0;
+    state.passedAnswer = '';
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
@@ -406,6 +415,7 @@ const server = http.createServer((req, res) => {
       countdownVal: state.countdownVal,
       isPassing: state.isPassing,
       passRemaining: state.passRemaining,
+      passedAnswer: state.passedAnswer || '',
       clueIndex: state.clueIndex,
       cluesCount: state.clues.length,
       promptAnswer: currentClue ? currentClue.answer : '',

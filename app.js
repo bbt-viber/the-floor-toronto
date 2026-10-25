@@ -26,6 +26,7 @@
     countdownVal: 0,
     isPassing: false,
     passRemaining: 0,
+    passedAnswer: '',
     countdownTimer: null,
     passTimer: null,
     clues: [...defaultGameData.clues],
@@ -72,6 +73,7 @@
     countdownOverlay: document.getElementById('countdownOverlay'),
     countdownNumber: document.getElementById('countdownNumber'),
     passOverlay: document.getElementById('passOverlay'),
+    passRevealedAnswer: document.getElementById('passRevealedAnswer'),
     passRecoveryDigits: document.getElementById('passRecoveryDigits'),
     passRecoveryBar: document.getElementById('passRecoveryBar'),
 
@@ -328,7 +330,10 @@
 
     // DO NOT subtract 3 seconds immediately from clock!
     // Clock continues to tick down naturally during the 3-second recovery delay.
-    // The current prompt is removed immediately, and 3 seconds later the next prompt is introduced.
+    // The current prompt is removed immediately, the answer is displayed to all players,
+    // and 3 seconds later the next prompt is introduced.
+    const curClue = state.clues[state.clueIndex];
+    state.passedAnswer = curClue ? curClue.answer : '';
     state.isPassing = true;
     state.passRemaining = 3;
     updateArenaUI();
@@ -341,6 +346,7 @@
         clearInterval(state.passTimer);
         state.isPassing = false;
         state.passRemaining = 0;
+        state.passedAnswer = '';
         return;
       }
       pCount--;
@@ -353,6 +359,7 @@
         state.passTimer = null;
         state.isPassing = false;
         state.passRemaining = 0;
+        state.passedAnswer = '';
         nextClue();
         updateArenaUI();
         broadcastSync();
@@ -509,6 +516,7 @@
       if (el.startingSoonOverlay) el.startingSoonOverlay.style.display = 'none';
       if (el.countdownOverlay) el.countdownOverlay.style.display = 'none';
       if (el.passOverlay) el.passOverlay.style.display = 'flex';
+      if (el.passRevealedAnswer) el.passRevealedAnswer.textContent = (state.passedAnswer || '').toUpperCase();
       if (el.passRecoveryDigits) el.passRecoveryDigits.textContent = `${state.passRemaining || 3}s`;
       if (el.passRecoveryBar) el.passRecoveryBar.style.width = `${((state.passRemaining || 3) / 3) * 100}%`;
       el.clueImage.style.display = 'none';
@@ -735,10 +743,11 @@
           return;
         }
 
-        // 3. Pass Recovery Ticks (Prompt removed for 3s recovery)
+        // 3. Pass Recovery Ticks (Prompt removed, Answer displayed to all for 3s recovery)
         if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
           state.isPassing = true;
           state.passRemaining = d.passRemaining !== undefined ? d.passRemaining : 3;
+          if (d.passedAnswer) state.passedAnswer = d.passedAnswer;
           if (d.eventType === 'pass_start') {
             window.soundEngine?.playPass();
           }
@@ -749,6 +758,7 @@
         if (d.eventType === 'pass_complete') {
           state.isPassing = false;
           state.passRemaining = 0;
+          state.passedAnswer = '';
         }
 
         // 4. Sound & Animations on Clue Progression

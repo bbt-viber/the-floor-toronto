@@ -490,14 +490,14 @@ body {
   100% { transform: scale(0.7); opacity: 0.2; }
 }
 
-/* Pass Recovery Screen (Prompt removed for 3s recovery) */
+/* Pass Recovery Screen (Prompt removed, Answer revealed to all players for 3s) */
 .pass-recovery-overlay {
-  background: radial-gradient(circle at center, #2b1704 0%, #0d0701 100%);
+  background: radial-gradient(circle at center, #2e1702 0%, #0c0601 100%);
   animation: fadeIn 0.2s ease-out;
 }
 
 .pass-recovery-badge {
-  background: rgba(255, 171, 0, 0.2);
+  background: rgba(255, 171, 0, 0.22);
   border: 1px solid #ffd54f;
   color: #ffd54f;
   padding: 6px 20px;
@@ -506,23 +506,37 @@ body {
   font-weight: 800;
   letter-spacing: 3px;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.pass-recovery-title {
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: 2px;
-  margin-bottom: 6px;
-}
-
-.pass-recovery-digits {
-  font-size: 3.5rem;
+.pass-revealed-answer {
+  font-size: 3.8rem;
   font-weight: 900;
-  color: var(--gold);
-  text-shadow: 0 0 25px rgba(255, 211, 105, 0.6);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0 35px rgba(255, 171, 0, 0.8), 0 0 65px rgba(255, 211, 105, 0.5);
+  margin: 6px 0 14px;
+  animation: answerPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes answerPop {
+  0% { transform: scale(0.65); opacity: 0; }
+  70% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pass-next-prompt-row {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
   margin-bottom: 14px;
+  font-weight: 500;
+}
+
+.pass-next-prompt-row strong {
+  color: var(--gold);
+  font-weight: 800;
 }
 
 .pass-recovery-bar-container {

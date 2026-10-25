@@ -528,12 +528,15 @@
         return;
       }
 
-      // 3. Pass Recovery Ticks (Prompt removed for 3s recovery)
+      // 3. Pass Recovery Ticks (Prompt removed, Answer revealed to all for 3s recovery)
       if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
         const rem = d.passRemaining !== undefined ? d.passRemaining : 3;
         el.btnHostPass.classList.add('recovering');
         el.hostPassLabel.textContent = `⏳ RECOVERING (${rem}s...)`;
-        el.masterAnswer.textContent = '↷ PASSED';
+        el.answerTag.textContent = '↷ PASSED PROMPT ANSWER:';
+        if (d.passedAnswer) {
+          el.masterAnswer.textContent = d.passedAnswer.toUpperCase();
+        }
         return;
       }
 
@@ -600,7 +603,10 @@
         if (d.isPassing) {
           el.btnHostPass.classList.add('recovering');
           el.hostPassLabel.textContent = `⏳ RECOVERING (${d.passRemaining || 3}s...)`;
-          el.masterAnswer.textContent = '↷ PASSED';
+          el.answerTag.textContent = '↷ PASSED PROMPT ANSWER:';
+          if (d.passedAnswer) {
+            el.masterAnswer.textContent = d.passedAnswer.toUpperCase();
+          }
         } else {
           el.btnHostPass.classList.remove('recovering');
           el.hostPassLabel.textContent = '↷ PASS';

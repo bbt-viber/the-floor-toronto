@@ -74,11 +74,13 @@
             <div class="countdown-label">GET READY!</div>
           </div>
 
-          <!-- Pass 3-Second Recovery Overlay (Prompt removed) -->
+          <!-- Pass 3-Second Recovery Overlay (Answer displayed for all players) -->
           <div id="passOverlay" class="stage-overlay pass-recovery-overlay" style="display: none;">
-            <div class="pass-recovery-badge">↷ PASSED</div>
-            <div class="pass-recovery-title">RECOVERING...</div>
-            <div id="passRecoveryDigits" class="pass-recovery-digits">3s</div>
+            <div class="pass-recovery-badge">↷ PASSED — THE ANSWER WAS:</div>
+            <div id="passRevealedAnswer" class="pass-revealed-answer">...</div>
+            <div class="pass-next-prompt-row">
+              <span>Next prompt in <strong id="passRecoveryDigits">3s</strong></span>
+            </div>
             <div class="pass-recovery-bar-container">
               <div id="passRecoveryBar" class="pass-recovery-bar" style="width: 100%;"></div>
             </div>

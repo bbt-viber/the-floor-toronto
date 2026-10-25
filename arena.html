@@ -64,11 +64,13 @@
             <div class="countdown-label">GET READY!</div>
           </div>
 
-          <!-- Pass 3-Second Recovery Overlay (Prompt removed) -->
+          <!-- Pass 3-Second Recovery Overlay (Answer displayed for all players) -->
           <div id="passOverlay" class="stage-overlay pass-recovery-overlay" style="display: none;">
-            <div class="pass-recovery-badge">↷ PASSED</div>
-            <div class="pass-recovery-title">RECOVERING...</div>
-            <div id="passRecoveryDigits" class="pass-recovery-digits">3s</div>
+            <div class="pass-recovery-badge">↷ PASSED — THE ANSWER WAS:</div>
+            <div id="passRevealedAnswer" class="pass-revealed-answer">...</div>
+            <div class="pass-next-prompt-row">
+              <span>Next prompt in <strong id="passRecoveryDigits">3s</strong></span>
+            </div>
             <div class="pass-recovery-bar-container">
               <div id="passRecoveryBar" class="pass-recovery-bar" style="width: 100%;"></div>
             </div>
@@ -140,6 +142,7 @@
       countdownOverlay: document.getElementById('countdownOverlay'),
       countdownNumber: document.getElementById('countdownNumber'),
       passOverlay: document.getElementById('passOverlay'),
+      passRevealedAnswer: document.getElementById('passRevealedAnswer'),
       passRecoveryDigits: document.getElementById('passRecoveryDigits'),
       passRecoveryBar: document.getElementById('passRecoveryBar'),
       victoryModal: document.getElementById('victoryModal'),
@@ -203,10 +206,13 @@
         return;
       }
 
-      // 3. Pass Recovery Ticks (Prompt removed for 3s)
+      // 3. Pass Recovery Ticks (Prompt removed, Answer displayed for 3s)
       if (d.eventType === 'pass_start' || d.eventType === 'pass_tick') {
         const rem = d.passRemaining !== undefined ? d.passRemaining : 3;
         el.passRecoveryDigits.textContent = `${rem}s`;
+        if (d.passedAnswer) {
+          el.passRevealedAnswer.textContent = d.passedAnswer.toUpperCase();
+        }
         const pct = (rem / 3) * 100;
         el.passRecoveryBar.style.width = `${pct}%`;
         el.passOverlay.style.display = 'flex';
