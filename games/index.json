@@ -1,5 +1,16 @@
 [
   {
+    "id": "dog-breeds",
+    "title": "Dog Breeds",
+    "description": "Identify the dog breed from household favorites to rare and distinctive working, herding, and sighthound breeds!",
+    "difficulty": "Progressive (Easy → Obscure)",
+    "category": "Animals & Nature",
+    "cluesCount": 45,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #2c1810 0%, #6f4e37 50%, #e6a15c 100%)",
+    "file": "dog-breeds.json"
+  },
+  {
     "id": "watch-brands",
     "title": "Watch Brands",
     "description": "Identify the watch brand from its iconic timepiece silhouette, dial layout, bezel, or signature design — with no brand names shown!",

@@ -1,0 +1,303 @@
+// Dog Breeds Game Pack - 45 Visual Trivia Prompts
+const GAME_DOG_BREEDS = {
+  id: "dog-breeds",
+  title: "Dog Breeds",
+  description: "Identify the dog breed from household favorites to rare and distinctive working, herding, and sighthound breeds!",
+  category: "Animals & Nature",
+  difficulty: "Progressive (Easy → Obscure)",
+  cluesCount: 45,
+  defaultTimer: 45,
+  bannerColor: "linear-gradient(135deg, #2c1810 0%, #6f4e37 50%, #e6a15c 100%)",
+  clues: [
+    // Tier 1: Easy / Household Staples (1-15)
+    {
+      id: "clue_dog_golden_retriever",
+      answer: "Golden Retriever",
+      image: "dog-breeds/Golden Retriever.jpg",
+      hint: "Friendly dog with dense golden water-repellent coat"
+    },
+    {
+      id: "clue_dog_german_shepherd",
+      answer: "German Shepherd",
+      image: "dog-breeds/German Shepherd.jpg",
+      hint: "Athletic working dog with black and tan saddle markings"
+    },
+    {
+      id: "clue_dog_french_bulldog",
+      answer: "French Bulldog",
+      image: "dog-breeds/French Bulldog.jpg",
+      hint: "Compact companion dog with bat ears and short flat snout"
+    },
+    {
+      id: "clue_dog_poodle",
+      answer: "Poodle",
+      image: "dog-breeds/Poodle.jpg",
+      hint: "Distinctive curly-coated dog with elegant grooming clip"
+    },
+    {
+      id: "clue_dog_labrador_retriever",
+      answer: "Labrador Retriever",
+      image: "dog-breeds/Labrador Retriever.jpg",
+      hint: "Stocky retriever with short water-resistant coat and otter tail"
+    },
+    {
+      id: "clue_dog_chihuahua",
+      answer: "Chihuahua",
+      image: "dog-breeds/Chihuahua.jpg",
+      hint: "Tiny dog with apple-domed skull and pointed ears"
+    },
+    {
+      id: "clue_dog_beagle",
+      answer: "Beagle",
+      image: "dog-breeds/Beagle.jpg",
+      hint: "Small hound with tricolor coat, floppy ears, and alert stance"
+    },
+    {
+      id: "clue_dog_english_bulldog",
+      answer: "English Bulldog",
+      aliases: ["Bulldog", "British Bulldog"],
+      image: "dog-breeds/English Bulldog.jpg",
+      hint: "Wrinkly, heavy-set dog with rolling gait, pushed-in nose, and rose ears"
+    },
+    {
+      id: "clue_dog_siberian_husky",
+      answer: "Siberian Husky",
+      image: "dog-breeds/Siberian Husky.jpg",
+      hint: "Arctic sled dog with piercing blue or multi-colored eyes"
+    },
+    {
+      id: "clue_dog_pug",
+      answer: "Pug",
+      image: "dog-breeds/Pug.jpg",
+      hint: "Compact toy dog with deeply wrinkled face and curled tail"
+    },
+    {
+      id: "clue_dog_dachshund",
+      answer: "Dachshund",
+      image: "dog-breeds/Dachshund.jpg",
+      hint: "Low-slung hound with long elongated body and short legs"
+    },
+    {
+      id: "clue_dog_boxer",
+      answer: "Boxer",
+      image: "dog-breeds/Boxer.jpg",
+      hint: "Muscular, square-headed athletic dog with blunt muzzle"
+    },
+    {
+      id: "clue_dog_great_dane",
+      answer: "Great Dane",
+      image: "dog-breeds/Great Dane.jpg",
+      hint: "Giant, imposing yet gentle dog with long legs and deep chest"
+    },
+    {
+      id: "clue_dog_dalmatian",
+      answer: "Dalmatian",
+      image: "dog-breeds/Dalmatian.jpg",
+      hint: "Distinctive white dog patterned with crisp black spots"
+    },
+    {
+      id: "clue_dog_border_collie",
+      answer: "Border Collie",
+      image: "dog-breeds/Border Collie.jpg",
+      hint: "High-drive herding dog with black-and-white coat and intense gaze"
+    },
+
+    // Tier 2: Medium / Popular & Distinctive (16-30)
+    {
+      id: "clue_dog_pembroke_welsh_corgi",
+      answer: "Pembroke Welsh Corgi",
+      aliases: ["Corgi", "Welsh Corgi"],
+      image: "dog-breeds/Pembroke Welsh Corgi.jpg",
+      hint: "Short-legged herding dog with foxy face and tailless rear"
+    },
+    {
+      id: "clue_dog_doberman_pinscher",
+      answer: "Doberman Pinscher",
+      aliases: ["Doberman", "Dobermann"],
+      image: "dog-breeds/Doberman Pinscher.jpg",
+      hint: "Sleek, muscular guardian dog with cropped/pointed ears and black & rust coat"
+    },
+    {
+      id: "clue_dog_shih_tzu",
+      answer: "Shih Tzu",
+      image: "dog-breeds/Shih Tzu.jpg",
+      hint: "Small companion dog with flowing floor-length silk coat and topknot"
+    },
+    {
+      id: "clue_dog_yorkshire_terrier",
+      answer: "Yorkshire Terrier",
+      aliases: ["Yorkie"],
+      image: "dog-breeds/Yorkshire Terrier.jpg",
+      hint: "Tiny terrier with fine blue-and-tan silken coat"
+    },
+    {
+      id: "clue_dog_rottweiler",
+      answer: "Rottweiler",
+      image: "dog-breeds/Rottweiler.jpg",
+      hint: "Powerful, heavy-set mastiff-type guard dog with rich rust points"
+    },
+    {
+      id: "clue_dog_australian_shepherd",
+      answer: "Australian Shepherd",
+      aliases: ["Aussie"],
+      image: "dog-breeds/Australian Shepherd.jpg",
+      hint: "Agile herding dog with mottled blue merle coat and bright eyes"
+    },
+    {
+      id: "clue_dog_boston_terrier",
+      answer: "Boston Terrier",
+      image: "dog-breeds/Boston Terrier.jpg",
+      hint: "Compact tuxedo-marked companion dog with erect ears and short tail"
+    },
+    {
+      id: "clue_dog_pomeranian",
+      answer: "Pomeranian",
+      image: "dog-breeds/Pomeranian.jpg",
+      hint: "Small fluffy spitz toy dog with fox-like expression and puff-ball tail"
+    },
+    {
+      id: "clue_dog_bernese_mountain_dog",
+      answer: "Bernese Mountain Dog",
+      image: "dog-breeds/Bernese Mountain Dog.jpg",
+      hint: "Large alpine working dog with tricolor markings and thick coat"
+    },
+    {
+      id: "clue_dog_basset_hound",
+      answer: "Basset Hound",
+      image: "dog-breeds/Basset Hound.jpg",
+      hint: "Low-set hound with extremely long drooping ears and sad-eyed expression"
+    },
+    {
+      id: "clue_dog_cocker_spaniel",
+      answer: "Cocker Spaniel",
+      image: "dog-breeds/Cocker Spaniel.jpg",
+      hint: "Small sporting spaniel with long, lush feathered ears"
+    },
+    {
+      id: "clue_dog_shiba_inu",
+      answer: "Shiba Inu",
+      image: "dog-breeds/Shiba Inu.jpg",
+      hint: "Compact Japanese spitz dog with curled tail and fox-like red coat"
+    },
+    {
+      id: "clue_dog_saint_bernard",
+      answer: "Saint Bernard",
+      aliases: ["St. Bernard"],
+      image: "dog-breeds/Saint Bernard.jpg",
+      hint: "Giant alpine rescue dog with massive head and mahogany/white coat"
+    },
+    {
+      id: "clue_dog_samoyed",
+      answer: "Samoyed",
+      image: "dog-breeds/Samoyed.jpg",
+      hint: "Arctic dog with smiling black-lipped mouth and pure white double coat"
+    },
+    {
+      id: "clue_dog_chow_chow",
+      answer: "Chow Chow",
+      image: "dog-breeds/Chow Chow.jpg",
+      hint: "Ancient lion-like dog with abundant ruff and blue-black tongue"
+    },
+
+    // Tier 3: Hard / Specialized & Less Common (31-40)
+    {
+      id: "clue_dog_akita",
+      answer: "Akita",
+      image: "dog-breeds/Akita.jpg",
+      hint: "Large, powerful Japanese bear-hunting dog with plush curled tail"
+    },
+    {
+      id: "clue_dog_weimaraner",
+      answer: "Weimaraner",
+      image: "dog-breeds/Weimaraner.jpg",
+      hint: "Sleek sporting dog with distinct silvery-gray coat and amber eyes"
+    },
+    {
+      id: "clue_dog_rhodesian_ridgeback",
+      answer: "Rhodesian Ridgeback",
+      image: "dog-breeds/Rhodesian Ridgeback.jpg",
+      hint: "Athletic African hound with distinctive hair ridge running down its spine"
+    },
+    {
+      id: "clue_dog_vizsla",
+      answer: "Vizsla",
+      image: "dog-breeds/Vizsla.jpg",
+      hint: "Sleek golden-rust pointer with lean, muscular hunting build"
+    },
+    {
+      id: "clue_dog_bloodhound",
+      answer: "Bloodhound",
+      image: "dog-breeds/Bloodhound.jpg",
+      hint: "Large tracking hound with loose folds of facial skin and long ears"
+    },
+    {
+      id: "clue_dog_bichon_frise",
+      answer: "Bichon Frise",
+      image: "dog-breeds/Bichon Frise.jpg",
+      hint: "Small white powdered-puff companion dog with plumed tail"
+    },
+    {
+      id: "clue_dog_whippet",
+      answer: "Whippet",
+      image: "dog-breeds/Whippet.jpg",
+      hint: "Slender, aerodynamic medium sighthound with deep chest"
+    },
+    {
+      id: "clue_dog_bull_terrier",
+      answer: "Bull Terrier",
+      image: "dog-breeds/Bull Terrier.jpg",
+      hint: "Robust terrier with unique egg-shaped head and triangular eyes"
+    },
+    {
+      id: "clue_dog_afghan_hound",
+      answer: "Afghan Hound",
+      image: "dog-breeds/Afghan Hound.jpg",
+      hint: "Elegant aristocratic hound with long silky coat and ringed tail"
+    },
+    {
+      id: "clue_dog_shar_pei",
+      answer: "Shar Pei",
+      aliases: ["Shar-Pei", "Chinese Shar-Pei"],
+      image: "dog-breeds/Shar Pei.jpg",
+      hint: "Compact dog covered in loose wrinkles, tiny ears, and hippopotamus muzzle"
+    },
+
+    // Tier 4: Obscure / Rare Breeds (41-45)
+    {
+      id: "clue_dog_komondor",
+      answer: "Komondor",
+      image: "dog-breeds/Komondor.jpg",
+      hint: "Large flock guardian covered in dense, corded mop-like dreadlocks"
+    },
+    {
+      id: "clue_dog_borzoi",
+      answer: "Borzoi",
+      aliases: ["Russian Wolfhound"],
+      image: "dog-breeds/Borzoi.jpg",
+      hint: "Tall, aristocratic Russian sighthound with wavy silken coat"
+    },
+    {
+      id: "clue_dog_saluki",
+      answer: "Saluki",
+      image: "dog-breeds/Saluki.jpg",
+      hint: "Ancient desert sighthound with drop ears feathered in long silky hair"
+    },
+    {
+      id: "clue_dog_basenji",
+      answer: "Basenji",
+      image: "dog-breeds/Basenji.jpg",
+      hint: "African barkless hunting hound with tightly curled tail and wrinkled forehead"
+    },
+    {
+      id: "clue_dog_xoloitzcuintli",
+      answer: "Xoloitzcuintli",
+      aliases: ["Xolo", "Mexican Hairless Dog"],
+      image: "dog-breeds/Xoloitzcuintli.jpg",
+      hint: "Ancient Mexican hairless dog with smooth dark skin and alert bat ears"
+    }
+  ]
+};
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = GAME_DOG_BREEDS;
+}

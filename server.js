@@ -15,6 +15,7 @@ let iceCreamGame = null;
 let countriesGame = null;
 let hairstylesGame = null;
 let watchBrandsGame = null;
+let dogBreedsGame = null;
 
 try {
   sampleLandmarks = require('./sample-data.js');
@@ -44,6 +45,12 @@ try {
   watchBrandsGame = require('./games/watch-brands.js');
 } catch (e) {
   console.warn('Could not load watch-brands.js', e.message);
+}
+
+try {
+  dogBreedsGame = require('./games/dog-breeds.js');
+} catch (e) {
+  console.warn('Could not load dog-breeds.js', e.message);
 }
 
 // Authoritative Server Game State
@@ -544,7 +551,11 @@ function handleHostCommand(cmd, payload = {}) {
     state.correctAnswer = '';
     state.lastCorrectAnswer = '';
     const gameId = payload.gameId;
-    if (gameId === 'watch-brands' && watchBrandsGame) {
+    if (gameId === 'dog-breeds' && dogBreedsGame) {
+      state.title = dogBreedsGame.title;
+      state.gameId = dogBreedsGame.id;
+      state.clues = [...dogBreedsGame.clues];
+    } else if (gameId === 'watch-brands' && watchBrandsGame) {
       state.title = watchBrandsGame.title;
       state.gameId = watchBrandsGame.id;
       state.clues = [...watchBrandsGame.clues];
@@ -797,7 +808,11 @@ function handleHostCommand(cmd, payload = {}) {
     }
     if (payload.gameId && payload.gameId !== state.gameId) {
       const gId = payload.gameId;
-      if (gId === 'watch-brands' && watchBrandsGame) {
+      if (gId === 'dog-breeds' && dogBreedsGame) {
+        state.title = dogBreedsGame.title;
+        state.gameId = dogBreedsGame.id;
+        state.clues = [...dogBreedsGame.clues];
+      } else if (gId === 'watch-brands' && watchBrandsGame) {
         state.title = watchBrandsGame.title;
         state.gameId = watchBrandsGame.id;
         state.clues = [...watchBrandsGame.clues];
