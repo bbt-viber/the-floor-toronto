@@ -1,5 +1,27 @@
 [
   {
+    "id": "marvel-characters",
+    "title": "Marvel Characters",
+    "description": "Identify the iconic Marvel character from their blockbuster movie costume, armor, and distinctive look!",
+    "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
+    "category": "Movies & Comics",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #e23636 0%, #b31217 50%, #580000 100%)",
+    "file": "marvel-characters.json"
+  },
+  {
+    "id": "tennis",
+    "title": "Tennis",
+    "description": "Identify the tennis concept, equipment, court feature, official, or match element from the visual clue!",
+    "difficulty": "Progressive (Easy → Obscure)",
+    "category": "Sports & Athletics",
+    "cluesCount": 45,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #134e5e 0%, #2e8b57 50%, #c6ff00 100%)",
+    "file": "tennis.json"
+  },
+  {
     "id": "dog-breeds",
     "title": "Dog Breeds",
     "description": "Identify the dog breed from household favorites to rare and distinctive working, herding, and sighthound breeds!",

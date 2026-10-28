@@ -1,0 +1,418 @@
+{
+  "id": "marvel-characters",
+  "title": "Marvel Characters",
+  "description": "Identify the iconic Marvel character from their blockbuster movie costume, armor, and distinctive look!",
+  "category": "Movies & Comics",
+  "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
+  "cluesCount": 40,
+  "defaultTimer": 45,
+  "bannerColor": "linear-gradient(135deg, #e23636 0%, #b31217 50%, #580000 100%)",
+  "clues": [
+    {
+      "id": "clue_marvel_iron_man",
+      "answer": "Iron Man",
+      "aliases": [
+        "Tony Stark"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Iron Man.jpg",
+      "hint": "Billionaire industrialist in red and gold high-tech powered armor with glowing chest arc reactor"
+    },
+    {
+      "id": "clue_marvel_captain_america",
+      "answer": "Captain America",
+      "aliases": [
+        "Steve Rogers",
+        "Cap"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Captain America.jpg",
+      "hint": "Super-soldier in star-spangled uniform with circular vibranium star shield"
+    },
+    {
+      "id": "clue_marvel_thor",
+      "answer": "Thor",
+      "aliases": [
+        "God of Thunder"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Thor.jpg",
+      "hint": "Asgardian God of Thunder in armor and crimson cape, wielding the hammer Mjolnir"
+    },
+    {
+      "id": "clue_marvel_hulk",
+      "answer": "Hulk",
+      "aliases": [
+        "Bruce Banner",
+        "Incredible Hulk"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Hulk.jpg",
+      "hint": "Colossal green rage monster with superhuman strength and torn pants"
+    },
+    {
+      "id": "clue_marvel_spider_man",
+      "answer": "Spider-Man",
+      "aliases": [
+        "Peter Parker",
+        "Spiderman"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Spider-Man.jpg",
+      "hint": "Web-slinging hero in red and blue suit with web patterns and spider crest"
+    },
+    {
+      "id": "clue_marvel_black_widow",
+      "answer": "Black Widow",
+      "aliases": [
+        "Natasha Romanoff",
+        "Natasha"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Black Widow.jpg",
+      "hint": "Master spy and assassin in black tactical catsuit with red hourglass belt buckle"
+    },
+    {
+      "id": "clue_marvel_loki",
+      "answer": "Loki",
+      "aliases": [
+        "God of Mischief"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Loki.jpg",
+      "hint": "Asgardian God of Mischief in green and gold tunic and curved horned helmet"
+    },
+    {
+      "id": "clue_marvel_thanos",
+      "answer": "Thanos",
+      "aliases": [
+        "Mad Titan"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Thanos.jpg",
+      "hint": "Mad Titan with purple ridged chin and golden armor wielding the Infinity Gauntlet"
+    },
+    {
+      "id": "clue_marvel_black_panther",
+      "answer": "Black Panther",
+      "aliases": [
+        "T'Challa",
+        "TChalla"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Black Panther.jpg",
+      "hint": "Wakandan king and protector in black vibranium habit with silver claw necklace"
+    },
+    {
+      "id": "clue_marvel_deadpool",
+      "answer": "Deadpool",
+      "aliases": [
+        "Wade Wilson"
+      ],
+      "difficulty": "Easy",
+      "image": "marvel-characters/Deadpool.jpg",
+      "hint": "Merc with a Mouth in red and black suit with twin katanas on his back"
+    },
+    {
+      "id": "clue_marvel_doctor_strange",
+      "answer": "Doctor Strange",
+      "aliases": [
+        "Stephen Strange",
+        "Dr Strange",
+        "Dr. Strange"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Doctor Strange.jpg",
+      "hint": "Master of the Mystic Arts in blue robes, high-collared red Cloak of Levitation, and Eye of Agamotto"
+    },
+    {
+      "id": "clue_marvel_wolverine",
+      "answer": "Wolverine",
+      "aliases": [
+        "Logan",
+        "James Howlett"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Wolverine.jpg",
+      "hint": "Fierce mutant with retractable adamantium claws in yellow-and-blue battle suit"
+    },
+    {
+      "id": "clue_marvel_hawkeye",
+      "answer": "Hawkeye",
+      "aliases": [
+        "Clint Barton"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Hawkeye.jpg",
+      "hint": "Master archer in tactical vest with quiver, aiming composite recurve bow"
+    },
+    {
+      "id": "clue_marvel_scarlet_witch",
+      "answer": "Scarlet Witch",
+      "aliases": [
+        "Wanda Maximoff",
+        "Wanda"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Scarlet Witch.jpg",
+      "hint": "Avenger in scarlet corset and crimson horned tiara manipulating psionic chaos magic"
+    },
+    {
+      "id": "clue_marvel_star_lord",
+      "answer": "Star-Lord",
+      "aliases": [
+        "Peter Quill",
+        "Star Lord",
+        "Starlord"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Star-Lord.jpg",
+      "hint": "Leader of the Guardians in red ravager leather duster wielding dual quad-blasters"
+    },
+    {
+      "id": "clue_marvel_groot",
+      "answer": "Groot",
+      "aliases": [
+        "I Am Groot"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Groot.jpg",
+      "hint": "Sentient tree-like alien with rough bark skin and gentle expressive wooden face"
+    },
+    {
+      "id": "clue_marvel_rocket",
+      "answer": "Rocket",
+      "aliases": [
+        "Rocket Raccoon"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Rocket.jpg",
+      "hint": "Genetically enhanced, trigger-happy raccoon in flight suit with heavy plasma rifle"
+    },
+    {
+      "id": "clue_marvel_gamora",
+      "answer": "Gamora",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Gamora.jpg",
+      "hint": "Deadliest woman in the galaxy with green skin, magenta hair tips, and Godslayer blade"
+    },
+    {
+      "id": "clue_marvel_nebula",
+      "answer": "Nebula",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Nebula.jpg",
+      "hint": "Cybernetically enhanced assassin with blue skin, metallic skull plate, and shaved head"
+    },
+    {
+      "id": "clue_marvel_ant_man",
+      "answer": "Ant-Man",
+      "aliases": [
+        "Scott Lang",
+        "Ant Man",
+        "Antman"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Ant-Man.jpg",
+      "hint": "Size-shifting hero in red, silver, and black pressurized suit with regulatory dial"
+    },
+    {
+      "id": "clue_marvel_winter_soldier",
+      "answer": "Winter Soldier",
+      "aliases": [
+        "Bucky Barnes",
+        "Bucky"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Winter Soldier.jpg",
+      "hint": "Super-soldier with dark hair, black tactical gear, and cybernetic silver arm with red star"
+    },
+    {
+      "id": "clue_marvel_captain_marvel",
+      "answer": "Captain Marvel",
+      "aliases": [
+        "Carol Danvers"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Captain Marvel.jpg",
+      "hint": "Cosmic hero in blue, red, and gold Starforce uniform radiating photon energy"
+    },
+    {
+      "id": "clue_marvel_war_machine",
+      "answer": "War Machine",
+      "aliases": [
+        "James Rhodes",
+        "Rhodey"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/War Machine.jpg",
+      "hint": "Heavy artillery armored exoskeleton in gunmetal silver with shoulder-mounted minigun"
+    },
+    {
+      "id": "clue_marvel_falcon",
+      "answer": "Falcon",
+      "aliases": [
+        "Sam Wilson"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Falcon.jpg",
+      "hint": "Tactical aerial combatant with deployable mechanical flight wings and goggles"
+    },
+    {
+      "id": "clue_marvel_nick_fury",
+      "answer": "Nick Fury",
+      "aliases": [
+        "Fury"
+      ],
+      "difficulty": "Medium",
+      "image": "marvel-characters/Nick Fury.jpg",
+      "hint": "Director of S.H.I.E.L.D. in long black leather trench coat and signature black eye patch"
+    },
+    {
+      "id": "clue_marvel_vision",
+      "answer": "Vision",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Vision.jpg",
+      "hint": "Synthetic vibranium android with maroon skin, yellow forehead Mind Stone, and green cape"
+    },
+    {
+      "id": "clue_marvel_drax",
+      "answer": "Drax",
+      "aliases": [
+        "Drax the Destroyer"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Drax.jpg",
+      "hint": "Destroyer with grey-green muscular physique covered in crimson scarification tattoos"
+    },
+    {
+      "id": "clue_marvel_mantis",
+      "answer": "Mantis",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Mantis.jpg",
+      "hint": "Alien empath with two prominent antennae on her forehead, large dark pupils, and green tunic"
+    },
+    {
+      "id": "clue_marvel_valkyrie",
+      "answer": "Valkyrie",
+      "aliases": [
+        "Brunnhilde"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Valkyrie.jpg",
+      "hint": "Asgardian warrior in white and silver armor with azure cape, wielding Dragonfang sword"
+    },
+    {
+      "id": "clue_marvel_hela",
+      "answer": "Hela",
+      "aliases": [
+        "Goddess of Death"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Hela.jpg",
+      "hint": "Goddess of Death in green and black armor, wearing multi-spiked antler headdress"
+    },
+    {
+      "id": "clue_marvel_killmonger",
+      "answer": "Killmonger",
+      "aliases": [
+        "Erik Killmonger",
+        "Erik Stevens",
+        "N'Jadaka"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Killmonger.jpg",
+      "hint": "Challenger to Wakanda's throne in blue tactical combat vest, cargo pants, and dreadlocks"
+    },
+    {
+      "id": "clue_marvel_shang_chi",
+      "answer": "Shang-Chi",
+      "aliases": [
+        "Shang Chi",
+        "Shaun"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Shang-Chi.jpg",
+      "hint": "Master of Kung Fu in red and black dragon-scale armor wielding the glowing Ten Rings"
+    },
+    {
+      "id": "clue_marvel_wasp",
+      "answer": "Wasp",
+      "aliases": [
+        "Hope van Dyne",
+        "Hope Van Dyne"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Wasp.jpg",
+      "hint": "Heroine in sleek yellow and navy sting suit with translucent insectoid wings and blasters"
+    },
+    {
+      "id": "clue_marvel_moon_knight",
+      "answer": "Moon Knight",
+      "aliases": [
+        "Marc Spector",
+        "Steven Grant"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Moon Knight.jpg",
+      "hint": "Fierce combatant in ancient Egyptian white mummy wrap armor and hooded cowl"
+    },
+    {
+      "id": "clue_marvel_ultron",
+      "answer": "Ultron",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Ultron.jpg",
+      "hint": "Rogue artificial intelligence in metallic robotic body with jagged jaws and red glowing mouth"
+    },
+    {
+      "id": "clue_marvel_mysterio",
+      "answer": "Mysterio",
+      "aliases": [
+        "Quentin Beck"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Mysterio.jpg",
+      "hint": "Master of illusions in green scale mail armor, red cape, and opaque fishbowl helmet"
+    },
+    {
+      "id": "clue_marvel_red_skull",
+      "answer": "Red Skull",
+      "aliases": [
+        "Johann Schmidt"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Red Skull.jpg",
+      "hint": "Hydra commander with crimson skinless skeletal visage in high-collar black uniform"
+    },
+    {
+      "id": "clue_marvel_yondu",
+      "answer": "Yondu",
+      "aliases": [
+        "Yondu Udonta"
+      ],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Yondu.jpg",
+      "hint": "Blue-skinned Ravager leader with metallic red fin crest on his head, whistling his arrow"
+    },
+    {
+      "id": "clue_marvel_korg",
+      "answer": "Korg",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Korg.jpg",
+      "hint": "Kronan warrior made entirely of rough rock slabs, wearing gladiator chest harness"
+    },
+    {
+      "id": "clue_marvel_ebony_maw",
+      "answer": "Ebony Maw",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "marvel-characters/Ebony Maw.jpg",
+      "hint": "Pale, noseless Black Order alien sorcerer in high-collared dark alien robes"
+    }
+  ]
+}

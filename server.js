@@ -17,11 +17,18 @@ let hairstylesGame = null;
 let watchBrandsGame = null;
 let dogBreedsGame = null;
 let tennisGame = null;
+let marvelGame = null;
 
 try {
   sampleLandmarks = require('./sample-data.js');
 } catch (e) {
   console.warn('Could not load sample-data.js', e.message);
+}
+
+try {
+  marvelGame = require('./games/marvel-characters.js');
+} catch (e) {
+  console.warn('Could not load marvel-characters.js', e.message);
 }
 
 try {
@@ -422,7 +429,12 @@ function loadCategoryIntoState(gameId) {
   if (!gameId) return false;
   const id = String(gameId).toLowerCase().trim();
 
-  if (id === 'tennis' && tennisGame) {
+  if (id === 'marvel-characters' && marvelGame) {
+    state.title = marvelGame.title;
+    state.gameId = marvelGame.id;
+    state.clues = [...marvelGame.clues];
+    state.roundTime = marvelGame.defaultTimer || 45;
+  } else if (id === 'tennis' && tennisGame) {
     state.title = tennisGame.title;
     state.gameId = tennisGame.id;
     state.clues = [...tennisGame.clues];
@@ -926,7 +938,11 @@ function handleHostCommand(cmd, payload = {}) {
     }
     if (payload.gameId && payload.gameId !== state.gameId) {
       const gId = payload.gameId;
-      if (gId === 'tennis' && tennisGame) {
+      if (gId === 'marvel-characters' && marvelGame) {
+        state.title = marvelGame.title;
+        state.gameId = marvelGame.id;
+        state.clues = [...marvelGame.clues];
+      } else if (gId === 'tennis' && tennisGame) {
         state.title = tennisGame.title;
         state.gameId = tennisGame.id;
         state.clues = [...tennisGame.clues];
