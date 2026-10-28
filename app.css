@@ -1498,225 +1498,208 @@ body {
 
 .territory-grid-stage {
   display: grid;
-  gap: 12px;
+  gap: 0;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
+  position: relative;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.08);
+  background: #080c18;
 }
 
 /* Individual Territory Floor Square Tile */
 .territory-tile {
   aspect-ratio: 1 / 1;
-  min-height: 90px;
-  border-radius: 12px;
-  border: 2px solid var(--tile-color, #00f0ff);
-  background: linear-gradient(145deg, rgba(20, 27, 45, 0.92) 0%, rgba(6, 9, 17, 0.98) 100%);
+  min-height: 70px;
+  box-sizing: border-box;
+  background-color: rgba(14, 20, 36, 0.95);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 8px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 6px;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.03);
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
   user-select: none;
+  box-shadow: none;
+  transition: filter 0.2s ease, background-color 0.2s ease;
 }
 
 .territory-tile:hover {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 8px 30px var(--tile-glow, rgba(0, 240, 255, 0.5)), inset 0 0 25px rgba(255, 255, 255, 0.1);
-  z-index: 10;
+  filter: brightness(1.2);
+  z-index: 5;
 }
 
 .territory-tile-num {
-  align-self: flex-start;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  opacity: 0.6;
-  color: #ffffff;
-  letter-spacing: 1px;
-}
-
-.territory-player-label {
-  font-size: clamp(0.82rem, 1.6vw, 1.3rem);
-  font-weight: 900;
-  text-align: center;
+  opacity: 0.18;
   color: #ffffff;
   letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+/* ==================== CENTRAL TERRITORY BADGE SYSTEM ==================== */
+/* Displays player name, category, and territories owned at the exact geometric centroid */
+.territory-central-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 90%;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease;
+}
+
+.central-badge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(8, 12, 22, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid var(--badge-color, #00f0ff);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.85), 0 0 16px var(--badge-glow, rgba(0, 240, 255, 0.4));
+  text-align: center;
+  min-width: 100px;
+  max-width: min(90vw, 360px);
+}
+
+.central-badge-card.is-multi-territory {
+  padding: 12px 20px;
+  border-radius: 14px;
+  border-width: 2px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9), 0 0 24px var(--badge-glow, rgba(0, 240, 255, 0.6));
+  max-width: min(90vw, 480px);
+}
+
+.central-player-name {
+  font-size: clamp(0.95rem, 1.6vw, 1.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   word-break: break-word;
   line-height: 1.15;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 0 15px var(--tile-color, #fff);
-  margin-top: auto;
-  margin-bottom: 2px;
-  padding: 0 4px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 0 12px var(--badge-color, #fff);
 }
 
-.territory-player-category {
-  font-size: clamp(0.65rem, 1.1vw, 0.88rem);
+.central-badge-card.is-multi-territory .central-player-name {
+  font-size: clamp(1.15rem, 2.2vw, 1.9rem);
+  letter-spacing: 1.2px;
+}
+
+.central-player-category {
+  font-size: clamp(0.68rem, 1.1vw, 0.92rem);
   font-weight: 800;
-  color: var(--gold);
+  color: var(--gold, #ffd369);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 211, 105, 0.35);
-  max-width: 95%;
+  border: 1px solid rgba(255, 211, 105, 0.4);
   white-space: nowrap;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  margin-top: 2px;
-  margin-bottom: auto;
-  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  margin: 2px 0;
 }
 
-.territory-tile-footer {
-  align-self: center;
-  font-size: 0.68rem;
+.central-badge-card.is-multi-territory .central-player-category {
+  font-size: clamp(0.78rem, 1.35vw, 1.05rem);
+  padding: 4px 14px;
+  border-width: 1.5px;
+  box-shadow: 0 0 14px rgba(255, 211, 105, 0.4);
+}
+
+.central-player-count {
+  font-size: clamp(0.68rem, 1.05vw, 0.82rem);
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--tile-color, #00f0ff);
-  opacity: 0.85;
+  color: var(--badge-color, #00f0ff);
+  opacity: 0.9;
 }
 
-/* ==================== MERGED TERRITORY SYSTEM ==================== */
-.territory-tile.is-merged-territory {
-  transition: all 0.2s ease;
-}
-
-/* Seamlessly remove internal adjoining borders and flatten radiuses */
-.territory-tile.merge-top {
-  border-top-color: transparent !important;
-  border-top-left-radius: 0 !important;
-  border-top-right-radius: 0 !important;
-}
-
-.territory-tile.merge-bottom {
-  border-bottom-color: transparent !important;
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-.territory-tile.merge-left {
-  border-left-color: transparent !important;
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-.territory-tile.merge-right {
-  border-right-color: transparent !important;
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-/* Bridges across grid gaps so contiguous squares fuse into one territory */
-.territory-tile.merge-right::after {
-  content: '';
-  position: absolute;
-  right: -9px;
-  top: 0;
-  bottom: 0;
-  width: 11px;
-  background: linear-gradient(145deg, rgba(20, 27, 45, 0.95), rgba(6, 9, 17, 0.98));
-  border-top: 2px solid var(--tile-color, #00f0ff);
-  border-bottom: 2px solid var(--tile-color, #00f0ff);
-  z-index: 2;
-  pointer-events: none;
-}
-.territory-tile.merge-right.merge-top::after {
-  border-top-color: transparent !important;
-}
-.territory-tile.merge-right.merge-bottom::after {
-  border-bottom-color: transparent !important;
-}
-
-.territory-tile.merge-bottom::before {
-  content: '';
-  position: absolute;
-  bottom: -9px;
-  left: 0;
-  right: 0;
-  height: 11px;
-  background: linear-gradient(145deg, rgba(20, 27, 45, 0.95), rgba(6, 9, 17, 0.98));
-  border-left: 2px solid var(--tile-color, #00f0ff);
-  border-right: 2px solid var(--tile-color, #00f0ff);
-  z-index: 2;
-  pointer-events: none;
-}
-.territory-tile.merge-bottom.merge-left::before {
-  border-left-color: transparent !important;
-}
-.territory-tile.merge-bottom.merge-right::before {
-  border-right-color: transparent !important;
-}
-
-/* Interior 4-way intersection corner bridge */
-.tile-corner-bridge {
-  position: absolute;
-  right: -9px;
-  bottom: -9px;
-  width: 11px;
-  height: 11px;
-  background: linear-gradient(145deg, rgba(20, 27, 45, 0.95), rgba(6, 9, 17, 0.98));
-  z-index: 3;
-  pointer-events: none;
-}
-
-/* Merged Extension Square: Hide duplicate name, category, and count */
-.territory-tile.is-merged-extension {
-  background: linear-gradient(145deg, rgba(16, 22, 38, 0.88), rgba(4, 7, 14, 0.95));
-}
-
-.territory-tile.is-merged-extension .territory-player-label,
-.territory-tile.is-merged-extension .territory-player-category,
-.territory-tile.is-merged-extension .territory-tile-footer {
-  display: none !important;
-}
-
-.territory-tile.is-merged-extension .territory-tile-num {
-  opacity: 0.15;
-}
-
-/* Merged Primary (Centroid) Square: Prominent display holding the info only once */
-.territory-tile.is-merged-primary {
-  z-index: 4;
-}
-
-.territory-tile.is-merged-primary .territory-player-label {
-  font-size: clamp(0.95rem, 1.9vw, 1.55rem);
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  text-shadow: 0 0 20px var(--tile-color, #00f0ff), 0 2px 10px rgba(0, 0, 0, 0.9);
-}
-
-.territory-tile.is-merged-primary .territory-player-category {
-  font-size: clamp(0.72rem, 1.25vw, 0.98rem);
-  padding: 3px 12px;
-  border-width: 1.5px;
-  box-shadow: 0 0 15px rgba(255, 211, 105, 0.4);
-}
-
-.territory-tile.is-merged-primary .territory-tile-footer {
-  font-size: clamp(0.72rem, 1.1vw, 0.85rem);
+.central-badge-card.is-multi-territory .central-player-count {
+  font-size: clamp(0.75rem, 1.2vw, 0.92rem);
   color: #ffffff;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
   padding: 2px 10px;
   border-radius: 999px;
-  border: 1px solid var(--tile-color, #00f0ff);
-  letter-spacing: 0.6px;
+  border: 1px solid var(--badge-color, #00f0ff);
   opacity: 1;
 }
 
-/* Synchronized Hover Across All Tiles of the Merged Territory */
+/* Challenger / Target tags attached to central badge */
+.central-badge-tag {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.central-badge-tag.is-challenger-tag {
+  background: #00f0ff;
+  color: #0b0e17;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.9);
+}
+
+.central-badge-tag.is-target-tag {
+  background: linear-gradient(135deg, #ff9f1c, #ff2e63);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 46, 99, 0.9);
+  animation: tagGlow 1s infinite alternate;
+}
+
+/* Synchronized Hover across badge and all squares of merged territory */
 .territory-tile.is-hovered-territory {
-  box-shadow: 0 0 25px var(--tile-glow, rgba(0, 240, 255, 0.7)), inset 0 0 30px rgba(255, 255, 255, 0.08) !important;
-  filter: brightness(1.18);
+  filter: brightness(1.28);
   z-index: 6;
+}
+
+.territory-central-badge.is-hovered-badge {
+  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 25;
+}
+.territory-central-badge.is-hovered-badge .central-badge-card {
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 28px var(--badge-glow, rgba(0, 240, 255, 0.85));
+}
+
+.territory-central-badge.is-challenger-badge .central-badge-card {
+  border-color: #00f0ff;
+  box-shadow: 0 0 35px rgba(0, 240, 255, 0.85), 0 6px 20px rgba(0, 0, 0, 0.8);
+  animation: badgePulse 1.6s infinite alternate;
+}
+
+@keyframes badgePulse {
+  0% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 240, 255, 0.6); }
+  100% { transform: scale(1.03); box-shadow: 0 0 40px rgba(0, 240, 255, 1); }
+}
+
+.territory-central-badge.is-target-badge .central-badge-card {
+  border-color: #ff9f1c;
+  box-shadow: 0 0 25px rgba(255, 159, 28, 0.7);
+}
+
+.territory-central-badge.is-dimmed-badge {
+  opacity: 0.35;
+  filter: grayscale(60%) brightness(0.65);
 }
 
 /* ==================== GRAND CHAMPION CELEBRATION MODAL & ANIMATIONS ==================== */
@@ -1946,81 +1929,38 @@ body {
 }
 
 /* ==================== TERRITORY TILE INTERACTIVE STATES ==================== */
-/* Challenger Active Tile */
+/* Challenger Active Territory */
 .territory-tile.is-challenger {
   border-color: #00f0ff !important;
-  box-shadow: 0 0 35px rgba(0, 240, 255, 0.85), inset 0 0 25px rgba(0, 240, 255, 0.3) !important;
-  transform: scale(1.05);
-  z-index: 12;
+  background-color: rgba(0, 240, 255, 0.25) !important;
+  z-index: 8;
   animation: challengerPulse 1.6s infinite alternate;
 }
 
 @keyframes challengerPulse {
-  from { box-shadow: 0 0 20px rgba(0, 240, 255, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.2); }
-  to { box-shadow: 0 0 45px rgba(0, 240, 255, 1), inset 0 0 35px rgba(0, 240, 255, 0.45); }
+  from { filter: brightness(1.1); }
+  to { filter: brightness(1.35); }
 }
 
-.territory-tile-challenger-tag {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: #00f0ff;
-  color: #0b0e17;
-  font-size: 0.62rem;
-  font-weight: 900;
-  padding: 3px 7px;
-  border-radius: 4px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.9);
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  z-index: 5;
-}
-
-/* Target Adjacent Competitor Tile */
+/* Target Adjacent Competitor Territory */
 .territory-tile.is-adjacent-target {
   border-color: #ff9f1c !important;
-  box-shadow: 0 0 25px rgba(255, 159, 28, 0.6), inset 0 0 20px rgba(255, 159, 28, 0.2) !important;
+  background-color: rgba(255, 159, 28, 0.2) !important;
   animation: targetPulse 1.4s infinite alternate;
   cursor: pointer;
-  z-index: 8;
+  z-index: 7;
 }
 
 @keyframes targetPulse {
-  0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 159, 28, 0.5); }
-  100% { transform: scale(1.03); box-shadow: 0 0 32px rgba(255, 46, 99, 0.8), inset 0 0 25px rgba(255, 159, 28, 0.35); }
+  0% { filter: brightness(1); }
+  100% { filter: brightness(1.25); }
 }
 
 .territory-tile.is-adjacent-target:hover {
   border-color: #ff2e63 !important;
-  box-shadow: 0 0 40px rgba(255, 46, 99, 1), inset 0 0 30px rgba(255, 46, 99, 0.45) !important;
-  transform: scale(1.07);
-  z-index: 15;
-}
-
-.territory-tile-target-tag {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: linear-gradient(135deg, #ff9f1c, #ff2e63);
-  color: #ffffff;
-  font-size: 0.62rem;
-  font-weight: 900;
-  padding: 3px 7px;
-  border-radius: 4px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 0 10px rgba(255, 46, 99, 0.9);
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  z-index: 5;
-  animation: tagGlow 1s infinite alternate;
-}
-
-@keyframes tagGlow {
-  from { opacity: 0.85; }
-  to { opacity: 1; }
+  background-color: rgba(255, 46, 99, 0.3) !important;
+  filter: brightness(1.38);
+  z-index: 12;
 }
 
 /* Dimmed Non-Adjacent Tile */
@@ -2028,17 +1968,15 @@ body {
   opacity: 0.32;
   filter: grayscale(60%) brightness(0.65);
   pointer-events: none;
-  box-shadow: none !important;
-  transform: scale(0.97);
 }
 
 /* Roulette Spin Highlight Tile */
 .territory-tile.is-spin-highlight {
   border-color: #ffd369 !important;
-  box-shadow: 0 0 45px #ffd369, inset 0 0 30px rgba(255, 211, 105, 0.6) !important;
-  transform: scale(1.1) !important;
-  z-index: 30 !important;
-  background: linear-gradient(145deg, rgba(255, 211, 105, 0.35) 0%, rgba(6, 9, 17, 0.98) 100%) !important;
+  box-shadow: 0 0 35px #ffd369 !important;
+  background-color: rgba(255, 211, 105, 0.4) !important;
+  filter: brightness(1.4) !important;
+  z-index: 20 !important;
 }
 
 /* ==================== DUEL MATCHUP MODAL ==================== */

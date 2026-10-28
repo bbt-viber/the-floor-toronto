@@ -1514,43 +1514,13 @@
 
     el.territoryGrid.style.gridTemplateColumns = `repeat(${territoryGame.cols}, minmax(0, 1fr))`;
 
-    // 1. Group squares by player to determine merged territory and centroid primary tile
+    // 1. Group squares by player to determine merged territory and compute centroid
     const playerSquaresMap = new Map();
     territoryGame.grid.forEach(sq => {
       if (!playerSquaresMap.has(sq.playerId)) {
         playerSquaresMap.set(sq.playerId, []);
       }
       playerSquaresMap.get(sq.playerId).push(sq);
-    });
-
-    const primarySquareMap = new Map(); // playerId -> primary squareIndex
-    playerSquaresMap.forEach((squares, pId) => {
-      if (squares.length === 1) {
-        primarySquareMap.set(pId, squares[0].squareIndex);
-        return;
-      }
-      let sumR = 0, sumC = 0;
-      squares.forEach(sq => {
-        const r = Math.floor(sq.squareIndex / territoryGame.cols);
-        const c = sq.squareIndex % territoryGame.cols;
-        sumR += r;
-        sumC += c;
-      });
-      const avgR = sumR / squares.length;
-      const avgC = sumC / squares.length;
-
-      let bestIdx = squares[0].squareIndex;
-      let minDistance = Infinity;
-      squares.forEach(sq => {
-        const r = Math.floor(sq.squareIndex / territoryGame.cols);
-        const c = sq.squareIndex % territoryGame.cols;
-        const dist = Math.hypot(r - avgR, c - avgC);
-        if (dist < minDistance) {
-          minDistance = dist;
-          bestIdx = sq.squareIndex;
-        }
-      });
-      primarySquareMap.set(pId, bestIdx);
     });
 
     // 2. Check if the floor has been conquered by a Grand Champion (1 player holds all squares)
@@ -1575,25 +1545,18 @@
       adjacentPlayerIds = new Set(adjCompetitors.map(c => c.player.id));
     }
 
+    // 3. Render seamless territory tiles (gap: 0, zero boundaries between contiguous squares of the same player)
     territoryGame.grid.forEach((sq, idx) => {
       const tile = document.createElement('div');
       tile.className = 'territory-tile';
       tile.dataset.playerId = sq.playerId;
+      tile.dataset.squareIndex = idx;
 
       const owner = territoryGame.players.find(p => p.id === sq.playerId);
-      const tileColor = owner ? owner.color : sq.color;
+      const tileColor = owner ? owner.color : (sq.color || '#00f0ff');
       const playerName = owner ? owner.name : sq.playerName;
-      const count = owner ? (owner.territoryCount || 1) : 1;
 
-      const playerSquares = playerSquaresMap.get(sq.playerId) || [];
-      const isOwnedMultiple = (playerSquares.length > 1);
-      const isPrimaryTile = (!isOwnedMultiple || sq.squareIndex === primarySquareMap.get(sq.playerId));
-      const isExtensionTile = (isOwnedMultiple && !isPrimaryTile);
-
-      tile.style.setProperty('--tile-color', tileColor);
-      tile.style.setProperty('--tile-glow', `${tileColor}66`);
-
-      // Determine contiguous neighbors for border-merging
+      // Determine contiguous orthogonal neighbors
       const r = Math.floor(idx / territoryGame.cols);
       const c = idx % territoryGame.cols;
       const topSq = (r > 0) ? territoryGame.grid[(r - 1) * territoryGame.cols + c] : null;
@@ -1606,94 +1569,43 @@
       const sameLeft = Boolean(leftSq && leftSq.playerId === sq.playerId);
       const sameRight = Boolean(rightSq && rightSq.playerId === sq.playerId);
 
-      if (isOwnedMultiple) {
-        tile.classList.add('is-merged-territory');
-        if (sameTop) tile.classList.add('merge-top');
-        if (sameBottom) tile.classList.add('merge-bottom');
-        if (sameLeft) tile.classList.add('merge-left');
-        if (sameRight) tile.classList.add('merge-right');
+      // Boundary elimination: NO border where neighbor belongs to same player
+      const borderStyle = `2px solid ${tileColor}`;
+      tile.style.borderTop = sameTop ? 'none' : borderStyle;
+      tile.style.borderBottom = sameBottom ? 'none' : borderStyle;
+      tile.style.borderLeft = sameLeft ? 'none' : borderStyle;
+      tile.style.borderRight = sameRight ? 'none' : borderStyle;
+      tile.style.backgroundColor = `${tileColor}18`;
 
-        if (sameBottom && sameRight) {
-          const cornerBridge = document.createElement('div');
-          cornerBridge.className = 'tile-corner-bridge';
-          tile.appendChild(cornerBridge);
-        }
-      }
+      // Subtle coordinate number in top-left corner
+      const numSpan = document.createElement('span');
+      numSpan.className = 'territory-tile-num';
+      numSpan.textContent = `#${idx + 1}`;
+      tile.appendChild(numSpan);
 
-      if (isExtensionTile) {
-        tile.classList.add('is-merged-extension');
-        tile.title = `${playerName}'s territory (${count} territories)`;
-        // Extension tile displays subtle coordinate only, NO duplicate name or category
-        const numSpan = document.createElement('span');
-        numSpan.className = 'territory-tile-num';
-        numSpan.textContent = `#${idx + 1}`;
-        tile.appendChild(numSpan);
-      } else {
-        // Primary tile (single territory, or the chosen central tile for a multi-territory player):
-        // CONTAINS ALL INFO ONLY ONCE: name, category, number of territories owned!
-        if (isOwnedMultiple) {
-          tile.classList.add('is-merged-primary');
-        }
-
-        const numSpan = document.createElement('span');
-        numSpan.className = 'territory-tile-num';
-        numSpan.textContent = isOwnedMultiple ? `👑` : `#${idx + 1}`;
-
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'territory-player-label';
-        labelDiv.textContent = playerName;
-
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'territory-player-category';
-        const catText = (owner && (owner.categoryTitle || owner.category)) 
-          || sq.playerCategoryTitle 
-          || sq.playerCategory 
-          || 'General';
-        categoryDiv.textContent = catText;
-        categoryDiv.title = `Category: ${catText}`;
-
-        const footerSpan = document.createElement('span');
-        footerSpan.className = 'territory-tile-footer';
-        footerSpan.textContent = isOwnedMultiple ? `👑 ${count} Territories` : `${count} Territory`;
-
-        tile.appendChild(numSpan);
-        tile.appendChild(labelDiv);
-        tile.appendChild(categoryDiv);
-        tile.appendChild(footerSpan);
-      }
-
-      // Synchronized Hover across all tiles of this player's territory
+      // Synchronized Hover across all tiles of this player and their central badge
       tile.addEventListener('mouseenter', () => {
-        const selector = `.territory-tile[data-player-id="${sq.playerId}"]`;
-        el.territoryGrid.querySelectorAll(selector).forEach(t => t.classList.add('is-hovered-territory'));
+        el.territoryGrid.querySelectorAll(`.territory-tile[data-player-id="${sq.playerId}"]`)
+          .forEach(t => t.classList.add('is-hovered-territory'));
+        const badge = el.territoryGrid.querySelector(`.territory-central-badge[data-player-id="${sq.playerId}"]`);
+        if (badge) badge.classList.add('is-hovered-badge');
       });
       tile.addEventListener('mouseleave', () => {
-        const selector = `.territory-tile[data-player-id="${sq.playerId}"]`;
-        el.territoryGrid.querySelectorAll(selector).forEach(t => t.classList.remove('is-hovered-territory'));
+        el.territoryGrid.querySelectorAll(`.territory-tile[data-player-id="${sq.playerId}"]`)
+          .forEach(t => t.classList.remove('is-hovered-territory'));
+        const badge = el.territoryGrid.querySelector(`.territory-central-badge[data-player-id="${sq.playerId}"]`);
+        if (badge) badge.classList.remove('is-hovered-badge');
       });
 
-      // Apply Challenger, Adjacent Target, or Dimmed visual states
+      // Interactive state styling
       if (activeChallenger) {
         if (sq.playerId === activeChallenger.id) {
           tile.classList.add('is-challenger');
-          if (isPrimaryTile) {
-            const challengerTag = document.createElement('span');
-            challengerTag.className = 'territory-tile-challenger-tag';
-            challengerTag.textContent = (count > 1) ? '👑 WINNER' : '👑 CHALLENGER';
-            tile.appendChild(challengerTag);
-          }
         } else if (adjacentPlayerIds.has(sq.playerId)) {
           tile.classList.add('is-adjacent-target');
-          if (isPrimaryTile) {
-            const targetTag = document.createElement('span');
-            targetTag.className = 'territory-tile-target-tag';
-            targetTag.textContent = '⚔️ CAN CHALLENGE';
-            tile.appendChild(targetTag);
-          }
           const catText = (owner && (owner.categoryTitle || owner.category)) || 'General';
-          tile.title = `Adjacent competitor: ${playerName} (Category: ${catText})`;
+          tile.title = `Adjacent competitor: ${playerName} (Category: ${catText}) - Click to Challenge!`;
 
-          // Interactive challenge on click of ANY of their tiles
           tile.addEventListener('click', () => {
             const defender = territoryGame.players.find(p => p.id === sq.playerId);
             if (defender && activeChallenger) {
@@ -1715,15 +1627,92 @@
       } else {
         tile.addEventListener('click', () => {
           window.soundEngine?.playTick();
-          const selector = `.territory-tile[data-player-id="${sq.playerId}"]`;
-          el.territoryGrid.querySelectorAll(selector).forEach(t => {
-            t.style.transform = 'scale(0.96)';
-            setTimeout(() => t.style.transform = '', 150);
+          el.territoryGrid.querySelectorAll(`.territory-tile[data-player-id="${sq.playerId}"]`).forEach(t => {
+            t.style.filter = 'brightness(1.5)';
+            setTimeout(() => t.style.filter = '', 180);
           });
         });
       }
 
       el.territoryGrid.appendChild(tile);
+    });
+
+    // 4. Render each player's central badge at their exact geometric centroid
+    // Displays player name, category, and territories owned centrally and only once
+    playerSquaresMap.forEach((squares, pId) => {
+      const player = territoryGame.players.find(p => p.id === pId);
+      if (!player) return;
+
+      const count = player.territoryCount || squares.length;
+      const isMulti = (squares.length > 1);
+      const pColor = player.color || '#00f0ff';
+      const catText = player.categoryTitle || player.category || 'General';
+
+      // Compute geometric centroid across all owned squares
+      let sumR = 0;
+      let sumC = 0;
+      squares.forEach(sq => {
+        const r = Math.floor(sq.squareIndex / territoryGame.cols);
+        const c = sq.squareIndex % territoryGame.cols;
+        sumR += r;
+        sumC += c;
+      });
+      const avgR = sumR / squares.length;
+      const avgC = sumC / squares.length;
+
+      const posX = ((avgC + 0.5) / territoryGame.cols) * 100;
+      const posY = ((avgR + 0.5) / territoryGame.rows) * 100;
+
+      const badgeWrap = document.createElement('div');
+      badgeWrap.className = 'territory-central-badge';
+      badgeWrap.dataset.playerId = pId;
+      badgeWrap.style.left = `${posX}%`;
+      badgeWrap.style.top = `${posY}%`;
+
+      const card = document.createElement('div');
+      card.className = 'central-badge-card';
+      if (isMulti) card.classList.add('is-multi-territory');
+      card.style.setProperty('--badge-color', pColor);
+      card.style.setProperty('--badge-glow', `${pColor}88`);
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'central-player-name';
+      nameDiv.textContent = player.name;
+
+      const catDiv = document.createElement('div');
+      catDiv.className = 'central-player-category';
+      catDiv.textContent = catText;
+      catDiv.title = `Category: ${catText}`;
+
+      const countDiv = document.createElement('div');
+      countDiv.className = 'central-player-count';
+      countDiv.textContent = isMulti ? `👑 ${count} Territories` : `${count} Territory`;
+
+      card.appendChild(nameDiv);
+      card.appendChild(catDiv);
+      card.appendChild(countDiv);
+
+      // Challenger or Target active state tag on badge
+      if (activeChallenger) {
+        if (pId === activeChallenger.id) {
+          badgeWrap.classList.add('is-challenger-badge');
+          const chalTag = document.createElement('div');
+          chalTag.className = 'central-badge-tag is-challenger-tag';
+          chalTag.textContent = (count > 1) ? '👑 WINNER' : '👑 CHALLENGER';
+          card.appendChild(chalTag);
+        } else if (adjacentPlayerIds.has(pId)) {
+          badgeWrap.classList.add('is-target-badge');
+          const targTag = document.createElement('div');
+          targTag.className = 'central-badge-tag is-target-tag';
+          targTag.textContent = '⚔️ CAN CHALLENGE';
+          card.appendChild(targTag);
+        } else {
+          badgeWrap.classList.add('is-dimmed-badge');
+        }
+      }
+
+      badgeWrap.appendChild(card);
+      el.territoryGrid.appendChild(badgeWrap);
     });
   }
 
