@@ -866,6 +866,30 @@
       const cols = currentTerritory.cols || Math.ceil(Math.sqrt(count));
       const rows = currentTerritory.rows || Math.ceil(count / cols);
       el.hostFloorStats.textContent = `${count} Contestants • ${cols}×${rows} Grid`;
+
+      if (count === 1 && currentTerritory.grid && currentTerritory.grid.length > 1) {
+        const champ = currentTerritory.players[0];
+        el.hostFloorBadge.textContent = '🏆 CHAMPION!';
+        el.hostFloorBadge.style.color = 'var(--gold)';
+        el.hostFloorBadge.style.borderColor = 'var(--gold)';
+        el.btnHostTriggerRandomizer.disabled = true;
+        el.hostRandomizerCard.style.display = 'none';
+        el.hostChallengerCard.style.display = 'block';
+        el.hostChallengerTitle.textContent = '🏆 GRAND CHAMPION OF THE FLOOR';
+        el.hostChallengerTitle.style.color = 'var(--gold)';
+        el.hostChallengerName.innerHTML = `${champ.name} <span style="font-size: 0.85rem; font-weight: normal; color: var(--gold); display: block; margin-top: 3px;">🎯 Category: ${champ.categoryTitle || champ.category}</span>`;
+        el.hostChallengerSubtitle.textContent = `Captured 100% of the Floor (${currentTerritory.grid.length} Territories)!`;
+        el.hostOption1Header.innerHTML = '🎉 THE FLOOR TOURNAMENT IS COMPLETE!';
+        el.hostDefendersList.innerHTML = `
+          <div style="padding: 18px; text-align: center; color: var(--gold); font-size: 1rem; font-weight: 800; background: rgba(255,215,0,0.1); border-radius: 10px; border: 1px solid var(--gold);">
+            👑 ${champ.name} has defeated all opponents and conquered the entire floor!
+          </div>
+        `;
+        if (el.hostOption2Card) el.hostOption2Card.style.display = 'none';
+        if (el.hostChallengerSubActions) el.hostChallengerSubActions.style.display = 'none';
+        return;
+      }
+
       el.hostFloorBadge.textContent = 'FLOOR READY';
       el.hostFloorBadge.style.color = 'var(--p1-color)';
       el.hostFloorBadge.style.borderColor = 'var(--p1-color)';

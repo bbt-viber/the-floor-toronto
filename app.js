@@ -934,6 +934,15 @@
         if (d.eventType === 'return_to_territory') {
           if (el.victoryModal) el.victoryModal.classList.remove('active');
           if (el.pauseModal) el.pauseModal.classList.remove('active');
+
+          if (d.isFloorConquered && d.grandChampion) {
+            clearChallengerState();
+            renderTerritoryGrid();
+            switchToView('territory');
+            triggerChampionCelebration(d.grandChampion);
+            return;
+          }
+
           if (d.activeChallenger) {
             activeChallenger = d.activeChallenger;
             if (el.bannerChallengerName) {
@@ -1505,6 +1514,60 @@
 
     el.territoryGrid.style.gridTemplateColumns = `repeat(${territoryGame.cols}, minmax(0, 1fr))`;
 
+    // 1. Group squares by player to determine merged territory and centroid primary tile
+    const playerSquaresMap = new Map();
+    territoryGame.grid.forEach(sq => {
+      if (!playerSquaresMap.has(sq.playerId)) {
+        playerSquaresMap.set(sq.playerId, []);
+      }
+      playerSquaresMap.get(sq.playerId).push(sq);
+    });
+
+    const primarySquareMap = new Map(); // playerId -> primary squareIndex
+    playerSquaresMap.forEach((squares, pId) => {
+      if (squares.length === 1) {
+        primarySquareMap.set(pId, squares[0].squareIndex);
+        return;
+      }
+      let sumR = 0, sumC = 0;
+      squares.forEach(sq => {
+        const r = Math.floor(sq.squareIndex / territoryGame.cols);
+        const c = sq.squareIndex % territoryGame.cols;
+        sumR += r;
+        sumC += c;
+      });
+      const avgR = sumR / squares.length;
+      const avgC = sumC / squares.length;
+
+      let bestIdx = squares[0].squareIndex;
+      let minDistance = Infinity;
+      squares.forEach(sq => {
+        const r = Math.floor(sq.squareIndex / territoryGame.cols);
+        const c = sq.squareIndex % territoryGame.cols;
+        const dist = Math.hypot(r - avgR, c - avgC);
+        if (dist < minDistance) {
+          minDistance = dist;
+          bestIdx = sq.squareIndex;
+        }
+      });
+      primarySquareMap.set(pId, bestIdx);
+    });
+
+    // 2. Check if the floor has been conquered by a Grand Champion (1 player holds all squares)
+    const activeContestants = territoryGame.players.filter(p => p.active !== false);
+    const isFloorConquered = (activeContestants.length === 1 && territoryGame.grid.length > 1);
+    const champion = isFloorConquered ? activeContestants[0] : null;
+
+    if (isFloorConquered && champion) {
+      el.territoryGrid.classList.add('is-conquered-floor');
+      if (!isCelebrationActive) {
+        triggerChampionCelebration(champion);
+      }
+    } else {
+      el.territoryGrid.classList.remove('is-conquered-floor');
+      isCelebrationActive = false;
+    }
+
     // Determine adjacent targets if a challenger is selected
     let adjacentPlayerIds = new Set();
     if (activeChallenger) {
@@ -1515,57 +1578,122 @@
     territoryGame.grid.forEach((sq, idx) => {
       const tile = document.createElement('div');
       tile.className = 'territory-tile';
+      tile.dataset.playerId = sq.playerId;
 
       const owner = territoryGame.players.find(p => p.id === sq.playerId);
       const tileColor = owner ? owner.color : sq.color;
       const playerName = owner ? owner.name : sq.playerName;
       const count = owner ? (owner.territoryCount || 1) : 1;
 
+      const playerSquares = playerSquaresMap.get(sq.playerId) || [];
+      const isOwnedMultiple = (playerSquares.length > 1);
+      const isPrimaryTile = (!isOwnedMultiple || sq.squareIndex === primarySquareMap.get(sq.playerId));
+      const isExtensionTile = (isOwnedMultiple && !isPrimaryTile);
+
       tile.style.setProperty('--tile-color', tileColor);
       tile.style.setProperty('--tile-glow', `${tileColor}66`);
 
-      const numSpan = document.createElement('span');
-      numSpan.className = 'territory-tile-num';
-      numSpan.textContent = `#${idx + 1}`;
+      // Determine contiguous neighbors for border-merging
+      const r = Math.floor(idx / territoryGame.cols);
+      const c = idx % territoryGame.cols;
+      const topSq = (r > 0) ? territoryGame.grid[(r - 1) * territoryGame.cols + c] : null;
+      const bottomSq = (r < territoryGame.rows - 1) ? territoryGame.grid[(r + 1) * territoryGame.cols + c] : null;
+      const leftSq = (c > 0) ? territoryGame.grid[r * territoryGame.cols + (c - 1)] : null;
+      const rightSq = (c < territoryGame.cols - 1) ? territoryGame.grid[r * territoryGame.cols + (c + 1)] : null;
 
-      const labelDiv = document.createElement('div');
-      labelDiv.className = 'territory-player-label';
-      labelDiv.textContent = playerName;
+      const sameTop = Boolean(topSq && topSq.playerId === sq.playerId);
+      const sameBottom = Boolean(bottomSq && bottomSq.playerId === sq.playerId);
+      const sameLeft = Boolean(leftSq && leftSq.playerId === sq.playerId);
+      const sameRight = Boolean(rightSq && rightSq.playerId === sq.playerId);
 
-      const categoryDiv = document.createElement('div');
-      categoryDiv.className = 'territory-player-category';
-      const catText = (owner && (owner.categoryTitle || owner.category)) 
-        || sq.playerCategoryTitle 
-        || sq.playerCategory 
-        || 'General';
-      categoryDiv.textContent = catText;
-      categoryDiv.title = `Category: ${catText}`;
+      if (isOwnedMultiple) {
+        tile.classList.add('is-merged-territory');
+        if (sameTop) tile.classList.add('merge-top');
+        if (sameBottom) tile.classList.add('merge-bottom');
+        if (sameLeft) tile.classList.add('merge-left');
+        if (sameRight) tile.classList.add('merge-right');
 
-      const footerSpan = document.createElement('span');
-      footerSpan.className = 'territory-tile-footer';
-      footerSpan.textContent = `${count} ${count === 1 ? 'Territory' : 'Territories'}`;
+        if (sameBottom && sameRight) {
+          const cornerBridge = document.createElement('div');
+          cornerBridge.className = 'tile-corner-bridge';
+          tile.appendChild(cornerBridge);
+        }
+      }
 
-      tile.appendChild(numSpan);
-      tile.appendChild(labelDiv);
-      tile.appendChild(categoryDiv);
-      tile.appendChild(footerSpan);
+      if (isExtensionTile) {
+        tile.classList.add('is-merged-extension');
+        tile.title = `${playerName}'s territory (${count} territories)`;
+        // Extension tile displays subtle coordinate only, NO duplicate name or category
+        const numSpan = document.createElement('span');
+        numSpan.className = 'territory-tile-num';
+        numSpan.textContent = `#${idx + 1}`;
+        tile.appendChild(numSpan);
+      } else {
+        // Primary tile (single territory, or the chosen central tile for a multi-territory player):
+        // CONTAINS ALL INFO ONLY ONCE: name, category, number of territories owned!
+        if (isOwnedMultiple) {
+          tile.classList.add('is-merged-primary');
+        }
+
+        const numSpan = document.createElement('span');
+        numSpan.className = 'territory-tile-num';
+        numSpan.textContent = isOwnedMultiple ? `👑` : `#${idx + 1}`;
+
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'territory-player-label';
+        labelDiv.textContent = playerName;
+
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'territory-player-category';
+        const catText = (owner && (owner.categoryTitle || owner.category)) 
+          || sq.playerCategoryTitle 
+          || sq.playerCategory 
+          || 'General';
+        categoryDiv.textContent = catText;
+        categoryDiv.title = `Category: ${catText}`;
+
+        const footerSpan = document.createElement('span');
+        footerSpan.className = 'territory-tile-footer';
+        footerSpan.textContent = isOwnedMultiple ? `👑 ${count} Territories` : `${count} Territory`;
+
+        tile.appendChild(numSpan);
+        tile.appendChild(labelDiv);
+        tile.appendChild(categoryDiv);
+        tile.appendChild(footerSpan);
+      }
+
+      // Synchronized Hover across all tiles of this player's territory
+      tile.addEventListener('mouseenter', () => {
+        const selector = `.territory-tile[data-player-id="${sq.playerId}"]`;
+        el.territoryGrid.querySelectorAll(selector).forEach(t => t.classList.add('is-hovered-territory'));
+      });
+      tile.addEventListener('mouseleave', () => {
+        const selector = `.territory-tile[data-player-id="${sq.playerId}"]`;
+        el.territoryGrid.querySelectorAll(selector).forEach(t => t.classList.remove('is-hovered-territory'));
+      });
 
       // Apply Challenger, Adjacent Target, or Dimmed visual states
       if (activeChallenger) {
         if (sq.playerId === activeChallenger.id) {
           tile.classList.add('is-challenger');
-          const challengerTag = document.createElement('span');
-          challengerTag.className = 'territory-tile-challenger-tag';
-          challengerTag.textContent = (count > 1) ? '👑 WINNER' : '👑 CHALLENGER';
-          tile.appendChild(challengerTag);
+          if (isPrimaryTile) {
+            const challengerTag = document.createElement('span');
+            challengerTag.className = 'territory-tile-challenger-tag';
+            challengerTag.textContent = (count > 1) ? '👑 WINNER' : '👑 CHALLENGER';
+            tile.appendChild(challengerTag);
+          }
         } else if (adjacentPlayerIds.has(sq.playerId)) {
           tile.classList.add('is-adjacent-target');
-          const targetTag = document.createElement('span');
-          targetTag.className = 'territory-tile-target-tag';
-          targetTag.textContent = '⚔️ CAN CHALLENGE';
-          tile.appendChild(targetTag);
-          tile.title = `Adjacent competitor: ${sq.playerName} (Category: ${catText})`;
+          if (isPrimaryTile) {
+            const targetTag = document.createElement('span');
+            targetTag.className = 'territory-tile-target-tag';
+            targetTag.textContent = '⚔️ CAN CHALLENGE';
+            tile.appendChild(targetTag);
+          }
+          const catText = (owner && (owner.categoryTitle || owner.category)) || 'General';
+          tile.title = `Adjacent competitor: ${playerName} (Category: ${catText})`;
 
+          // Interactive challenge on click of ANY of their tiles
           tile.addEventListener('click', () => {
             const defender = territoryGame.players.find(p => p.id === sq.playerId);
             if (defender && activeChallenger) {
@@ -1587,8 +1715,11 @@
       } else {
         tile.addEventListener('click', () => {
           window.soundEngine?.playTick();
-          tile.style.transform = 'scale(0.95)';
-          setTimeout(() => tile.style.transform = '', 150);
+          const selector = `.territory-tile[data-player-id="${sq.playerId}"]`;
+          el.territoryGrid.querySelectorAll(selector).forEach(t => {
+            t.style.transform = 'scale(0.96)';
+            setTimeout(() => t.style.transform = '', 150);
+          });
         });
       }
 
@@ -2164,6 +2295,127 @@
       }
     }
     render();
+  }
+
+  // ==================== GRAND CHAMPION CELEBRATION ANIMATION ====================
+  let isCelebrationActive = false;
+  let championConfettiAnimId = null;
+
+  function triggerChampionCelebration(champion) {
+    if (!champion) return;
+    isCelebrationActive = true;
+    window.soundEngine?.playVictory();
+
+    const winnerModal = document.getElementById('grandChampionModal');
+    const winnerNameEl = document.getElementById('championWinnerName');
+    const winnerCatEl = document.getElementById('championWinnerCategory');
+    const statCountEl = document.getElementById('championStatCount');
+
+    if (winnerNameEl) {
+      winnerNameEl.textContent = champion.name;
+      winnerNameEl.style.color = champion.color || 'var(--gold)';
+      winnerNameEl.style.textShadow = `0 0 35px ${champion.color || 'var(--gold)'}, 0 4px 15px rgba(0,0,0,0.9)`;
+    }
+    if (winnerCatEl) {
+      const cat = champion.categoryTitle || champion.category || 'General';
+      winnerCatEl.textContent = `🎯 Category Master: ${cat}`;
+    }
+    if (statCountEl && territoryGame && territoryGame.grid) {
+      statCountEl.textContent = `${territoryGame.grid.length} / ${territoryGame.grid.length}`;
+    }
+
+    if (winnerModal) {
+      winnerModal.classList.add('active');
+    }
+
+    startChampionConfetti(champion.color);
+  }
+
+  function startChampionConfetti(primaryColor = '#00f0ff') {
+    const canvas = document.getElementById('confettiCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    if (championConfettiAnimId) {
+      cancelAnimationFrame(championConfettiAnimId);
+      championConfettiAnimId = null;
+    }
+
+    const pieces = [];
+    const colors = [primaryColor, '#ffd700', '#ff9f1c', '#00f2fe', '#ff2e63', '#ffffff', '#00e676'];
+
+    for (let i = 0; i < 320; i++) {
+      pieces.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: Math.random() * 12 + 6,
+        h: Math.random() * 16 + 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        velY: Math.random() * 4 + 2.5,
+        velX: (Math.random() - 0.5) * 3.5,
+        rot: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 6,
+        isRibbon: Math.random() > 0.55
+      });
+    }
+
+    let startTime = Date.now();
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const elapsed = Date.now() - startTime;
+
+      pieces.forEach(p => {
+        p.y += p.velY;
+        p.x += p.velX + Math.sin(p.y * 0.02) * 1.5;
+        p.rot += p.rotSpeed;
+
+        if (p.y > canvas.height) {
+          p.y = -20;
+          p.x = Math.random() * canvas.width;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+
+        if (p.isRibbon) {
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w * 0.35, p.h * 1.8);
+        } else {
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        }
+        ctx.restore();
+      });
+
+      if (isCelebrationActive || elapsed < 15000) {
+        championConfettiAnimId = requestAnimationFrame(animate);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        championConfettiAnimId = null;
+      }
+    }
+    championConfettiAnimId = requestAnimationFrame(animate);
+  }
+
+  // Champion Modal Buttons
+  const btnChampionNewGame = document.getElementById('btnChampionNewGame');
+  if (btnChampionNewGame) {
+    btnChampionNewGame.addEventListener('click', () => {
+      const modal = document.getElementById('grandChampionModal');
+      if (modal) modal.classList.remove('active');
+      isCelebrationActive = false;
+      openCreateGameModal();
+    });
+  }
+
+  const btnChampionCloseModal = document.getElementById('btnChampionCloseModal');
+  if (btnChampionCloseModal) {
+    btnChampionCloseModal.addEventListener('click', () => {
+      const modal = document.getElementById('grandChampionModal');
+      if (modal) modal.classList.remove('active');
+    });
   }
 
   // Initialize

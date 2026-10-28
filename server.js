@@ -140,6 +140,8 @@ function broadcastClueState(eventType = 'clue_sync') {
     activeChallenger: state.activeChallenger,
     adjacentDefenders: state.adjacentDefenders,
     isReigningWinner: state.isReigningWinner || false,
+    isFloorConquered: state.isFloorConquered || false,
+    grandChampion: state.grandChampion || null,
     passPenaltySeconds: state.passPenaltySeconds
   };
 
@@ -209,6 +211,23 @@ function resolveDuelTerritory() {
   const ownedCount = state.territory.grid.filter(sq => sq.playerId === winnerPlayer.id).length;
   winnerPlayer.territoryCount = ownedCount;
   winnerPlayer.hasDueled = true;
+
+  const isFloorConquered = (state.territory.players.length === 1 || ownedCount === state.territory.grid.length);
+  if (isFloorConquered) {
+    state.isFloorConquered = true;
+    state.grandChampion = {
+      id: winnerPlayer.id,
+      name: winnerPlayer.name,
+      category: winnerPlayer.category,
+      categoryTitle: winnerPlayer.categoryTitle,
+      color: winnerPlayer.color,
+      territoryCount: ownedCount
+    };
+    console.log(`[GRAND CHAMPION] 🏆 ${winnerPlayer.name} has captured the ENTIRE FLOOR! (100% of ${ownedCount} squares)`);
+  } else {
+    state.isFloorConquered = false;
+    state.grandChampion = null;
+  }
 
   state.duelTerritoryResolved = true;
   console.log(`[Territory] Duel resolved: ${winnerPlayer.name} takes the floor! ${loserPlayer.name} eliminated. ${winnerPlayer.name} now holds ${ownedCount} squares. Remaining contestants: ${state.territory.players.length}`);
@@ -683,6 +702,10 @@ function handleHostCommand(cmd, payload = {}) {
       state.territory = payload.territory;
       state.activeChallenger = null;
       state.adjacentDefenders = [];
+      state.isReigningWinner = false;
+      state.isFloorConquered = false;
+      state.grandChampion = null;
+      state.duelTerritoryResolved = false;
       broadcastClueState('territory_update');
     }
   }
@@ -839,12 +862,17 @@ function handleHostCommand(cmd, payload = {}) {
       state.isReigningWinner = false;
     }
 
+    const isFloorConquered = Boolean(state.isFloorConquered || (state.territory && state.territory.players.length === 1));
+    const grandChampion = state.grandChampion || ((state.territory && state.territory.players.length === 1) ? state.territory.players[0] : null);
+
     sendSse({
       eventType: 'return_to_territory',
       territory: state.territory,
       activeChallenger: state.activeChallenger,
       adjacentDefenders: state.adjacentDefenders,
       isReigningWinner: state.isReigningWinner,
+      isFloorConquered: isFloorConquered,
+      grandChampion: grandChampion,
       status: 'ready'
     });
   }
@@ -1024,6 +1052,8 @@ const server = http.createServer((req, res) => {
       activeChallenger: state.activeChallenger,
       adjacentDefenders: state.adjacentDefenders,
       isReigningWinner: state.isReigningWinner || false,
+      isFloorConquered: state.isFloorConquered || false,
+      grandChampion: state.grandChampion || null,
       passPenaltySeconds: state.passPenaltySeconds
     };
     res.write(`data: ${JSON.stringify(initialData)}\n\n`);

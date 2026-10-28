@@ -1584,6 +1584,266 @@ body {
   opacity: 0.85;
 }
 
+/* ==================== MERGED TERRITORY SYSTEM ==================== */
+.territory-tile.is-merged-territory {
+  transition: all 0.2s ease;
+}
+
+/* Seamlessly remove internal adjoining borders and flatten radiuses */
+.territory-tile.merge-top {
+  border-top-color: transparent !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+.territory-tile.merge-bottom {
+  border-bottom-color: transparent !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.territory-tile.merge-left {
+  border-left-color: transparent !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.territory-tile.merge-right {
+  border-right-color: transparent !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Bridges across grid gaps so contiguous squares fuse into one territory */
+.territory-tile.merge-right::after {
+  content: '';
+  position: absolute;
+  right: -9px;
+  top: 0;
+  bottom: 0;
+  width: 11px;
+  background: linear-gradient(145deg, rgba(20, 27, 45, 0.95), rgba(6, 9, 17, 0.98));
+  border-top: 2px solid var(--tile-color, #00f0ff);
+  border-bottom: 2px solid var(--tile-color, #00f0ff);
+  z-index: 2;
+  pointer-events: none;
+}
+.territory-tile.merge-right.merge-top::after {
+  border-top-color: transparent !important;
+}
+.territory-tile.merge-right.merge-bottom::after {
+  border-bottom-color: transparent !important;
+}
+
+.territory-tile.merge-bottom::before {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 0;
+  right: 0;
+  height: 11px;
+  background: linear-gradient(145deg, rgba(20, 27, 45, 0.95), rgba(6, 9, 17, 0.98));
+  border-left: 2px solid var(--tile-color, #00f0ff);
+  border-right: 2px solid var(--tile-color, #00f0ff);
+  z-index: 2;
+  pointer-events: none;
+}
+.territory-tile.merge-bottom.merge-left::before {
+  border-left-color: transparent !important;
+}
+.territory-tile.merge-bottom.merge-right::before {
+  border-right-color: transparent !important;
+}
+
+/* Interior 4-way intersection corner bridge */
+.tile-corner-bridge {
+  position: absolute;
+  right: -9px;
+  bottom: -9px;
+  width: 11px;
+  height: 11px;
+  background: linear-gradient(145deg, rgba(20, 27, 45, 0.95), rgba(6, 9, 17, 0.98));
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Merged Extension Square: Hide duplicate name, category, and count */
+.territory-tile.is-merged-extension {
+  background: linear-gradient(145deg, rgba(16, 22, 38, 0.88), rgba(4, 7, 14, 0.95));
+}
+
+.territory-tile.is-merged-extension .territory-player-label,
+.territory-tile.is-merged-extension .territory-player-category,
+.territory-tile.is-merged-extension .territory-tile-footer {
+  display: none !important;
+}
+
+.territory-tile.is-merged-extension .territory-tile-num {
+  opacity: 0.15;
+}
+
+/* Merged Primary (Centroid) Square: Prominent display holding the info only once */
+.territory-tile.is-merged-primary {
+  z-index: 4;
+}
+
+.territory-tile.is-merged-primary .territory-player-label {
+  font-size: clamp(0.95rem, 1.9vw, 1.55rem);
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-shadow: 0 0 20px var(--tile-color, #00f0ff), 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+.territory-tile.is-merged-primary .territory-player-category {
+  font-size: clamp(0.72rem, 1.25vw, 0.98rem);
+  padding: 3px 12px;
+  border-width: 1.5px;
+  box-shadow: 0 0 15px rgba(255, 211, 105, 0.4);
+}
+
+.territory-tile.is-merged-primary .territory-tile-footer {
+  font-size: clamp(0.72rem, 1.1vw, 0.85rem);
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--tile-color, #00f0ff);
+  letter-spacing: 0.6px;
+  opacity: 1;
+}
+
+/* Synchronized Hover Across All Tiles of the Merged Territory */
+.territory-tile.is-hovered-territory {
+  box-shadow: 0 0 25px var(--tile-glow, rgba(0, 240, 255, 0.7)), inset 0 0 30px rgba(255, 255, 255, 0.08) !important;
+  filter: brightness(1.18);
+  z-index: 6;
+}
+
+/* ==================== GRAND CHAMPION CELEBRATION MODAL & ANIMATIONS ==================== */
+.champion-celebration-card {
+  max-width: 620px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(20, 25, 45, 0.98) 0%, rgba(6, 8, 16, 0.99) 100%);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 60px rgba(255, 215, 0, 0.45), 0 0 120px rgba(0, 240, 255, 0.25), inset 0 0 40px rgba(255, 215, 0, 0.1);
+  animation: championCardEntrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes championCardEntrance {
+  0% { transform: scale(0.65) translateY(40px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.champion-trophy-anim {
+  font-size: 5rem;
+  line-height: 1;
+  margin-bottom: 6px;
+  display: inline-block;
+  animation: championTrophyBounce 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes championTrophyBounce {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50% { transform: translateY(-12px) scale(1.08) rotate(3deg); }
+}
+
+.champion-halo {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, rgba(0, 240, 255, 0.15) 45%, transparent 70%);
+  pointer-events: none;
+  border-radius: 50%;
+  animation: championHaloSpin 8s linear infinite;
+}
+
+@keyframes championHaloSpin {
+  0% { transform: translateX(-50%) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(360deg); }
+}
+
+.champion-eyebrow {
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.champion-winner-name {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin: 0 0 6px 0;
+  line-height: 1.1;
+  text-shadow: 0 0 35px var(--gold-glow), 0 4px 15px rgba(0, 0, 0, 0.9);
+}
+
+.champion-winner-category {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+}
+
+.champion-stats-box {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.champion-stat-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 12px 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+}
+
+.champion-stat-val {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #00f0ff;
+  line-height: 1.1;
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+}
+
+.champion-stat-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* Full Floor Champion Ripple Wave Animation */
+.territory-grid-stage.is-conquered-floor .territory-tile {
+  animation: championTilePulse 2s ease-in-out infinite alternate;
+  box-shadow: 0 0 30px var(--tile-glow, rgba(255, 215, 0, 0.6)) !important;
+}
+
+@keyframes championTilePulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.02); filter: brightness(1.25); box-shadow: 0 0 40px var(--gold-glow); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
 /* ==================== TERRITORY RANDOMIZER & BANNER ==================== */
 .btn-randomizer {
   display: inline-flex;
