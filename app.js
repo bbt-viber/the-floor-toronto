@@ -1488,6 +1488,115 @@
     stepRoulette();
   }
 
+  // Computes the optimal central badge position for any polyomino shape up to 4x4
+  // Maximizes clearance from opponents so badges are strictly contained and never overlap opponent territory
+  function computeOptimalBadgePosition(squares, cols, rows) {
+    if (!squares || squares.length === 0) return { posX: 50, posY: 50, isLargeRegion: false };
+
+    const formatted = squares.map(sq => ({
+      r: Math.floor(sq.squareIndex / cols),
+      c: sq.squareIndex % cols
+    }));
+
+    if (formatted.length === 1) {
+      return {
+        posX: ((formatted[0].c + 0.5) / cols) * 100,
+        posY: ((formatted[0].r + 0.5) / rows) * 100,
+        isLargeRegion: false
+      };
+    }
+
+    const ownedSet = new Set(formatted.map(sq => `${sq.r},${sq.c}`));
+
+    // Geometric centroid for tie-breaking
+    let sumR = 0, sumC = 0;
+    formatted.forEach(sq => {
+      sumR += sq.r + 0.5;
+      sumC += sq.c + 0.5;
+    });
+    const centroidR = sumR / formatted.length;
+    const centroidC = sumC / formatted.length;
+
+    const candidates = [];
+
+    // A. Cell centers
+    formatted.forEach(sq => {
+      candidates.push({ r: sq.r + 0.5, c: sq.c + 0.5, type: 'cell_center' });
+    });
+
+    // B. Internal horizontal edges
+    formatted.forEach(sq => {
+      if (ownedSet.has(`${sq.r},${sq.c + 1}`)) {
+        candidates.push({ r: sq.r + 0.5, c: sq.c + 1.0, type: 'h_edge' });
+      }
+    });
+
+    // C. Internal vertical edges
+    formatted.forEach(sq => {
+      if (ownedSet.has(`${sq.r + 1},${sq.c}`)) {
+        candidates.push({ r: sq.r + 1.0, c: sq.c + 0.5, type: 'v_edge' });
+      }
+    });
+
+    // D. Internal 4-cell vertices
+    formatted.forEach(sq => {
+      if (
+        ownedSet.has(`${sq.r},${sq.c + 1}`) &&
+        ownedSet.has(`${sq.r + 1},${sq.c}`) &&
+        ownedSet.has(`${sq.r + 1},${sq.c + 1}`)
+      ) {
+        candidates.push({ r: sq.r + 1.0, c: sq.c + 1.0, type: 'vertex_4' });
+      }
+    });
+
+    function getOpponentClearance(p) {
+      let minD = Infinity;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (!ownedSet.has(`${r},${c}`)) {
+            const closestR = Math.max(r, Math.min(r + 1, p.r));
+            const closestC = Math.max(c, Math.min(c + 1, p.c));
+            const dist = Math.hypot(p.r - closestR, p.c - closestC);
+            if (dist < minD) minD = dist;
+          }
+        }
+      }
+      if (minD === Infinity) {
+        minD = Math.min(p.r, rows - p.r, p.c, cols - p.c);
+      }
+      return minD;
+    }
+
+    function getPerimeterClearance(p) {
+      return Math.min(p.r, rows - p.r, p.c, cols - p.c);
+    }
+
+    let bestCandidate = candidates[0];
+    let bestScore = -Infinity;
+
+    candidates.forEach(cand => {
+      const oppClearance = getOpponentClearance(cand);
+      const perimClearance = getPerimeterClearance(cand);
+      const distToCentroid = Math.hypot(cand.r - centroidR, cand.c - centroidC);
+
+      const score = (oppClearance * 100) + (perimClearance * 10) - (distToCentroid * 5) + (cand.type === 'vertex_4' ? 20 : 0);
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = cand;
+      }
+    });
+
+    const posX = (bestCandidate.c / cols) * 100;
+    const posY = (bestCandidate.r / rows) * 100;
+
+    return {
+      posX,
+      posY,
+      isLargeRegion: (bestCandidate.type === 'vertex_4' || (bestCandidate.type !== 'cell_center' && formatted.length >= 4))
+    };
+  }
+
   function renderTerritoryGrid() {
     if (!el.territoryGrid) return;
     el.territoryGrid.innerHTML = '';
@@ -1514,7 +1623,7 @@
 
     el.territoryGrid.style.gridTemplateColumns = `repeat(${territoryGame.cols}, minmax(0, 1fr))`;
 
-    // 1. Group squares by player to determine merged territory and compute centroid
+    // 1. Group squares by player to determine merged territory
     const playerSquaresMap = new Map();
     territoryGame.grid.forEach(sq => {
       if (!playerSquaresMap.has(sq.playerId)) {
@@ -1637,8 +1746,8 @@
       el.territoryGrid.appendChild(tile);
     });
 
-    // 4. Render each player's central badge at their exact geometric centroid
-    // Displays player name, category, and territories owned centrally and only once
+    // 4. Render each player's central badge at their optimal clearance position
+    // Works reliably on ALL grid sizes and territory shapes (L-shapes, T-shapes, straight bars, 2x2, etc.)
     playerSquaresMap.forEach((squares, pId) => {
       const player = territoryGame.players.find(p => p.id === pId);
       if (!player) return;
@@ -1648,29 +1757,18 @@
       const pColor = player.color || '#00f0ff';
       const catText = player.categoryTitle || player.category || 'General';
 
-      // Compute geometric centroid across all owned squares
-      let sumR = 0;
-      let sumC = 0;
-      squares.forEach(sq => {
-        const r = Math.floor(sq.squareIndex / territoryGame.cols);
-        const c = sq.squareIndex % territoryGame.cols;
-        sumR += r;
-        sumC += c;
-      });
-      const avgR = sumR / squares.length;
-      const avgC = sumC / squares.length;
-
-      const posX = ((avgC + 0.5) / territoryGame.cols) * 100;
-      const posY = ((avgR + 0.5) / territoryGame.rows) * 100;
+      // Compute optimal badge position with maximum opponent clearance
+      const optimal = computeOptimalBadgePosition(squares, territoryGame.cols, territoryGame.rows);
 
       const badgeWrap = document.createElement('div');
       badgeWrap.className = 'territory-central-badge';
       badgeWrap.dataset.playerId = pId;
-      badgeWrap.style.left = `${posX}%`;
-      badgeWrap.style.top = `${posY}%`;
+      badgeWrap.style.left = `${optimal.posX}%`;
+      badgeWrap.style.top = `${optimal.posY}%`;
 
       const card = document.createElement('div');
       card.className = 'central-badge-card';
+      if (optimal.isLargeRegion) card.classList.add('is-large-region');
       if (isMulti) card.classList.add('is-multi-territory');
       card.style.setProperty('--badge-color', pColor);
       card.style.setProperty('--badge-glow', `${pColor}88`);
