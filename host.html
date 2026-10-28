@@ -738,6 +738,10 @@
   <div id="categoryModal" class="category-modal">
     <div class="category-modal-card">
       <h3 style="font-size: 1.3rem; margin-bottom: 14px; color: #fff;">Switch Game Category</h3>
+      <button class="category-item-btn" onclick="selectGame('tennis')">
+        <span>🎾 Tennis</span>
+        <span style="font-size: 0.8rem; color: var(--gold);">45 Clues</span>
+      </button>
       <button class="category-item-btn" onclick="selectGame('dog-breeds')">
         <span>🐕 Dog Breeds</span>
         <span style="font-size: 0.8rem; color: var(--gold);">45 Clues</span>
@@ -875,7 +879,9 @@
       currentAdjacentDefenders = defenders;
       el.hostRandomizerCard.style.display = 'none';
       el.hostChallengerCard.style.display = 'block';
-      el.hostChallengerName.textContent = challenger.name;
+
+      const chalCat = challenger.categoryTitle || challenger.category || '';
+      el.hostChallengerName.innerHTML = `${challenger.name} ${chalCat ? `<span style="font-size: 0.82rem; font-weight: normal; color: var(--gold); display: block; margin-top: 2px;">🎯 Category: ${chalCat}</span>` : ''}`;
       el.hostDefendersList.innerHTML = '';
 
       if (isReigningWinner) {
@@ -918,8 +924,12 @@
       defenders.forEach(def => {
         const btn = document.createElement('button');
         btn.className = 'btn-defender-choice';
+        const catName = def.categoryTitle || def.category || 'General';
         btn.innerHTML = `
-          <span>⚔️ Challenge <strong>${def.name}</strong></span>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left;">
+            <span>⚔️ Challenge <strong>${def.name}</strong></span>
+            <span style="font-size: 0.78rem; font-weight: 800; color: var(--gold); letter-spacing: 0.4px;">🎯 Duel Category: ${catName}</span>
+          </div>
           <span class="defender-badge-tag">${def.territoryCount || 1} Terr.</span>
         `;
         btn.addEventListener('click', () => {
@@ -935,7 +945,8 @@
         challengerId: challenger.id,
         challengerName: challenger.name,
         defenderId: defender.id,
-        defenderName: defender.name
+        defenderName: defender.name,
+        category: defender.category
       });
     }
 

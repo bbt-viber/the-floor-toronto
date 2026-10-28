@@ -106,12 +106,17 @@
           </div>
         </div>
         <div id="territoryBannerActive" class="territory-banner-content" style="display: none;">
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span class="banner-icon" style="font-size: 1.3rem;">👑</span>
-            <span class="banner-text">
-              Challenger: <strong id="bannerChallengerName" class="highlight-challenger">...</strong>.
-              <span id="bannerSubtext">Host is selecting the defender to duel!</span>
-            </span>
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span class="banner-icon" style="font-size: 1.3rem;">👑</span>
+              <span class="banner-text">
+                Challenger: <strong id="bannerChallengerName" class="highlight-challenger">...</strong>.
+                <span id="bannerSubtext">Host is selecting the defender to duel!</span>
+              </span>
+            </div>
+            <button id="btnBannerReturnToFloor" class="change-game-pill" style="display: none; border-color: var(--gold); color: var(--gold); font-weight: 800; padding: 6px 16px;">
+              🎲 Return to the Floor (Spin Randomizer)
+            </button>
           </div>
         </div>
       </div>
@@ -386,31 +391,28 @@
 
   <!-- ==================== CREATE GAME MODAL ==================== -->
   <div id="modalCreateGame" class="modal-overlay">
-    <div class="modal-card" style="max-width: 620px; text-align: left;">
+    <div class="modal-card" style="max-width: 680px; text-align: left;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h2 class="victory-title" style="font-size: 1.8rem; margin: 0; text-align: left;">⚡ Create Game — Enter Players</h2>
+        <h2 class="victory-title" style="font-size: 1.8rem; margin: 0; text-align: left;">⚡ Create Game — Players &amp; Categories</h2>
         <button id="btnCloseCreateGameModal" class="nav-btn" style="padding: 4px 10px; font-size: 1.1rem;">✕</button>
       </div>
-      <p class="victory-subtitle" style="text-align: left; margin-bottom: 16px; font-size: 0.95rem; line-height: 1.5;">
-        Enter a list of player names below (one per line, or separated by commas). Each name will create a Player and claim a square on the territory grid.
+      <p class="victory-subtitle" style="text-align: left; margin-bottom: 14px; font-size: 0.95rem; line-height: 1.5;">
+        Assign each contestant a name and a trivia category from the game library. When challenged, they will defend their assigned category!
       </p>
 
-      <div style="margin-bottom: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <label class="form-label" for="inputPlayerNames" style="margin-bottom: 0;">Contestant Names:</label>
-          <div style="display: flex; gap: 8px;">
-            <span id="createGameCountBadge" class="game-badge-pill" style="font-size: 0.75rem;">0 Players</span>
-            <span id="createGameGridBadge" class="game-badge-pill" style="font-size: 0.75rem; border-color: var(--p1-color); color: var(--p1-color);">Grid: 0 × 0</span>
-          </div>
+      <!-- Badges Row -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px;">
+          Contestant Roster:
         </div>
-        <textarea id="inputPlayerNames" class="form-input" rows="8" placeholder="Alex&#10;Jordan&#10;Sam&#10;Taylor&#10;Morgan&#10;Casey&#10;Riley&#10;Chris" style="width: 100%; font-family: inherit; font-size: 1rem; line-height: 1.5; resize: vertical;"></textarea>
+        <div style="display: flex; gap: 8px;">
+          <span id="createGameCountBadge" class="game-badge-pill" style="font-size: 0.75rem;">0 Players</span>
+          <span id="createGameGridBadge" class="game-badge-pill" style="font-size: 0.75rem; border-color: var(--p1-color); color: var(--p1-color);">Grid: 0 × 0</span>
+        </div>
       </div>
 
       <!-- Quick Presets -->
-      <div style="margin-bottom: 20px;">
-        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px;">
-          ⚡ Or Fill Quick Sample Roster:
-        </div>
+      <div style="margin-bottom: 10px;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button type="button" id="btnPreset9" class="change-game-pill" style="margin-left: 0;">🎲 9 Players (3×3)</button>
           <button type="button" id="btnPreset16" class="change-game-pill" style="margin-left: 0;">🎲 16 Players (4×4)</button>
@@ -420,7 +422,28 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+      <!-- Player Roster Scrollable List -->
+      <div id="playerRosterContainer" class="player-roster-container">
+        <!-- Dynamically rendered rows: [ # | Name Input | Category Dropdown | ✕ ] -->
+      </div>
+
+      <!-- Roster Sub-actions (Add, Randomize, Bulk Paste Toggle) -->
+      <div class="roster-actions-bar">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="btnAddRosterPlayer" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">+ Add Player</button>
+          <button type="button" id="btnRandomizeCategories" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem; color: var(--gold);">🎲 Randomize Categories</button>
+          <button type="button" id="btnToggleBulkPaste" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">📝 Bulk Paste Names</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Bulk Paste Box -->
+      <div id="bulkPasteBox" style="display: none; margin-bottom: 16px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px dashed var(--border);">
+        <label class="form-label" for="inputPlayerNames" style="margin-bottom: 4px; font-size: 0.85rem;">Paste names (one per line):</label>
+        <textarea id="inputPlayerNames" class="form-input" rows="4" placeholder="Alex&#10;Jordan&#10;Sam&#10;Taylor" style="width: 100%; font-family: inherit; font-size: 0.9rem; margin-bottom: 8px;"></textarea>
+        <button type="button" id="btnApplyBulkPaste" class="change-game-pill" style="margin-left: 0; padding: 6px 16px;">✓ Import to Roster</button>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
         <button type="button" id="btnCancelCreateGame" class="btn-secondary">Cancel</button>
         <button type="button" id="btnSubmitPlayers" class="btn-launch" style="padding: 12px 28px;">⚡ Launch Territory Floor</button>
       </div>

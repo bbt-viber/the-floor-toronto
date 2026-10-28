@@ -16,6 +16,7 @@ let countriesGame = null;
 let hairstylesGame = null;
 let watchBrandsGame = null;
 let dogBreedsGame = null;
+let tennisGame = null;
 
 try {
   sampleLandmarks = require('./sample-data.js');
@@ -51,6 +52,12 @@ try {
   dogBreedsGame = require('./games/dog-breeds.js');
 } catch (e) {
   console.warn('Could not load dog-breeds.js', e.message);
+}
+
+try {
+  tennisGame = require('./games/tennis.js');
+} catch (e) {
+  console.warn('Could not load tennis.js', e.message);
 }
 
 // Authoritative Server Game State
@@ -165,12 +172,30 @@ function resolveDuelTerritory() {
     return;
   }
 
+  // Category Inheritance Rule:
+  // - If challenger wins (winnerNum === 1): challenger keeps their original category!
+  // - If defender wins (winnerNum === 2): defender adopts the category of the challenger!
+  const isChallengerWinner = (winnerNum === 1);
+  if (!isChallengerWinner) {
+    const prevCat = winnerPlayer.categoryTitle || winnerPlayer.category;
+    winnerPlayer.category = loserPlayer.category;
+    winnerPlayer.categoryTitle = loserPlayer.categoryTitle;
+    console.log(`[Territory] Defender ${winnerPlayer.name} won and adopted challenger ${loserPlayer.name}'s category: ${winnerPlayer.categoryTitle || winnerPlayer.category} (was ${prevCat})`);
+  } else {
+    console.log(`[Territory] Challenger ${winnerPlayer.name} won and retains original category: ${winnerPlayer.categoryTitle || winnerPlayer.category}`);
+  }
+
   // 1. All squares belonging to loser on the grid are conquered by the winner
   state.territory.grid.forEach(sq => {
     if (sq.playerId === loserPlayer.id || sq.playerName.trim().toLowerCase() === loserPlayer.name.trim().toLowerCase()) {
       sq.playerId = winnerPlayer.id;
       sq.playerName = winnerPlayer.name;
+      sq.playerCategory = winnerPlayer.category;
+      sq.playerCategoryTitle = winnerPlayer.categoryTitle;
       sq.color = winnerPlayer.color;
+    } else if (sq.playerId === winnerPlayer.id) {
+      sq.playerCategory = winnerPlayer.category;
+      sq.playerCategoryTitle = winnerPlayer.categoryTitle;
     }
   });
 
@@ -295,6 +320,8 @@ function getAdjacentCompetitors(challengerId, territory) {
               map.set(competitor.id, {
                 id: competitor.id,
                 name: competitor.name,
+                category: competitor.category || '',
+                categoryTitle: competitor.categoryTitle || competitor.category || '',
                 color: competitor.color,
                 territoryCount: competitor.territoryCount || 1,
                 squareIndices: []
@@ -326,6 +353,8 @@ function getAdjacentCompetitors(challengerId, territory) {
                 map.set(comp.id, {
                   id: comp.id,
                   name: comp.name,
+                  category: comp.category || '',
+                  categoryTitle: comp.categoryTitle || comp.category || '',
                   color: comp.color,
                   territoryCount: comp.territoryCount || 1,
                   squareIndices: [idx]
@@ -367,6 +396,70 @@ function selectRandomChallengerFromFloor(territory) {
 
   const chosen = finalPool[Math.floor(Math.random() * finalPool.length)];
   return chosen;
+}
+
+// Helper to switch active category into server state
+function loadCategoryIntoState(gameId) {
+  if (!gameId) return false;
+  const id = String(gameId).toLowerCase().trim();
+
+  if (id === 'tennis' && tennisGame) {
+    state.title = tennisGame.title;
+    state.gameId = tennisGame.id;
+    state.clues = [...tennisGame.clues];
+    state.roundTime = tennisGame.defaultTimer || 45;
+  } else if (id === 'dog-breeds' && dogBreedsGame) {
+    state.title = dogBreedsGame.title;
+    state.gameId = dogBreedsGame.id;
+    state.clues = [...dogBreedsGame.clues];
+    state.roundTime = dogBreedsGame.defaultTimer || 45;
+  } else if (id === 'watch-brands' && watchBrandsGame) {
+    state.title = watchBrandsGame.title;
+    state.gameId = watchBrandsGame.id;
+    state.clues = [...watchBrandsGame.clues];
+    state.roundTime = watchBrandsGame.defaultTimer || 45;
+  } else if (id === 'hairstyles' && hairstylesGame) {
+    state.title = hairstylesGame.title;
+    state.gameId = hairstylesGame.id;
+    state.clues = [...hairstylesGame.clues];
+    state.roundTime = hairstylesGame.defaultTimer || 45;
+  } else if (id === 'countries' && countriesGame) {
+    state.title = countriesGame.title;
+    state.gameId = countriesGame.id;
+    state.clues = [...countriesGame.clues];
+    state.roundTime = countriesGame.defaultTimer || 45;
+  } else if (id === 'toronto-landmarks') {
+    state.title = "Landmarks of Toronto";
+    state.gameId = 'toronto-landmarks';
+    state.clues = [...sampleLandmarks];
+    state.roundTime = 45;
+  } else if (id === 'ice-cream-flavours' && iceCreamGame) {
+    state.title = iceCreamGame.title;
+    state.gameId = iceCreamGame.id;
+    state.clues = [...iceCreamGame.clues];
+    state.roundTime = iceCreamGame.defaultTimer || 45;
+  } else {
+    try {
+      const jsonFile = path.join(__dirname, 'games', `${id}.json`);
+      if (fs.existsSync(jsonFile)) {
+        const parsed = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        state.title = parsed.title;
+        state.gameId = parsed.id;
+        state.clues = [...parsed.clues];
+        state.roundTime = parsed.defaultTimer || 45;
+      }
+    } catch (e) {
+      console.warn('Could not load game from json', id, e.message);
+      return false;
+    }
+  }
+
+  state.p1.maxTime = state.roundTime;
+  state.p1.timeRemaining = state.roundTime;
+  state.p2.maxTime = state.roundTime;
+  state.p2.timeRemaining = state.roundTime;
+  console.log(`[Category Loaded for Duel] ${state.title} (${state.clues.length} clues)`);
+  return true;
 }
 
 // Host Command Processor
@@ -550,32 +643,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.isCorrect = false;
     state.correctAnswer = '';
     state.lastCorrectAnswer = '';
-    const gameId = payload.gameId;
-    if (gameId === 'dog-breeds' && dogBreedsGame) {
-      state.title = dogBreedsGame.title;
-      state.gameId = dogBreedsGame.id;
-      state.clues = [...dogBreedsGame.clues];
-    } else if (gameId === 'watch-brands' && watchBrandsGame) {
-      state.title = watchBrandsGame.title;
-      state.gameId = watchBrandsGame.id;
-      state.clues = [...watchBrandsGame.clues];
-    } else if (gameId === 'hairstyles' && hairstylesGame) {
-      state.title = hairstylesGame.title;
-      state.gameId = hairstylesGame.id;
-      state.clues = [...hairstylesGame.clues];
-    } else if (gameId === 'countries' && countriesGame) {
-      state.title = countriesGame.title;
-      state.gameId = countriesGame.id;
-      state.clues = [...countriesGame.clues];
-    } else if (gameId === 'toronto-landmarks') {
-      state.title = "Landmarks of Toronto";
-      state.gameId = 'toronto-landmarks';
-      state.clues = [...sampleLandmarks];
-    } else if (gameId === 'ice-cream-flavours' && iceCreamGame) {
-      state.title = iceCreamGame.title;
-      state.gameId = iceCreamGame.id;
-      state.clues = [...iceCreamGame.clues];
-    }
+    loadCategoryIntoState(payload.gameId);
     state.status = 'ready';
     state.p1.timeRemaining = state.roundTime;
     state.p2.timeRemaining = state.roundTime;
@@ -647,21 +715,33 @@ function handleHostCommand(cmd, payload = {}) {
     let challengerId = payload.challengerId || (state.activeChallenger ? state.activeChallenger.id : null);
     let defenderId = payload.defenderId || (payload.defender ? payload.defender.id : null);
 
-    if (state.territory && state.territory.players) {
-      if (!challengerId) {
-        const cp = state.territory.players.find(p => p.name.trim().toLowerCase() === String(challengerName).trim().toLowerCase());
-        if (cp) challengerId = cp.id;
-      }
-      if (!defenderId) {
-        const dp = state.territory.players.find(p => p.name.trim().toLowerCase() === String(defenderName).trim().toLowerCase());
-        if (dp) defenderId = dp.id;
-      }
+    let challengerPlayer = null;
+    let defenderPlayer = null;
 
-      // Mark both contestants as having dueled:
-      const p1Obj = state.territory.players.find(p => p.id === challengerId);
-      const p2Obj = state.territory.players.find(p => p.id === defenderId);
-      if (p1Obj) p1Obj.hasDueled = true;
-      if (p2Obj) p2Obj.hasDueled = true;
+    if (state.territory && state.territory.players) {
+      challengerPlayer = state.territory.players.find(p => 
+        (challengerId && p.id === challengerId) || 
+        p.name.trim().toLowerCase() === String(challengerName).trim().toLowerCase()
+      );
+      defenderPlayer = state.territory.players.find(p => 
+        (defenderId && p.id === defenderId) || 
+        p.name.trim().toLowerCase() === String(defenderName).trim().toLowerCase()
+      );
+
+      if (challengerPlayer) {
+        challengerId = challengerPlayer.id;
+        challengerPlayer.hasDueled = true;
+      }
+      if (defenderPlayer) {
+        defenderId = defenderPlayer.id;
+        defenderPlayer.hasDueled = true;
+      }
+    }
+
+    // Rule: The duel will be on the defender's category!
+    const defenderCat = (defenderPlayer && (defenderPlayer.category || defenderPlayer.categoryId)) || payload.category;
+    if (defenderCat) {
+      loadCategoryIntoState(defenderCat);
     }
 
     if (countdownTimer) clearInterval(countdownTimer);
@@ -678,12 +758,21 @@ function handleHostCommand(cmd, payload = {}) {
     state.correctAnswer = '';
     state.lastCorrectAnswer = '';
 
+    // Challenger is Player 1
     state.p1.id = challengerId;
-    state.p1.name = String(challengerName).trim();
-    state.p2.id = defenderId;
-    state.p2.name = String(defenderName).trim();
+    state.p1.name = challengerPlayer ? challengerPlayer.name : String(challengerName).trim();
+    state.p1.category = challengerPlayer ? (challengerPlayer.category || '') : '';
+    state.p1.categoryTitle = challengerPlayer ? (challengerPlayer.categoryTitle || challengerPlayer.category || '') : '';
     state.p1.timeRemaining = state.roundTime;
+
+    // Defender is Player 2
+    state.p2.id = defenderId;
+    state.p2.name = defenderPlayer ? defenderPlayer.name : String(defenderName).trim();
+    state.p2.category = defenderPlayer ? (defenderPlayer.category || '') : '';
+    state.p2.categoryTitle = defenderPlayer ? (defenderPlayer.categoryTitle || defenderPlayer.category || '') : '';
     state.p2.timeRemaining = state.roundTime;
+
+    // Rule: The challenger will be the first player to go in the duel
     state.activePlayer = 1;
     state.clueIndex = 0;
     state.winner = null;
@@ -694,6 +783,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.isReigningWinner = false;
     state.duelTerritoryResolved = false;
 
+    console.log(`[Duel Prepared] Challenger: ${state.p1.name} vs Defender: ${state.p2.name} on DEFENDER CATEGORY: "${state.title}" (Challenger plays first)`);
     broadcastClueState('duel_players_set');
   }
   else if (cmd === 'cancel_challenger') {
@@ -808,7 +898,11 @@ function handleHostCommand(cmd, payload = {}) {
     }
     if (payload.gameId && payload.gameId !== state.gameId) {
       const gId = payload.gameId;
-      if (gId === 'dog-breeds' && dogBreedsGame) {
+      if (gId === 'tennis' && tennisGame) {
+        state.title = tennisGame.title;
+        state.gameId = tennisGame.id;
+        state.clues = [...tennisGame.clues];
+      } else if (gId === 'dog-breeds' && dogBreedsGame) {
         state.title = dogBreedsGame.title;
         state.gameId = dogBreedsGame.id;
         state.clues = [...dogBreedsGame.clues];

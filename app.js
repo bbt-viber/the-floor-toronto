@@ -78,6 +78,12 @@
     btnPreset25: document.getElementById('btnPreset25'),
     btnPreset49: document.getElementById('btnPreset49'),
     btnPreset100: document.getElementById('btnPreset100'),
+    playerRosterContainer: document.getElementById('playerRosterContainer'),
+    btnAddRosterPlayer: document.getElementById('btnAddRosterPlayer'),
+    btnRandomizeCategories: document.getElementById('btnRandomizeCategories'),
+    btnToggleBulkPaste: document.getElementById('btnToggleBulkPaste'),
+    bulkPasteBox: document.getElementById('bulkPasteBox'),
+    btnApplyBulkPaste: document.getElementById('btnApplyBulkPaste'),
 
     // Territory View
     btnTerritoryHome: document.getElementById('btnTerritoryHome'),
@@ -95,6 +101,7 @@
     territoryBannerActive: document.getElementById('territoryBannerActive'),
     bannerChallengerName: document.getElementById('bannerChallengerName'),
     bannerSubtext: document.getElementById('bannerSubtext'),
+    btnBannerReturnToFloor: document.getElementById('btnBannerReturnToFloor'),
     btnCancelChallenger: document.getElementById('btnCancelChallenger'),
     btnRerollRandomizer: document.getElementById('btnRerollRandomizer'),
 
@@ -930,14 +937,20 @@
           if (d.activeChallenger) {
             activeChallenger = d.activeChallenger;
             if (el.bannerChallengerName) {
-              el.bannerChallengerName.textContent = d.activeChallenger.name;
+              const catLabel = d.activeChallenger.categoryTitle || d.activeChallenger.category || '';
+              el.bannerChallengerName.textContent = catLabel
+                ? `${d.activeChallenger.name} (🎯 ${catLabel})`
+                : d.activeChallenger.name;
             }
             if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'none';
             if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'flex';
             if (el.bannerSubtext) {
               el.bannerSubtext.textContent = d.isReigningWinner
-                ? 'won the duel! Decision: Challenge Again or Return to the Floor!'
+                ? 'won the duel! Decision: Challenge another player or Return to the Floor!'
                 : 'Host is selecting the defender to duel!';
+            }
+            if (el.btnBannerReturnToFloor) {
+              el.btnBannerReturnToFloor.style.display = d.isReigningWinner ? 'inline-block' : 'none';
             }
             renderTerritoryGrid();
           } else {
@@ -948,11 +961,13 @@
         }
 
         if (d.eventType === 'randomizer_spin' && d.challenger) {
+          if (el.btnBannerReturnToFloor) el.btnBannerReturnToFloor.style.display = 'none';
           runTerritoryRandomizerAnimation(d.challenger, d.adjacentDefenders || []);
           return;
         }
 
         if (d.eventType === 'challenger_cancelled') {
+          if (el.btnBannerReturnToFloor) el.btnBannerReturnToFloor.style.display = 'none';
           clearChallengerState();
           return;
         }
@@ -1071,6 +1086,26 @@
     return `hsl(${hue}, 88%, 62%)`;
   }
 
+  let rosterState = [];
+
+  function getAvailableCategories() {
+    if (typeof GameRegistry !== 'undefined' && typeof GameRegistry.getAll === 'function') {
+      const all = GameRegistry.getAll();
+      if (all && all.length > 0) {
+        return all.map(g => ({ id: g.id, title: g.title }));
+      }
+    }
+    return [
+      { id: 'tennis', title: 'Tennis' },
+      { id: 'dog-breeds', title: 'Dog Breeds' },
+      { id: 'watch-brands', title: 'Watch Brands' },
+      { id: 'countries', title: 'Countries' },
+      { id: 'hairstyles', title: 'Hairstyles' },
+      { id: 'ice-cream-flavours', title: 'Ice Cream Flavours' },
+      { id: 'toronto-landmarks', title: 'Landmarks of Toronto' }
+    ];
+  }
+
   function parsePlayerNames(text) {
     if (!text) return [];
     return text
@@ -1080,9 +1115,7 @@
   }
 
   function updateCreateGameBadges() {
-    if (!el.inputPlayerNames) return;
-    const names = parsePlayerNames(el.inputPlayerNames.value);
-    const count = names.length;
+    const count = rosterState.length;
     const cols = count > 0 ? Math.ceil(Math.sqrt(count)) : 0;
     const rows = count > 0 ? Math.ceil(count / cols) : 0;
 
@@ -1094,13 +1127,85 @@
     }
   }
 
+  function renderRosterRows() {
+    if (!el.playerRosterContainer) return;
+    el.playerRosterContainer.innerHTML = '';
+    const categories = getAvailableCategories();
+
+    updateCreateGameBadges();
+
+    rosterState.forEach((player, idx) => {
+      const row = document.createElement('div');
+      row.className = 'player-roster-row';
+
+      const numSpan = document.createElement('span');
+      numSpan.className = 'player-roster-num';
+      numSpan.textContent = `#${idx + 1}`;
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'form-input player-roster-name';
+      nameInput.value = player.name;
+      nameInput.placeholder = `Player ${idx + 1} Name`;
+      nameInput.addEventListener('input', (e) => {
+        player.name = e.target.value;
+      });
+
+      const catSelect = document.createElement('select');
+      catSelect.className = 'form-input player-roster-category';
+      categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.title;
+        if (c.id === player.category) opt.selected = true;
+        catSelect.appendChild(opt);
+      });
+      catSelect.addEventListener('change', (e) => {
+        const selected = categories.find(c => c.id === e.target.value);
+        player.category = e.target.value;
+        player.categoryTitle = selected ? selected.title : e.target.value;
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn-remove-roster-row';
+      removeBtn.textContent = '✕';
+      removeBtn.title = 'Remove player';
+      removeBtn.addEventListener('click', () => {
+        rosterState.splice(idx, 1);
+        renderRosterRows();
+      });
+
+      row.appendChild(numSpan);
+      row.appendChild(nameInput);
+      row.appendChild(catSelect);
+      row.appendChild(removeBtn);
+      el.playerRosterContainer.appendChild(row);
+    });
+  }
+
+  function initRosterWithPreset(count) {
+    const categories = getAvailableCategories();
+    rosterState = [];
+    for (let i = 0; i < count; i++) {
+      const sampleName = SAMPLE_NAMES[i % SAMPLE_NAMES.length];
+      const cat = categories[i % categories.length];
+      rosterState.push({
+        name: sampleName,
+        category: cat.id,
+        categoryTitle: cat.title
+      });
+    }
+    renderRosterRows();
+  }
+
   function openCreateGameModal() {
     if (el.modalCreateGame) {
       el.modalCreateGame.classList.add('active');
-      if (el.inputPlayerNames && !el.inputPlayerNames.value.trim()) {
-        fillSamplePreset(16);
+      if (rosterState.length === 0) {
+        initRosterWithPreset(16);
       } else {
-        updateCreateGameBadges();
+        renderRosterRows();
       }
     }
   }
@@ -1109,38 +1214,38 @@
     if (el.modalCreateGame) el.modalCreateGame.classList.remove('active');
   }
 
-  function fillSamplePreset(count) {
-    const subset = SAMPLE_NAMES.slice(0, count);
-    if (el.inputPlayerNames) {
-      el.inputPlayerNames.value = subset.join('\n');
-      updateCreateGameBadges();
-    }
-  }
-
   function handleCreateGameSubmit() {
-    const names = parsePlayerNames(el.inputPlayerNames ? el.inputPlayerNames.value : '');
-    if (names.length < 2) {
+    const validRows = rosterState.filter(r => r.name.trim().length > 0);
+    if (validRows.length < 2) {
       alert('Please enter at least 2 player names to build the territory floor.');
       return;
     }
 
-    const cols = Math.ceil(Math.sqrt(names.length));
-    const rows = Math.ceil(names.length / cols);
+    const availableCats = getAvailableCategories();
+    const cols = Math.ceil(Math.sqrt(validRows.length));
+    const rows = Math.ceil(validRows.length / cols);
 
-    const players = names.map((name, idx) => ({
-      id: 'p_' + (idx + 1),
-      number: idx + 1,
-      name: name,
-      color: getPlayerColor(idx, names.length),
-      territoryCount: 1,
-      active: true,
-      hasDueled: false
-    }));
+    const players = validRows.map((r, idx) => {
+      const catObj = availableCats.find(c => c.id === r.category) || availableCats[idx % availableCats.length];
+      return {
+        id: 'p_' + (idx + 1),
+        number: idx + 1,
+        name: r.name.trim(),
+        category: r.category || catObj.id,
+        categoryTitle: r.categoryTitle || catObj.title,
+        color: getPlayerColor(idx, validRows.length),
+        territoryCount: 1,
+        active: true,
+        hasDueled: false
+      };
+    });
 
     const grid = players.map((p, idx) => ({
       squareIndex: idx,
       playerId: p.id,
       playerName: p.name,
+      playerCategory: p.category,
+      playerCategoryTitle: p.categoryTitle,
       color: p.color
     }));
 
@@ -1288,10 +1393,16 @@
     pendingDefender = null;
 
     if (el.bannerChallengerName) {
-      el.bannerChallengerName.textContent = challenger.name;
+      const catLabel = challenger.categoryTitle || challenger.category || '';
+      el.bannerChallengerName.textContent = catLabel
+        ? `${challenger.name} (🎯 ${catLabel})`
+        : challenger.name;
     }
     if (el.bannerSubtext) {
       el.bannerSubtext.textContent = 'Host is selecting the defender to duel!';
+    }
+    if (el.btnBannerReturnToFloor) {
+      el.btnBannerReturnToFloor.style.display = 'none';
     }
     if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'none';
     if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'flex';
@@ -1303,6 +1414,9 @@
     activeChallenger = null;
     pendingDefender = null;
 
+    if (el.btnBannerReturnToFloor) {
+      el.btnBannerReturnToFloor.style.display = 'none';
+    }
     if (el.territoryBannerDefault) el.territoryBannerDefault.style.display = 'flex';
     if (el.territoryBannerActive) el.territoryBannerActive.style.display = 'none';
 
@@ -1418,12 +1532,22 @@
       labelDiv.className = 'territory-player-label';
       labelDiv.textContent = playerName;
 
+      const categoryDiv = document.createElement('div');
+      categoryDiv.className = 'territory-player-category';
+      const catText = (owner && (owner.categoryTitle || owner.category)) 
+        || sq.playerCategoryTitle 
+        || sq.playerCategory 
+        || 'General';
+      categoryDiv.textContent = catText;
+      categoryDiv.title = `Category: ${catText}`;
+
       const footerSpan = document.createElement('span');
       footerSpan.className = 'territory-tile-footer';
       footerSpan.textContent = `${count} ${count === 1 ? 'Territory' : 'Territories'}`;
 
       tile.appendChild(numSpan);
       tile.appendChild(labelDiv);
+      tile.appendChild(categoryDiv);
       tile.appendChild(footerSpan);
 
       // Apply Challenger, Adjacent Target, or Dimmed visual states
@@ -1440,7 +1564,23 @@
           targetTag.className = 'territory-tile-target-tag';
           targetTag.textContent = '⚔️ CAN CHALLENGE';
           tile.appendChild(targetTag);
-          tile.title = `Adjacent competitor: ${sq.playerName} (Awaiting Host Selection)`;
+          tile.title = `Adjacent competitor: ${sq.playerName} (Category: ${catText})`;
+
+          tile.addEventListener('click', () => {
+            const defender = territoryGame.players.find(p => p.id === sq.playerId);
+            if (defender && activeChallenger) {
+              const defCat = defender.categoryTitle || defender.category || 'General';
+              if (confirm(`Challenge ${defender.name} to a duel on category: "${defCat}"?`)) {
+                sendServerCommand('select_defender', {
+                  challengerId: activeChallenger.id,
+                  challengerName: activeChallenger.name,
+                  defenderId: defender.id,
+                  defenderName: defender.name,
+                  category: defender.category
+                });
+              }
+            }
+          });
         } else {
           tile.classList.add('is-dimmed');
         }
@@ -1530,16 +1670,82 @@
   if (el.btnCancelCreateGame) el.btnCancelCreateGame.addEventListener('click', closeCreateGameModal);
   if (el.btnSubmitPlayers) el.btnSubmitPlayers.addEventListener('click', handleCreateGameSubmit);
 
-  if (el.inputPlayerNames) {
-    el.inputPlayerNames.addEventListener('input', updateCreateGameBadges);
+  // Roster Sub-actions & Buttons
+  if (el.btnAddRosterPlayer) {
+    el.btnAddRosterPlayer.addEventListener('click', () => {
+      const categories = getAvailableCategories();
+      const cat = categories[rosterState.length % categories.length];
+      rosterState.push({
+        name: `Player ${rosterState.length + 1}`,
+        category: cat.id,
+        categoryTitle: cat.title
+      });
+      renderRosterRows();
+      if (el.playerRosterContainer) {
+        el.playerRosterContainer.scrollTop = el.playerRosterContainer.scrollHeight;
+      }
+    });
+  }
+
+  if (el.btnRandomizeCategories) {
+    el.btnRandomizeCategories.addEventListener('click', () => {
+      const categories = getAvailableCategories();
+      if (categories.length === 0) return;
+      rosterState.forEach(p => {
+        const randCat = categories[Math.floor(Math.random() * categories.length)];
+        p.category = randCat.id;
+        p.categoryTitle = randCat.title;
+      });
+      renderRosterRows();
+    });
+  }
+
+  if (el.btnToggleBulkPaste && el.bulkPasteBox) {
+    el.btnToggleBulkPaste.addEventListener('click', () => {
+      const isHidden = el.bulkPasteBox.style.display === 'none' || !el.bulkPasteBox.style.display;
+      el.bulkPasteBox.style.display = isHidden ? 'block' : 'none';
+      if (isHidden && el.inputPlayerNames) {
+        el.inputPlayerNames.value = rosterState.map(p => p.name).join('\n');
+        el.inputPlayerNames.focus();
+      }
+    });
+  }
+
+  if (el.btnApplyBulkPaste && el.inputPlayerNames) {
+    el.btnApplyBulkPaste.addEventListener('click', () => {
+      const lines = parsePlayerNames(el.inputPlayerNames.value);
+      if (lines.length === 0) {
+        alert('Please enter at least one player name.');
+        return;
+      }
+      const categories = getAvailableCategories();
+      rosterState = lines.map((name, i) => {
+        const existing = rosterState[i];
+        const cat = existing ? { id: existing.category, title: existing.categoryTitle } : categories[i % categories.length];
+        return {
+          name: name,
+          category: cat.id,
+          categoryTitle: cat.title
+        };
+      });
+      if (el.bulkPasteBox) el.bulkPasteBox.style.display = 'none';
+      renderRosterRows();
+    });
   }
 
   // Preset Buttons
-  if (el.btnPreset9) el.btnPreset9.addEventListener('click', () => fillSamplePreset(9));
-  if (el.btnPreset16) el.btnPreset16.addEventListener('click', () => fillSamplePreset(16));
-  if (el.btnPreset25) el.btnPreset25.addEventListener('click', () => fillSamplePreset(25));
-  if (el.btnPreset49) el.btnPreset49.addEventListener('click', () => fillSamplePreset(49));
-  if (el.btnPreset100) el.btnPreset100.addEventListener('click', () => fillSamplePreset(100));
+  if (el.btnPreset9) el.btnPreset9.addEventListener('click', () => initRosterWithPreset(9));
+  if (el.btnPreset16) el.btnPreset16.addEventListener('click', () => initRosterWithPreset(16));
+  if (el.btnPreset25) el.btnPreset25.addEventListener('click', () => initRosterWithPreset(25));
+  if (el.btnPreset49) el.btnPreset49.addEventListener('click', () => initRosterWithPreset(49));
+  if (el.btnPreset100) el.btnPreset100.addEventListener('click', () => initRosterWithPreset(100));
+
+  // Reigning Winner Return to Floor Banner Button
+  if (el.btnBannerReturnToFloor) {
+    el.btnBannerReturnToFloor.addEventListener('click', () => {
+      sendServerCommand('return_to_floor');
+    });
+  }
 
   // Render Game Directory / Library Index
   function renderDirectory() {
