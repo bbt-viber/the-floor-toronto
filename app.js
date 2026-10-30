@@ -6,7 +6,7 @@
   const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('the-floor-toronto') : null;
 
   // Initial State
-  const initialPack = (typeof GAME_ICE_CREAM !== 'undefined') ? GAME_ICE_CREAM : (typeof TORONTO_STARTER_PACK !== 'undefined' ? { title: "Landmarks of Toronto", clues: TORONTO_STARTER_PACK } : { title: "The Floor Toronto", clues: [] });
+  const initialPack = (typeof GAME_CAR_LOGOS !== 'undefined') ? GAME_CAR_LOGOS : ((typeof GAME_MARVEL_CHARACTERS !== 'undefined') ? GAME_MARVEL_CHARACTERS : { title: "The Floor Toronto", clues: [] });
 
   const defaultGameData = {
     title: initialPack.title,
@@ -189,8 +189,8 @@
     fileInput: document.getElementById('fileInput'),
     clueListGrid: document.getElementById('clueListGrid'),
     clueCountBadge: document.getElementById('clueCountBadge'),
-    btnLoadIceCream: document.getElementById('btnLoadIceCream'),
-    btnLoadStarter: document.getElementById('btnLoadStarter'),
+    btnLoadCarLogos: document.getElementById('btnLoadCarLogos'),
+    btnLoadMarvel: document.getElementById('btnLoadMarvel'),
     btnExportJson: document.getElementById('btnExportJson'),
     btnImportJson: document.getElementById('btnImportJson'),
     importFileInput: document.getElementById('importFileInput'),
@@ -1105,13 +1105,10 @@
       }
     }
     return [
+      { id: 'car-logos', title: 'Car Logos' },
+      { id: 'marvel-characters', title: 'Marvel Characters' },
       { id: 'tennis', title: 'Tennis' },
-      { id: 'dog-breeds', title: 'Dog Breeds' },
-      { id: 'watch-brands', title: 'Watch Brands' },
-      { id: 'countries', title: 'Countries' },
-      { id: 'hairstyles', title: 'Hairstyles' },
-      { id: 'ice-cream-flavours', title: 'Ice Cream Flavours' },
-      { id: 'toronto-landmarks', title: 'Landmarks of Toronto' }
+      { id: 'dog-breeds', title: 'Dog Breeds' }
     ];
   }
 
@@ -1972,7 +1969,7 @@
 
     const games = (typeof GameRegistry !== 'undefined') 
       ? GameRegistry.getAll() 
-      : [GAME_ICE_CREAM, GAME_TORONTO_LANDMARKS];
+      : [GAME_CAR_LOGOS, GAME_MARVEL_CHARACTERS, GAME_TENNIS, GAME_DOG_BREEDS];
 
     games.forEach(game => {
       const card = document.createElement('div');
@@ -1985,7 +1982,7 @@
 
       const icon = document.createElement('div');
       icon.className = 'game-card-icon';
-      icon.textContent = game.id === 'hairstyles' ? '💈' : (game.id === 'countries' ? '🌍' : (game.id === 'ice-cream-flavours' ? '🍦' : (game.id === 'toronto-landmarks' ? '🏢' : '🎯')));
+      icon.textContent = game.id === 'car-logos' ? '🚗' : (game.id === 'marvel-characters' ? '🦸' : (game.id === 'tennis' ? '🎾' : (game.id === 'dog-breeds' ? '🐕' : '🎯')));
 
       const badge = document.createElement('div');
       badge.className = 'game-card-badge';
@@ -2231,13 +2228,13 @@
     });
   }
 
-  // Load Ice Cream Pack
-  if (el.btnLoadIceCream) {
-    el.btnLoadIceCream.addEventListener('click', () => {
-      if (typeof GAME_ICE_CREAM !== 'undefined') {
-        if (confirm('Load Ice Cream Flavours Pack? (Replaces current clues)')) {
-          state.clues = [...GAME_ICE_CREAM.clues];
-          state.title = GAME_ICE_CREAM.title;
+  // Load Car Logos Pack
+  if (el.btnLoadCarLogos) {
+    el.btnLoadCarLogos.addEventListener('click', () => {
+      if (typeof GAME_CAR_LOGOS !== 'undefined') {
+        if (confirm('Load Car Logos Pack? (Replaces current clues)')) {
+          state.clues = [...GAME_CAR_LOGOS.clues];
+          state.title = GAME_CAR_LOGOS.title;
           renderSetupForm();
           persistCurrentGame();
         }
@@ -2245,15 +2242,19 @@
     });
   }
 
-  // Load Starter Pack
-  el.btnLoadStarter.addEventListener('click', () => {
-    if (confirm('Load Toronto Starter Pack? (Replaces current clues)')) {
-      state.clues = [...TORONTO_STARTER_PACK];
-      state.title = "Landmarks of Toronto";
-      renderSetupForm();
-      persistCurrentGame();
-    }
-  });
+  // Load Marvel Characters Pack
+  if (el.btnLoadMarvel) {
+    el.btnLoadMarvel.addEventListener('click', () => {
+      if (typeof GAME_MARVEL_CHARACTERS !== 'undefined') {
+        if (confirm('Load Marvel Characters Pack? (Replaces current clues)')) {
+          state.clues = [...GAME_MARVEL_CHARACTERS.clues];
+          state.title = GAME_MARVEL_CHARACTERS.title;
+          renderSetupForm();
+          persistCurrentGame();
+        }
+      }
+    });
+  }
 
   // Clear All Clues
   el.btnClearAll.addEventListener('click', () => {

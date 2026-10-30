@@ -10,21 +10,10 @@ const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = __dirname;
 
 // Load initial game packs
-let sampleLandmarks = [];
-let iceCreamGame = null;
-let countriesGame = null;
-let hairstylesGame = null;
-let watchBrandsGame = null;
 let dogBreedsGame = null;
 let tennisGame = null;
 let marvelGame = null;
 let carLogosGame = null;
-
-try {
-  sampleLandmarks = require('./sample-data.js');
-} catch (e) {
-  console.warn('Could not load sample-data.js', e.message);
-}
 
 try {
   marvelGame = require('./games/marvel-characters.js');
@@ -36,30 +25,6 @@ try {
   carLogosGame = require('./games/car-logos.js');
 } catch (e) {
   console.warn('Could not load car-logos.js', e.message);
-}
-
-try {
-  iceCreamGame = require('./games/ice-cream-flavours.js');
-} catch (e) {
-  console.warn('Could not load ice-cream-flavours.js', e.message);
-}
-
-try {
-  countriesGame = require('./games/countries.js');
-} catch (e) {
-  console.warn('Could not load countries.js', e.message);
-}
-
-try {
-  hairstylesGame = require('./games/hairstyles.js');
-} catch (e) {
-  console.warn('Could not load hairstyles.js', e.message);
-}
-
-try {
-  watchBrandsGame = require('./games/watch-brands.js');
-} catch (e) {
-  console.warn('Could not load watch-brands.js', e.message);
 }
 
 try {
@@ -76,8 +41,8 @@ try {
 
 // Authoritative Server Game State
 const state = {
-  title: iceCreamGame ? iceCreamGame.title : "Ice Cream Flavours",
-  gameId: iceCreamGame ? iceCreamGame.id : "ice-cream-flavours",
+  title: carLogosGame ? carLogosGame.title : "Car Logos",
+  gameId: carLogosGame ? carLogosGame.id : "car-logos",
   p1: { name: "Player 1", timeRemaining: 45, maxTime: 45 },
   p2: { name: "Player 2", timeRemaining: 45, maxTime: 45 },
   activePlayer: 1, // 1 or 2
@@ -89,7 +54,7 @@ const state = {
   isCorrect: false,
   correctAnswer: '',
   lastCorrectAnswer: '',
-  clues: iceCreamGame ? [...iceCreamGame.clues] : [],
+  clues: carLogosGame ? [...carLogosGame.clues] : [],
   clueIndex: 0,
   roundTime: 45,
   passPenaltySeconds: 3,
@@ -456,31 +421,6 @@ function loadCategoryIntoState(gameId) {
     state.gameId = dogBreedsGame.id;
     state.clues = [...dogBreedsGame.clues];
     state.roundTime = dogBreedsGame.defaultTimer || 45;
-  } else if (id === 'watch-brands' && watchBrandsGame) {
-    state.title = watchBrandsGame.title;
-    state.gameId = watchBrandsGame.id;
-    state.clues = [...watchBrandsGame.clues];
-    state.roundTime = watchBrandsGame.defaultTimer || 45;
-  } else if (id === 'hairstyles' && hairstylesGame) {
-    state.title = hairstylesGame.title;
-    state.gameId = hairstylesGame.id;
-    state.clues = [...hairstylesGame.clues];
-    state.roundTime = hairstylesGame.defaultTimer || 45;
-  } else if (id === 'countries' && countriesGame) {
-    state.title = countriesGame.title;
-    state.gameId = countriesGame.id;
-    state.clues = [...countriesGame.clues];
-    state.roundTime = countriesGame.defaultTimer || 45;
-  } else if (id === 'toronto-landmarks') {
-    state.title = "Landmarks of Toronto";
-    state.gameId = 'toronto-landmarks';
-    state.clues = [...sampleLandmarks];
-    state.roundTime = 45;
-  } else if (id === 'ice-cream-flavours' && iceCreamGame) {
-    state.title = iceCreamGame.title;
-    state.gameId = iceCreamGame.id;
-    state.clues = [...iceCreamGame.clues];
-    state.roundTime = iceCreamGame.defaultTimer || 45;
   } else {
     try {
       const jsonFile = path.join(__dirname, 'games', `${id}.json`);
@@ -966,26 +906,6 @@ function handleHostCommand(cmd, payload = {}) {
         state.title = dogBreedsGame.title;
         state.gameId = dogBreedsGame.id;
         state.clues = [...dogBreedsGame.clues];
-      } else if (gId === 'watch-brands' && watchBrandsGame) {
-        state.title = watchBrandsGame.title;
-        state.gameId = watchBrandsGame.id;
-        state.clues = [...watchBrandsGame.clues];
-      } else if (gId === 'hairstyles' && hairstylesGame) {
-        state.title = hairstylesGame.title;
-        state.gameId = hairstylesGame.id;
-        state.clues = [...hairstylesGame.clues];
-      } else if (gId === 'countries' && countriesGame) {
-        state.title = countriesGame.title;
-        state.gameId = countriesGame.id;
-        state.clues = [...countriesGame.clues];
-      } else if (gId === 'toronto-landmarks') {
-        state.title = "Landmarks of Toronto";
-        state.gameId = 'toronto-landmarks';
-        state.clues = [...sampleLandmarks];
-      } else if (gId === 'ice-cream-flavours' && iceCreamGame) {
-        state.title = iceCreamGame.title;
-        state.gameId = iceCreamGame.id;
-        state.clues = [...iceCreamGame.clues];
       }
     }
     state.p1.timeRemaining = state.roundTime;

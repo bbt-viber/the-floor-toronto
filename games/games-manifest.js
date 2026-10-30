@@ -3,12 +3,7 @@ const GAMES_DIRECTORY = [
   typeof GAME_CAR_LOGOS !== 'undefined' ? GAME_CAR_LOGOS : null,
   typeof GAME_MARVEL_CHARACTERS !== 'undefined' ? GAME_MARVEL_CHARACTERS : null,
   typeof GAME_TENNIS !== 'undefined' ? GAME_TENNIS : null,
-  typeof GAME_DOG_BREEDS !== 'undefined' ? GAME_DOG_BREEDS : null,
-  typeof GAME_WATCH_BRANDS !== 'undefined' ? GAME_WATCH_BRANDS : null,
-  typeof GAME_COUNTRIES !== 'undefined' ? GAME_COUNTRIES : null,
-  typeof GAME_HAIRSTYLES !== 'undefined' ? GAME_HAIRSTYLES : null,
-  typeof GAME_ICE_CREAM !== 'undefined' ? GAME_ICE_CREAM : null,
-  typeof GAME_TORONTO_LANDMARKS !== 'undefined' ? GAME_TORONTO_LANDMARKS : null
+  typeof GAME_DOG_BREEDS !== 'undefined' ? GAME_DOG_BREEDS : null
 ].filter(Boolean);
 
 // Helper functions for accessing and managing games
