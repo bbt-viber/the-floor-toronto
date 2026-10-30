@@ -1,0 +1,347 @@
+{
+  "id": "car-logos",
+  "title": "Car Logos",
+  "description": "Identify the automaker from its iconic emblem, badge, or hood ornament — with brand names removed!",
+  "category": "Vehicles & Automobiles",
+  "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
+  "cluesCount": 40,
+  "defaultTimer": 45,
+  "bannerColor": "linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #e52d27 100%)",
+  "clues": [
+    {
+      "id": "clue_car_mercedes_benz",
+      "answer": "Mercedes-Benz",
+      "aliases": [
+        "Mercedes",
+        "Benz"
+      ],
+      "difficulty": "Easy",
+      "image": "car-logos/Mercedes-Benz.jpg",
+      "hint": "Three-pointed chrome star mounted on front radiator grille"
+    },
+    {
+      "id": "clue_car_audi",
+      "answer": "Audi",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "car-logos/Audi.jpg",
+      "hint": "Four horizontally interlocking polished chrome rings"
+    },
+    {
+      "id": "clue_car_bmw",
+      "answer": "BMW",
+      "aliases": [
+        "Bimmer",
+        "Beemer"
+      ],
+      "difficulty": "Easy",
+      "image": "car-logos/BMW.jpg",
+      "hint": "Blue and white quarterly roundel badge on car hood"
+    },
+    {
+      "id": "clue_car_ferrari",
+      "answer": "Ferrari",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "car-logos/Ferrari.jpg",
+      "hint": "Black prancing stallion on bright canary yellow heraldic shield"
+    },
+    {
+      "id": "clue_car_toyota",
+      "answer": "Toyota",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "car-logos/Toyota.jpg",
+      "hint": "Three overlapping symmetrical ellipses forming a stylized 'T' emblem"
+    },
+    {
+      "id": "clue_car_volkswagen",
+      "answer": "Volkswagen",
+      "aliases": [
+        "VW"
+      ],
+      "difficulty": "Easy",
+      "image": "car-logos/Volkswagen.jpg",
+      "hint": "Interlocking letters 'V' and 'W' enclosed within a chrome circular ring"
+    },
+    {
+      "id": "clue_car_tesla",
+      "answer": "Tesla",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "car-logos/Tesla.jpg",
+      "hint": "Sleek stylized chrome 'T' emblem with curved top bar on car hood"
+    },
+    {
+      "id": "clue_car_ford",
+      "answer": "Ford",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "car-logos/Ford.jpg",
+      "hint": "Classic blue oval badge with chrome metallic border"
+    },
+    {
+      "id": "clue_car_honda",
+      "answer": "Honda",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "car-logos/Honda.jpg",
+      "hint": "Polished chrome stylized bold 'H' within a rounded rectangular frame"
+    },
+    {
+      "id": "clue_car_porsche",
+      "answer": "Porsche",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "car-logos/Porsche.jpg",
+      "hint": "Stuttgart coat of arms crest featuring black horse, antlers, and red stripes"
+    },
+    {
+      "id": "clue_car_lamborghini",
+      "answer": "Lamborghini",
+      "aliases": [
+        "Lambo"
+      ],
+      "difficulty": "Medium",
+      "image": "car-logos/Lamborghini.jpg",
+      "hint": "Gold charging bull poised to strike on black shield badge"
+    },
+    {
+      "id": "clue_car_chevrolet",
+      "answer": "Chevrolet",
+      "aliases": [
+        "Chevy"
+      ],
+      "difficulty": "Medium",
+      "image": "car-logos/Chevrolet.jpg",
+      "hint": "Iconic gold/chrome horizontal bowtie emblem on vehicle grille"
+    },
+    {
+      "id": "clue_car_hyundai",
+      "answer": "Hyundai",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Hyundai.jpg",
+      "hint": "Slanted, italicized chrome letter 'H' inside horizontal oval"
+    },
+    {
+      "id": "clue_car_nissan",
+      "answer": "Nissan",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Nissan.jpg",
+      "hint": "Polished chrome ring bisected horizontally by a central brand bar"
+    },
+    {
+      "id": "clue_car_subaru",
+      "answer": "Subaru",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Subaru.jpg",
+      "hint": "Six-star Pleiades constellation cluster emblem on midnight blue oval"
+    },
+    {
+      "id": "clue_car_mazda",
+      "answer": "Mazda",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Mazda.jpg",
+      "hint": "Sculpted chrome winged 'M' opening outward inside oval grille badge"
+    },
+    {
+      "id": "clue_car_jeep",
+      "answer": "Jeep",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Jeep.jpg",
+      "hint": "Iconic vertical seven-slot front vehicle grille flanked by round lights"
+    },
+    {
+      "id": "clue_car_volvo",
+      "answer": "Volvo",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Volvo.jpg",
+      "hint": "Ancient iron chemical symbol circle with diagonal arrow pointing up-right"
+    },
+    {
+      "id": "clue_car_jaguar",
+      "answer": "Jaguar",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Jaguar.jpg",
+      "hint": "Three-dimensional chrome leaping big cat mascot on vehicle hood"
+    },
+    {
+      "id": "clue_car_rolls_royce",
+      "answer": "Rolls-Royce",
+      "aliases": [
+        "Rolls Royce",
+        "Rolls"
+      ],
+      "difficulty": "Medium",
+      "image": "car-logos/Rolls-Royce.jpg",
+      "hint": "'Spirit of Ecstasy' sculpted flying lady mascot on towering chrome radiator"
+    },
+    {
+      "id": "clue_car_bentley",
+      "answer": "Bentley",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Bentley.jpg",
+      "hint": "Winged 'B' chrome badge with outstretched feathered bird wings"
+    },
+    {
+      "id": "clue_car_aston_martin",
+      "answer": "Aston Martin",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Aston Martin.jpg",
+      "hint": "Graceful horizontal outstretched feathered silver wings emblem"
+    },
+    {
+      "id": "clue_car_land_rover",
+      "answer": "Land Rover",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Land Rover.jpg",
+      "hint": "Classic forest green horizontal oval badge with metallic silver trim"
+    },
+    {
+      "id": "clue_car_dodge",
+      "answer": "Dodge",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Dodge.jpg",
+      "hint": "Dual parallel diagonal red racing slashes emblem on front grille"
+    },
+    {
+      "id": "clue_car_kia",
+      "answer": "Kia",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "car-logos/Kia.jpg",
+      "hint": "Modern angular geometric connected 'KIA' chrome badge on hood"
+    },
+    {
+      "id": "clue_car_maserati",
+      "answer": "Maserati",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Maserati.jpg",
+      "hint": "Neptune's mythological three-pronged chrome trident on concave grille"
+    },
+    {
+      "id": "clue_car_alfa_romeo",
+      "answer": "Alfa Romeo",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Alfa Romeo.jpg",
+      "hint": "Round badge with red Milanese cross and crowned snake eating a man"
+    },
+    {
+      "id": "clue_car_bugatti",
+      "answer": "Bugatti",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Bugatti.jpg",
+      "hint": "Red enamel oval badge featuring sixty pearls and mirrored 'EB' initials"
+    },
+    {
+      "id": "clue_car_mclaren",
+      "answer": "McLaren",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/McLaren.jpg",
+      "hint": "Dynamic aerodynamic speedmark swoosh emblem on supercar nose"
+    },
+    {
+      "id": "clue_car_cadillac",
+      "answer": "Cadillac",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Cadillac.jpg",
+      "hint": "Sleek modern geometric heraldic crest badge with metallic grid"
+    },
+    {
+      "id": "clue_car_genesis",
+      "answer": "Genesis",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Genesis.jpg",
+      "hint": "Wide sculpted chrome wings flanking a dark central crest shield"
+    },
+    {
+      "id": "clue_car_lincoln",
+      "answer": "Lincoln",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Lincoln.jpg",
+      "hint": "Elongated vertical four-pointed star within chrome rectangular frame"
+    },
+    {
+      "id": "clue_car_mitsubishi",
+      "answer": "Mitsubishi",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Mitsubishi.jpg",
+      "hint": "Three red triangular diamonds radiating from a single central point"
+    },
+    {
+      "id": "clue_car_buick",
+      "answer": "Buick",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Buick.jpg",
+      "hint": "Cascading red, silver, and blue tri-shield emblems inside chrome circle"
+    },
+    {
+      "id": "clue_car_infiniti",
+      "answer": "Infiniti",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Infiniti.jpg",
+      "hint": "Chrome oval emblem featuring two lines converging toward horizon"
+    },
+    {
+      "id": "clue_car_acura",
+      "answer": "Acura",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Acura.jpg",
+      "hint": "Mechanical caliper / stylized letter 'A' enclosed in chrome oval"
+    },
+    {
+      "id": "clue_car_lotus",
+      "answer": "Lotus",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Lotus.jpg",
+      "hint": "British racing green and yellow roundel with monogrammed 'ACBC' crest"
+    },
+    {
+      "id": "clue_car_peugeot",
+      "answer": "Peugeot",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Peugeot.jpg",
+      "hint": "Polished chrome heraldic rearing lion rampant emblem on front grille"
+    },
+    {
+      "id": "clue_car_renault",
+      "answer": "Renault",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Renault.jpg",
+      "hint": "Geometric vertical diamond rhombus emblem centered on front grille"
+    },
+    {
+      "id": "clue_car_koenigsegg",
+      "answer": "Koenigsegg",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "car-logos/Koenigsegg.jpg",
+      "hint": "Historic Swedish red and yellow shield heraldry crest emblem"
+    }
+  ]
+}

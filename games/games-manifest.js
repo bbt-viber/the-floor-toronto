@@ -1,5 +1,6 @@
 // Central Game Directory Manifest for The Floor Toronto
 const GAMES_DIRECTORY = [
+  typeof GAME_CAR_LOGOS !== 'undefined' ? GAME_CAR_LOGOS : null,
   typeof GAME_MARVEL_CHARACTERS !== 'undefined' ? GAME_MARVEL_CHARACTERS : null,
   typeof GAME_TENNIS !== 'undefined' ? GAME_TENNIS : null,
   typeof GAME_DOG_BREEDS !== 'undefined' ? GAME_DOG_BREEDS : null,

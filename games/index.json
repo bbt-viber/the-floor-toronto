@@ -1,5 +1,16 @@
 [
   {
+    "id": "car-logos",
+    "title": "Car Logos",
+    "description": "Identify the automaker from its iconic emblem, badge, or hood ornament — with brand names removed!",
+    "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
+    "category": "Vehicles & Automobiles",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #e52d27 100%)",
+    "file": "car-logos.json"
+  },
+  {
     "id": "marvel-characters",
     "title": "Marvel Characters",
     "description": "Identify the iconic Marvel character from their blockbuster movie costume, armor, and distinctive look!",

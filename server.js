@@ -18,6 +18,7 @@ let watchBrandsGame = null;
 let dogBreedsGame = null;
 let tennisGame = null;
 let marvelGame = null;
+let carLogosGame = null;
 
 try {
   sampleLandmarks = require('./sample-data.js');
@@ -29,6 +30,12 @@ try {
   marvelGame = require('./games/marvel-characters.js');
 } catch (e) {
   console.warn('Could not load marvel-characters.js', e.message);
+}
+
+try {
+  carLogosGame = require('./games/car-logos.js');
+} catch (e) {
+  console.warn('Could not load car-logos.js', e.message);
 }
 
 try {
@@ -429,7 +436,12 @@ function loadCategoryIntoState(gameId) {
   if (!gameId) return false;
   const id = String(gameId).toLowerCase().trim();
 
-  if (id === 'marvel-characters' && marvelGame) {
+  if (id === 'car-logos' && carLogosGame) {
+    state.title = carLogosGame.title;
+    state.gameId = carLogosGame.id;
+    state.clues = [...carLogosGame.clues];
+    state.roundTime = carLogosGame.defaultTimer || 45;
+  } else if (id === 'marvel-characters' && marvelGame) {
     state.title = marvelGame.title;
     state.gameId = marvelGame.id;
     state.clues = [...marvelGame.clues];
@@ -938,7 +950,11 @@ function handleHostCommand(cmd, payload = {}) {
     }
     if (payload.gameId && payload.gameId !== state.gameId) {
       const gId = payload.gameId;
-      if (gId === 'marvel-characters' && marvelGame) {
+      if (gId === 'car-logos' && carLogosGame) {
+        state.title = carLogosGame.title;
+        state.gameId = carLogosGame.id;
+        state.clues = [...carLogosGame.clues];
+      } else if (gId === 'marvel-characters' && marvelGame) {
         state.title = marvelGame.title;
         state.gameId = marvelGame.id;
         state.clues = [...marvelGame.clues];

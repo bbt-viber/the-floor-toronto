@@ -48,27 +48,35 @@ Once the prompt table is approved:
 1. **Local Folder Creation:**
    - Creates a directory named after the category on local disk:
      `[category_name]/`
-2. **Strict Authenticity Requirement — Real Photography Only (REQUIRED):**
+2. **Visual Framing & Clue Selection Insights (Muse Spark Pattern):**
+   - **Prioritize Signature Trademark Features (Surrogate Clues):** For entities whose primary badge is a simple text wordmark, source their universally recognized physical design trademark instead of an awkward blank badge (e.g., Jeep's iconic 7-slot vertical grille flanked by round headlights; Dodge's sculptural bighorn Ram mascot; Rolls-Royce's Spirit of Ecstasy or interlocking `RR` monogram; Bentley's Flying B hood mascot; Ferrari's standalone chrome *Cavallino Rampante* rearing stallion on body paint; McLaren's aerodynamic speedmark swoosh).
+   - **Tightly Framed, Distraction-Free Composition:** In fast-paced 1v1 duels, players have only 2–4 seconds to recognize an item. Frame the subject cleanly with the emblem/clue occupying 60–80% of the canvas against clean, authentic surfaces (e.g. car body paint, clean mesh grille, or uniform surface). Strictly avoid wide environmental clutter, visible license plates, dealer signage, garage workshops, or reflections of people holding cameras.
+   - **Naturally Text-Free Sourcing Priority (Zero-Redaction Rule):** Whenever sourcing emblems, logos, or branded equipment, actively prioritize authentic factory variants that are naturally text-free (e.g., standalone mascots, radiator stars, hood ornaments, stylized geometric letterforms) before resorting to image editing.
+   - **Strict Text Redaction Standards (When Text is Unavoidable):**
+     - Never use soft blur, translucent feathered vignettes, or partial crops that leave character edges or secondary words visible (e.g., "STUTTGART" on Porsche crests, "ACBC" on Lotus, or letter stems sticking out of boxes).
+     - Use crisp, opaque, perfectly bounded white or color-matched blocking bars that cover 100% of the text boundaries while leaving the outer emblem geometry completely recognizable.
+     - Always audit for debossed, stamped, or secondary regional text (such as debossed lettering on chrome bars or model names).
+3. **Strict Authenticity Requirement — Real Photography Only (REQUIRED):**
    - Every clue MUST be a **real, natural camera photograph** taken in the real world (real people, real places, real events, real objects).
    - **Zero AI generation, zero vector art, zero 3D renders, zero diagrams, zero illustrations, and zero programmatically drawn graphics.** Do NOT use the `image-generator` subagent or draw images with code unless the user explicitly requests it for a specific prompt.
    - Do NOT add overlays, arrows, circles, labels, or text onto photos to "explain" the answer. If a photo needs an annotation to be guessable, find a better photo (or recalibrate the prompt in Step 1).
    - If an item is hard to photograph in isolation, source an authentic documentary/action photograph showing the real item in its natural context.
-3. **Image Acquisition — Multi-Source Real Photo Pipeline (in priority order):**
+4. **Image Acquisition — Multi-Source Real Photo Pipeline (in priority order):**
    1. **Google Images (PRIMARY):** Run a Google Images search for each prompt (e.g., `https://www.google.com/search?udm=2&hl=en&q=<query>&tbs=itp:photo,isz:l`, filtered to **photos** and **large** size) and **pick from the first image results**. Prefer the highest-ranked result that is a natural photograph, clearly shows the answer, meets the resolution requirement, and contains no watermark or video card graphic overlay.
    2. **Wikimedia Commons (fallback):** Download original high-res editorial photos directly via `Special:FilePath` or the REST page summary/media-list endpoints.
    3. **Open photo libraries (fallback):** Unsplash, Pexels, or Flickr Creative Commons for natural, high-resolution photographs.
    - Never fall back to AI generation when a source rate-limits or fails—move to the next real-photo source instead.
-4. **Image Resolution Requirement:**
+5. **Image Resolution Requirement:**
    - Every image MUST be around **1200 × 1000 px**. Only select source images whose original resolution is at least ~1000 px on the long edge (never save small 300–600 px thumbnails), then resize/fit to ~1200 px wide (or ~1000 px tall for portrait images).
-5. **File Naming Requirement:** Every image file MUST be named after the exact prompt answer:
+6. **File Naming Requirement:** Every image file MUST be named after the exact prompt answer:
    `[category_name]/[Answer].jpg` (e.g. `France.jpg`, `Pistachio.jpg`).
-6. **Local App Integration:**
+7. **Local App Integration:**
    - Creates the game definition files:
      - `games/[category_name].js`
      - `games/[category_name].json`
    - Updates `games/index.json` and `games/games-manifest.js`.
    - Adds the category to `index.html`, `host.html`, and `server.js` so it is immediately playable locally across both the main stage and mobile host remote.
-7. **Automatic Transition to Step 3:**
+8. **Automatic Transition to Step 3:**
    - Immediately proceed to Step 3 (Blind Visual Validation via Subagent) to automatically execute visual validation once before pausing for the user's review.
 
 ---
