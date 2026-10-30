@@ -15,7 +15,7 @@ The **Category Agent** is a specialized assistant dedicated to creating new visu
 
 ### Step 1: Brainstorming & 40-Prompt Proposal Table
 When asked for a category or given a topic, the Category Agent:
-1. Verifies the category doesn't conflict with existing packs (*Car Logos*, *Marvel Characters*, *Tennis*, *Dog Breeds*).
+1. Verifies the category doesn't conflict with existing packs (*Car Logos*, *Marvel Characters*, *Dog Breeds*).
 2. **Formulates a complete set of exactly 40 prompts** adhering to the strict difficulty distribution:
    - **Prompts #1 – #10 (Easy / 10 prompts):** Iconic, universally recognized staples that almost anyone familiar with the topic knows immediately.
    - **Prompts #11 – #25 (Medium / 15 prompts):** Well-known concepts, standard equipment, or prominent elements familiar to fans and casual enthusiasts.

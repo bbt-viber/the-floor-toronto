@@ -11,7 +11,6 @@ const PUBLIC_DIR = __dirname;
 
 // Load initial game packs
 let dogBreedsGame = null;
-let tennisGame = null;
 let marvelGame = null;
 let carLogosGame = null;
 
@@ -31,12 +30,6 @@ try {
   dogBreedsGame = require('./games/dog-breeds.js');
 } catch (e) {
   console.warn('Could not load dog-breeds.js', e.message);
-}
-
-try {
-  tennisGame = require('./games/tennis.js');
-} catch (e) {
-  console.warn('Could not load tennis.js', e.message);
 }
 
 // Authoritative Server Game State
@@ -411,11 +404,6 @@ function loadCategoryIntoState(gameId) {
     state.gameId = marvelGame.id;
     state.clues = [...marvelGame.clues];
     state.roundTime = marvelGame.defaultTimer || 45;
-  } else if (id === 'tennis' && tennisGame) {
-    state.title = tennisGame.title;
-    state.gameId = tennisGame.id;
-    state.clues = [...tennisGame.clues];
-    state.roundTime = tennisGame.defaultTimer || 45;
   } else if (id === 'dog-breeds' && dogBreedsGame) {
     state.title = dogBreedsGame.title;
     state.gameId = dogBreedsGame.id;
@@ -898,10 +886,6 @@ function handleHostCommand(cmd, payload = {}) {
         state.title = marvelGame.title;
         state.gameId = marvelGame.id;
         state.clues = [...marvelGame.clues];
-      } else if (gId === 'tennis' && tennisGame) {
-        state.title = tennisGame.title;
-        state.gameId = tennisGame.id;
-        state.clues = [...tennisGame.clues];
       } else if (gId === 'dog-breeds' && dogBreedsGame) {
         state.title = dogBreedsGame.title;
         state.gameId = dogBreedsGame.id;

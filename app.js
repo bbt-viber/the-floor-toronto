@@ -1107,7 +1107,6 @@
     return [
       { id: 'car-logos', title: 'Car Logos' },
       { id: 'marvel-characters', title: 'Marvel Characters' },
-      { id: 'tennis', title: 'Tennis' },
       { id: 'dog-breeds', title: 'Dog Breeds' }
     ];
   }
@@ -1969,7 +1968,7 @@
 
     const games = (typeof GameRegistry !== 'undefined') 
       ? GameRegistry.getAll() 
-      : [GAME_CAR_LOGOS, GAME_MARVEL_CHARACTERS, GAME_TENNIS, GAME_DOG_BREEDS];
+      : [GAME_CAR_LOGOS, GAME_MARVEL_CHARACTERS, GAME_DOG_BREEDS];
 
     games.forEach(game => {
       const card = document.createElement('div');
@@ -1982,7 +1981,7 @@
 
       const icon = document.createElement('div');
       icon.className = 'game-card-icon';
-      icon.textContent = game.id === 'car-logos' ? '🚗' : (game.id === 'marvel-characters' ? '🦸' : (game.id === 'tennis' ? '🎾' : (game.id === 'dog-breeds' ? '🐕' : '🎯')));
+      icon.textContent = game.id === 'car-logos' ? '🚗' : (game.id === 'marvel-characters' ? '🦸' : (game.id === 'dog-breeds' ? '🐕' : '🎯'));
 
       const badge = document.createElement('div');
       badge.className = 'game-card-badge';
