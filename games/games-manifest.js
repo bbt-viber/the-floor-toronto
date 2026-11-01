@@ -3,7 +3,8 @@ const GAMES_DIRECTORY = [
   typeof GAME_NBA_WNBA !== 'undefined' ? GAME_NBA_WNBA : null,
   typeof GAME_CAR_LOGOS !== 'undefined' ? GAME_CAR_LOGOS : null,
   typeof GAME_MARVEL_CHARACTERS !== 'undefined' ? GAME_MARVEL_CHARACTERS : null,
-  typeof GAME_DOG_BREEDS !== 'undefined' ? GAME_DOG_BREEDS : null
+  typeof GAME_DOG_BREEDS !== 'undefined' ? GAME_DOG_BREEDS : null,
+  typeof GAME_CANDY_BAR_TRIVIA !== 'undefined' ? GAME_CANDY_BAR_TRIVIA : null
 ].filter(Boolean);
 
 // Helper functions for accessing and managing games
