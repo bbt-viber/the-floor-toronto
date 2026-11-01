@@ -73,6 +73,39 @@
         <span id="landingSavedStatusText">Click <strong>CREATE GAME</strong> to start your first territory battle!</span>
       </div>
 
+      <!-- ==================== SAVED FLOORS TABLE SECTION ==================== -->
+      <section id="landingSavedFloorsSection" class="saved-floors-section">
+        <div class="saved-floors-header">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span class="saved-floors-icon">📂</span>
+            <div>
+              <h2 class="saved-floors-title">Saved Territory Floors</h2>
+              <p class="saved-floors-subtitle">Select any saved floor to resume the battle or inspect contestant territory ownership</p>
+            </div>
+            <span id="savedFloorsCountBadge" class="game-badge-pill" style="margin-left: auto;">0 Saved</span>
+          </div>
+        </div>
+
+        <div class="saved-floors-table-card">
+          <div class="saved-floors-table-responsive">
+            <table class="saved-floors-table">
+              <thead>
+                <tr>
+                  <th style="text-align: left; min-width: 210px;">Floor Name &amp; Date</th>
+                  <th style="min-width: 130px;">Grid Size</th>
+                  <th style="min-width: 170px;">Contestants</th>
+                  <th style="min-width: 160px;">Floor Leader</th>
+                  <th style="text-align: right; min-width: 150px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="savedFloorsTableBody">
+                <!-- Dynamically populated rows or empty message -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
     </div>
   </main>
 
@@ -508,6 +541,7 @@
   </div>
 
   <!-- Scripts -->
+  <div id="floorToast" class="floor-toast"></div>
   <script src="qrcode.min.js"></script>
   <script src="games/nba-wnba.js"></script>
   <script src="games/car-logos.js"></script>

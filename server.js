@@ -9,6 +9,28 @@ const os = require('os');
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = __dirname;
 const GAMES_DIR = path.join(__dirname, 'games');
+const SAVED_FLOORS_FILE = path.join(__dirname, 'saved_floors.json');
+
+// Persistent Saved Floors Store
+let savedFloors = [];
+try {
+  if (fs.existsSync(SAVED_FLOORS_FILE)) {
+    const raw = fs.readFileSync(SAVED_FLOORS_FILE, 'utf8');
+    savedFloors = JSON.parse(raw);
+    if (!Array.isArray(savedFloors)) savedFloors = [];
+  }
+} catch (e) {
+  console.warn('[SavedFloors] Could not load saved_floors.json:', e.message);
+  savedFloors = [];
+}
+
+function persistSavedFloors() {
+  try {
+    fs.writeFileSync(SAVED_FLOORS_FILE, JSON.stringify(savedFloors, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[SavedFloors] Could not write saved_floors.json:', e.message);
+  }
+}
 
 // Dynamic Category Registry (auto-loads all game packs from ./games)
 const GAMES_MAP = new Map();
@@ -833,6 +855,50 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/state' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(state));
+    return;
+  }
+
+  // --- API: Saved Floors Endpoints ---
+  if (pathname === '/api/floors' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(savedFloors));
+    return;
+  }
+
+  if (pathname === '/api/floors' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const floor = JSON.parse(body);
+        if (floor && floor.players && floor.grid) {
+          const idx = savedFloors.findIndex(f => f.id === floor.id);
+          if (idx >= 0) {
+            savedFloors[idx] = floor;
+          } else {
+            savedFloors.unshift(floor);
+          }
+          persistSavedFloors();
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, floor }));
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid floor data' }));
+        }
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+    return;
+  }
+
+  if (pathname.startsWith('/api/floors/') && req.method === 'DELETE') {
+    const floorId = pathname.slice('/api/floors/'.length);
+    savedFloors = savedFloors.filter(f => f.id !== floorId);
+    persistSavedFloors();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true }));
     return;
   }
 

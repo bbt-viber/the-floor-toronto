@@ -64,6 +64,10 @@
     btnLandingCreateGame: document.getElementById('btnLandingCreateGame'),
     btnLandingLoadGame: document.getElementById('btnLandingLoadGame'),
     landingSavedStatusText: document.getElementById('landingSavedStatusText'),
+    landingSavedFloorsSection: document.getElementById('landingSavedFloorsSection'),
+    savedFloorsTableBody: document.getElementById('savedFloorsTableBody'),
+    savedFloorsCountBadge: document.getElementById('savedFloorsCountBadge'),
+    floorToast: document.getElementById('floorToast'),
 
     // Create Game Modal
     modalCreateGame: document.getElementById('modalCreateGame'),
@@ -1441,11 +1445,375 @@
     switchToView('territory');
   }
 
+  // ==================== SAVED FLOORS STORAGE & MANAGER ====================
+  let toastTimer = null;
+  function showToast(message, duration = 3200) {
+    if (!el.floorToast) return;
+    el.floorToast.textContent = message;
+    el.floorToast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el.floorToast.classList.remove('show');
+    }, duration);
+  }
+
+  function getSavedFloors() {
+    let list = [];
+    try {
+      const raw = localStorage.getItem('the_floor_saved_floors_list');
+      if (raw) {
+        list = JSON.parse(raw);
+        if (!Array.isArray(list)) list = [];
+      }
+    } catch (e) {
+      console.warn('Could not read saved floors from localStorage', e);
+      list = [];
+    }
+    return list;
+  }
+
+  function persistSavedFloorsList(list) {
+    try {
+      localStorage.setItem('the_floor_saved_floors_list', JSON.stringify(list));
+    } catch (e) {
+      console.warn('Could not persist saved floors list to localStorage', e);
+    }
+  }
+
+  // Fetch saved floors from backend if available to keep multi-screen/host in sync
+  async function syncSavedFloorsWithServer() {
+    if (!location.protocol.startsWith('http')) return;
+    try {
+      const res = await fetch('/api/floors');
+      if (res.ok) {
+        const serverFloors = await res.json();
+        if (Array.isArray(serverFloors) && serverFloors.length > 0) {
+          const localFloors = getSavedFloors();
+          const map = new Map();
+          localFloors.forEach(f => map.set(f.id, f));
+          serverFloors.forEach(f => map.set(f.id, f));
+          const merged = Array.from(map.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          persistSavedFloorsList(merged);
+          renderSavedFloorsTable();
+        }
+      }
+    } catch (e) {
+      // Offline fallback
+    }
+  }
+
+  function saveCurrentFloor(customName) {
+    if (!territoryGame || !territoryGame.players || territoryGame.players.length === 0 || !territoryGame.grid) {
+      alert('No active territory floor to save. Please create or launch a game first!');
+      return false;
+    }
+
+    const cols = territoryGame.cols;
+    const rows = territoryGame.rows;
+    const totalCount = territoryGame.players.length;
+    const now = Date.now();
+    const dateFormatted = new Date().toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+
+    const floorName = customName && customName.trim().length > 0
+      ? customName.trim()
+      : `Floor (${cols}×${rows} • ${totalCount} Players)`;
+
+    // Deep copy player records with names, categories, color, spaces owned, status
+    const playersCopy = territoryGame.players.map(p => ({
+      id: p.id,
+      number: p.number,
+      name: p.name,
+      category: p.category,
+      categoryTitle: p.categoryTitle || p.category,
+      color: p.color,
+      territoryCount: p.territoryCount !== undefined ? p.territoryCount : 1,
+      active: p.active !== false,
+      hasDueled: Boolean(p.hasDueled)
+    }));
+
+    // Deep copy grid squares with positions (squareIndex), owner ID, owner name, category, color
+    const gridCopy = territoryGame.grid.map(sq => ({
+      squareIndex: sq.squareIndex,
+      playerId: sq.playerId,
+      playerName: sq.playerName,
+      playerCategory: sq.playerCategory,
+      playerCategoryTitle: sq.playerCategoryTitle,
+      color: sq.color
+    }));
+
+    const floorRecord = {
+      id: territoryGame.id || ('floor_' + now),
+      name: floorName,
+      savedAt: dateFormatted,
+      timestamp: now,
+      cols: cols,
+      rows: rows,
+      players: playersCopy,
+      grid: gridCopy
+    };
+
+    // Update active territoryGame with id and name
+    territoryGame.id = floorRecord.id;
+    territoryGame.name = floorRecord.name;
+
+    // Update local saved floors list
+    const list = getSavedFloors();
+    const existingIndex = list.findIndex(f => f.id === floorRecord.id);
+    if (existingIndex >= 0) {
+      list[existingIndex] = floorRecord;
+    } else {
+      list.unshift(floorRecord);
+    }
+    persistSavedFloorsList(list);
+
+    // Save as current active floor in localStorage
+    try {
+      localStorage.setItem('the_floor_territory_game', JSON.stringify(territoryGame));
+    } catch (e) {}
+
+    // Send to backend server
+    if (location.protocol.startsWith('http')) {
+      fetch('/api/floors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(floorRecord)
+      }).catch(() => {});
+    }
+
+    sendServerCommand('sync_territory', { territory: territoryGame });
+
+    updateLandingSavedStatus();
+    renderSavedFloorsTable();
+    showToast(`✓ Floor "${floorName}" saved! Contestant names, categories, positions, and owned spaces preserved.`);
+    return true;
+  }
+
+  function handleSaveFloorClick() {
+    if (!territoryGame || !territoryGame.players || territoryGame.players.length === 0 || !territoryGame.grid) {
+      alert('No floor currently exists to save! Click "New Game" to create one.');
+      return;
+    }
+
+    const defaultName = territoryGame.name || `Floor (${territoryGame.cols}×${territoryGame.rows} • ${territoryGame.players.length} Players)`;
+    const entered = prompt('Enter a name for this saved floor:', defaultName);
+    if (entered === null) return; // Cancelled
+
+    saveCurrentFloor(entered.trim() || defaultName);
+  }
+
+  function loadSavedFloor(floorId) {
+    const list = getSavedFloors();
+    const found = list.find(f => f.id === floorId);
+    if (!found) {
+      alert('Could not find the requested saved floor.');
+      return;
+    }
+
+    // Reconstruct territoryGame state with exact players, categories, positions, and spaces owned
+    territoryGame = {
+      id: found.id,
+      name: found.name,
+      cols: found.cols,
+      rows: found.rows,
+      players: JSON.parse(JSON.stringify(found.players)),
+      grid: JSON.parse(JSON.stringify(found.grid)),
+      createdAt: found.timestamp || Date.now()
+    };
+
+    try {
+      localStorage.setItem('the_floor_territory_game', JSON.stringify(territoryGame));
+    } catch (e) {}
+
+    sendServerCommand('sync_territory', { territory: territoryGame });
+    clearChallengerState();
+    renderTerritoryGrid();
+    switchToView('territory');
+    showToast(`✓ Loaded floor: ${found.name}`);
+  }
+
+  function deleteSavedFloor(floorId) {
+    const list = getSavedFloors();
+    const found = list.find(f => f.id === floorId);
+    if (!found) return;
+
+    if (!confirm(`Are you sure you want to delete the saved floor "${found.name}"?`)) {
+      return;
+    }
+
+    const filtered = list.filter(f => f.id !== floorId);
+    persistSavedFloorsList(filtered);
+
+    if (territoryGame && territoryGame.id === floorId) {
+      territoryGame.id = null;
+    }
+
+    if (location.protocol.startsWith('http')) {
+      fetch('/api/floors/' + encodeURIComponent(floorId), { method: 'DELETE' }).catch(() => {});
+    }
+
+    renderSavedFloorsTable();
+    updateLandingSavedStatus();
+    showToast(`Deleted floor "${found.name}".`);
+  }
+
+  function renderSavedFloorsTable() {
+    if (!el.savedFloorsTableBody) return;
+    const list = getSavedFloors();
+
+    if (el.savedFloorsCountBadge) {
+      el.savedFloorsCountBadge.textContent = `${list.length} Saved Floor${list.length === 1 ? '' : 's'}`;
+    }
+
+    el.savedFloorsTableBody.innerHTML = '';
+
+    if (list.length === 0) {
+      const emptyRow = document.createElement('tr');
+      emptyRow.innerHTML = `
+        <td colspan="5" style="text-align: center; padding: 36px 20px; color: var(--text-muted);">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">🗺️</div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: #cbd5e1; margin-bottom: 4px;">No Saved Floors Yet</div>
+          <div style="font-size: 0.88rem;">Create a game and click <strong>"Save Floor"</strong> to store and manage your floors here!</div>
+        </td>
+      `;
+      el.savedFloorsTableBody.appendChild(emptyRow);
+      return;
+    }
+
+    list.forEach(floor => {
+      const activePlayers = (floor.players || []).filter(p => p.active !== false);
+      const totalPlayers = (floor.players || []).length;
+      const eliminatedCount = totalPlayers - activePlayers.length;
+
+      // Find leader (contestant with most spaces owned)
+      let leader = null;
+      (floor.players || []).forEach(p => {
+        const count = p.territoryCount !== undefined ? p.territoryCount : 1;
+        if (!leader || count > (leader.territoryCount || 1)) {
+          leader = p;
+        }
+      });
+      const leaderSpaces = leader ? (leader.territoryCount || 1) : 1;
+      const leaderText = (leaderSpaces > 1)
+        ? `👑 ${leader.name} (${leaderSpaces} spaces)`
+        : 'All Tied (1 space each)';
+
+      // Main Table Row
+      const tr = document.createElement('tr');
+      tr.className = 'saved-floor-row';
+      tr.dataset.floorId = floor.id;
+      tr.innerHTML = `
+        <td>
+          <div class="floor-title-text">${floor.name}</div>
+          <div class="floor-date-text">📅 ${floor.savedAt || 'Saved'}</div>
+        </td>
+        <td>
+          <span class="game-badge-pill" style="border-color: var(--p1-color); color: var(--p1-color); font-size: 0.78rem;">
+            ${floor.cols} × ${floor.rows} (${floor.cols * floor.rows} Squares)
+          </span>
+        </td>
+        <td>
+          <div style="font-weight: 800; color: #ffffff;">
+            ${activePlayers.length} Contestants ${eliminatedCount > 0 ? `<span style="font-size: 0.75rem; color: #ff5252;">(${eliminatedCount} out)</span>` : ''}
+          </div>
+          <button type="button" class="btn-toggle-roster-preview" data-floor-id="${floor.id}">
+            👁️ View Players &amp; Categories
+          </button>
+        </td>
+        <td>
+          <div style="color: var(--gold); font-weight: 800;">
+            ${leaderText}
+          </div>
+        </td>
+        <td style="text-align: right; white-space: nowrap;">
+          <button type="button" class="btn-floor-load" data-floor-id="${floor.id}">
+            ▶ Load Floor
+          </button>
+          <button type="button" class="btn-floor-delete" data-floor-id="${floor.id}" title="Delete floor">
+            🗑️
+          </button>
+        </td>
+      `;
+
+      // Expandable Drawer Row: Displays all contestant names, categories, spaces owned, and floor positions
+      const drawerTr = document.createElement('tr');
+      drawerTr.id = `rosterDrawer_${floor.id}`;
+      drawerTr.className = 'saved-floor-roster-drawer';
+      drawerTr.style.display = 'none';
+
+      const chipsHtml = (floor.players || []).map(p => {
+        const ownedPositions = (floor.grid || [])
+          .filter(sq => sq.playerId === p.id)
+          .map(sq => `#${sq.squareIndex + 1}`);
+        const pSpaces = p.territoryCount !== undefined ? p.territoryCount : ownedPositions.length;
+        const catName = p.categoryTitle || p.category || 'General';
+        const isOut = p.active === false;
+
+        return `
+          <div class="roster-chip" style="border-left-color: ${p.color || 'var(--p1-color)'}; opacity: ${isOut ? '0.5' : '1'};">
+            <div class="roster-chip-name" style="${isOut ? 'text-decoration: line-through;' : ''}">
+              ${p.name} ${isOut ? '<span style="color:#ff5252; font-size: 0.7rem;">(Eliminated)</span>' : ''}
+            </div>
+            <div class="roster-chip-cat">🎯 ${catName}</div>
+            <div class="roster-chip-spaces">
+              👑 ${pSpaces} space${pSpaces === 1 ? '' : 's'} &bull; 📍 ${ownedPositions.length > 0 ? ownedPositions.join(', ') : 'None'}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      drawerTr.innerHTML = `
+        <td colspan="5">
+          <div class="roster-drawer-content">
+            <div class="roster-drawer-heading">Contestants, Categories, Spaces Owned &amp; Positions:</div>
+            <div class="roster-chips-grid">
+              ${chipsHtml}
+            </div>
+          </div>
+        </td>
+      `;
+
+      // Wire up buttons
+      const btnLoad = tr.querySelector('.btn-floor-load');
+      if (btnLoad) {
+        btnLoad.addEventListener('click', (e) => {
+          e.stopPropagation();
+          loadSavedFloor(floor.id);
+        });
+      }
+
+      const btnDelete = tr.querySelector('.btn-floor-delete');
+      if (btnDelete) {
+        btnDelete.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteSavedFloor(floor.id);
+        });
+      }
+
+      const btnToggle = tr.querySelector('.btn-toggle-roster-preview');
+      if (btnToggle) {
+        btnToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = drawerTr.style.display !== 'none';
+          drawerTr.style.display = isOpen ? 'none' : 'table-row';
+          btnToggle.textContent = isOpen ? '👁️ View Players & Categories' : '✕ Hide Details';
+        });
+      }
+
+      el.savedFloorsTableBody.appendChild(tr);
+      el.savedFloorsTableBody.appendChild(drawerTr);
+    });
+  }
+
   function saveTerritoryGame() {
     try {
       localStorage.setItem('the_floor_territory_game', JSON.stringify(territoryGame));
-      updateLandingSavedStatus();
-      sendServerCommand('sync_territory', { territory: territoryGame });
+      saveCurrentFloor(territoryGame.name || null);
     } catch (e) {
       console.warn('Could not persist territory game to localStorage', e);
     }
@@ -1466,29 +1834,33 @@
   }
 
   function handleLoadGameClick() {
-    if (loadTerritoryGame()) {
-      sendServerCommand('sync_territory', { territory: territoryGame });
-      renderTerritoryGrid();
-      switchToView('territory');
+    const list = getSavedFloors();
+    if (list.length > 0) {
+      if (el.landingSavedFloorsSection) {
+        el.landingSavedFloorsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const card = el.landingSavedFloorsSection.querySelector('.saved-floors-table-card');
+        if (card) {
+          card.classList.add('highlight-pulse');
+          setTimeout(() => card.classList.remove('highlight-pulse'), 1500);
+        }
+      }
     } else {
-      alert('No saved territory game found! Let\'s create one now.');
+      alert('No saved territory floors found yet! Click CREATE GAME to build your first floor.');
       openCreateGameModal();
     }
   }
 
   function updateLandingSavedStatus() {
+    renderSavedFloorsTable();
     if (!el.landingSavedStatusText) return;
-    try {
-      const saved = localStorage.getItem('the_floor_territory_game');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.players && parsed.players.length > 0) {
-          el.landingSavedStatusText.innerHTML = `Saved Floor: <strong>${parsed.players.length} Players</strong> (${parsed.cols}×${parsed.rows} Grid). Click <strong>LOAD GAME</strong> to continue!`;
-          return;
-        }
-      }
-    } catch (e) {}
-    el.landingSavedStatusText.innerHTML = `Click <strong>CREATE GAME</strong> to start your first territory battle!`;
+    const list = getSavedFloors();
+    if (list.length > 0) {
+      const latest = list[0];
+      const activeCount = (latest.players || []).filter(p => p.active !== false).length;
+      el.landingSavedStatusText.innerHTML = `You have <strong>${list.length} saved floor${list.length === 1 ? '' : 's'}</strong> in your library (Latest: <em>${latest.name}</em> with ${activeCount} active contestants). Choose a floor below to play!`;
+    } else {
+      el.landingSavedStatusText.innerHTML = `Click <strong>CREATE GAME</strong> to start your first territory battle!`;
+    }
   }
 
   let activeChallenger = null;
@@ -2058,10 +2430,7 @@
   // Territory View Buttons
   if (el.btnTerritoryHome) el.btnTerritoryHome.addEventListener('click', () => switchToView('landing'));
   if (el.btnTerritoryNewGame) el.btnTerritoryNewGame.addEventListener('click', openCreateGameModal);
-  if (el.btnTerritorySaveGame) el.btnTerritorySaveGame.addEventListener('click', () => {
-    saveTerritoryGame();
-    alert('Territory floor saved successfully!');
-  });
+  if (el.btnTerritorySaveGame) el.btnTerritorySaveGame.addEventListener('click', handleSaveFloorClick);
   if (el.btnTerritoryGoArena) el.btnTerritoryGoArena.addEventListener('click', () => switchToView('arena'));
 
   // Create Game Modal
@@ -2708,8 +3077,10 @@
   loadPersistedGame();
   loadTerritoryGame();
   initServerEvents();
+  syncSavedFloorsWithServer();
   updateArenaUI();
   updateLandingSavedStatus();
+  renderSavedFloorsTable();
   switchToView('landing'); // Always the first page a user lands on!
   ensureGameLoop();
 
