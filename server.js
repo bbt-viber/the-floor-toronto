@@ -8,45 +8,72 @@ const os = require('os');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = __dirname;
+const GAMES_DIR = path.join(__dirname, 'games');
 
-// Load initial game packs
-let dogBreedsGame = null;
-let marvelGame = null;
-let carLogosGame = null;
-let nbaGame = null;
+// Dynamic Category Registry (auto-loads all game packs from ./games)
+const GAMES_MAP = new Map();
 
-try {
-  nbaGame = require('./games/nba-wnba.js');
-} catch (e) {
-  console.warn('Could not load nba-wnba.js', e.message);
+function loadAllGamePacks() {
+  if (!fs.existsSync(GAMES_DIR)) return;
+  const files = fs.readdirSync(GAMES_DIR);
+
+  for (const file of files) {
+    if (file === 'index.json' || file === 'games-manifest.js') continue;
+    const ext = path.extname(file).toLowerCase();
+    if (ext !== '.json' && ext !== '.js') continue;
+
+    const fullPath = path.join(GAMES_DIR, file);
+    try {
+      const pack = ext === '.js'
+        ? require(fullPath)
+        : JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+
+      if (pack && pack.id && Array.isArray(pack.clues)) {
+        GAMES_MAP.set(String(pack.id).toLowerCase().trim(), pack);
+      }
+    } catch (e) {
+      console.warn(`[GamesLoader] Could not load ${file}:`, e.message);
+    }
+  }
 }
 
-try {
-  marvelGame = require('./games/marvel-characters.js');
-} catch (e) {
-  console.warn('Could not load marvel-characters.js', e.message);
+function getGamePack(gameId) {
+  if (!gameId) return null;
+  const id = String(gameId).toLowerCase().trim();
+  if (GAMES_MAP.has(id)) return GAMES_MAP.get(id);
+
+  // Dynamic fallback if a new JSON category was added while server is running
+  const jsonFile = path.join(GAMES_DIR, `${id}.json`);
+  if (fs.existsSync(jsonFile)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+      if (parsed && parsed.id && Array.isArray(parsed.clues)) {
+        GAMES_MAP.set(id, parsed);
+        return parsed;
+      }
+    } catch (e) {
+      console.warn(`[GamesLoader] Could not parse ${id}.json:`, e.message);
+    }
+  }
+  return null;
 }
 
-try {
-  carLogosGame = require('./games/car-logos.js');
-} catch (e) {
-  console.warn('Could not load car-logos.js', e.message);
-}
-
-try {
-  dogBreedsGame = require('./games/dog-breeds.js');
-} catch (e) {
-  console.warn('Could not load dog-breeds.js', e.message);
-}
+loadAllGamePacks();
+const defaultPack = getGamePack('car-logos') || Array.from(GAMES_MAP.values())[0] || {
+  id: 'car-logos',
+  title: 'Car Logos',
+  defaultTimer: 45,
+  clues: []
+};
 
 // Authoritative Server Game State
 const state = {
-  title: carLogosGame ? carLogosGame.title : "Car Logos",
-  gameId: carLogosGame ? carLogosGame.id : "car-logos",
-  p1: { name: "Player 1", timeRemaining: 45, maxTime: 45 },
-  p2: { name: "Player 2", timeRemaining: 45, maxTime: 45 },
+  title: defaultPack.title,
+  gameId: defaultPack.id,
+  p1: { name: 'Player 1', timeRemaining: 45, maxTime: 45 },
+  p2: { name: 'Player 2', timeRemaining: 45, maxTime: 45 },
   activePlayer: 1, // 1 or 2
-  status: 'ready', // 'ready' | 'countdown' | 'running' | 'paused' | 'gameover'
+  status: 'ready', // 'ready' | 'countdown' | 'running' | 'paused' | 'gameover' | 'tie'
   countdownVal: 0,
   isPassing: false,
   passRemaining: 0,
@@ -54,18 +81,20 @@ const state = {
   isCorrect: false,
   correctAnswer: '',
   lastCorrectAnswer: '',
-  clues: carLogosGame ? [...carLogosGame.clues] : [],
+  clues: [...defaultPack.clues],
   clueIndex: 0,
-  roundTime: 45,
+  roundTime: defaultPack.defaultTimer || 45,
   passPenaltySeconds: 3,
   winner: null,
+  tieCount: 0,
   territory: null,
   activeChallenger: null,
   adjacentDefenders: [],
   isReigningWinner: false,
+  isFloorConquered: false,
+  grandChampion: null,
   duelTerritoryResolved: false,
-  lastTickTime: null,
-  lastEvent: null
+  lastTickTime: null
 };
 
 let countdownTimer = null;
@@ -76,6 +105,7 @@ let correctTimer = null;
 const sseClients = new Set();
 
 function sendSse(payload) {
+  if (sseClients.size === 0) return;
   const dataStr = `data: ${JSON.stringify(payload)}\n\n`;
   for (const res of sseClients) {
     try {
@@ -86,13 +116,45 @@ function sendSse(payload) {
   }
 }
 
-// Broadcast Full Clue & Game State (when clue, status, or game changes)
-function broadcastClueState(eventType = 'clue_sync') {
-  const currentClue = state.clues[state.clueIndex] || null;
-  const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
-  const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing || state.isCorrect);
+function clearDuelTimers() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  if (passTimer) { clearInterval(passTimer); passTimer = null; }
+  if (correctTimer) { clearTimeout(correctTimer); correctTimer = null; }
+  state.countdownVal = 0;
+  state.isPassing = false;
+  state.passRemaining = 0;
+  state.passedAnswer = '';
+  state.isCorrect = false;
+  state.correctAnswer = '';
+  state.lastCorrectAnswer = '';
+  state.lastTickTime = null;
+}
 
-  const payload = {
+function resetDuelRoundState(options = { resetTieCount: true }) {
+  clearDuelTimers();
+  state.status = 'ready';
+  state.p1.timeRemaining = state.roundTime;
+  state.p2.timeRemaining = state.roundTime;
+  state.activePlayer = 1;
+  state.clueIndex = 0;
+  state.winner = null;
+  if (options.resetTieCount) {
+    state.tieCount = 0;
+  }
+}
+
+function buildClueStatePayload(eventType = 'clue_sync') {
+  const cluesLen = state.clues.length;
+  const currentClue = cluesLen > 0 ? (state.clues[state.clueIndex] || null) : null;
+  const nextClue = cluesLen > 0 ? (state.clues[(state.clueIndex + 1) % cluesLen] || null) : null;
+  const isPromptHidden = (
+    state.status === 'ready' ||
+    state.status === 'countdown' ||
+    state.isPassing ||
+    state.isCorrect
+  );
+
+  return {
     eventType,
     title: state.title,
     gameId: state.gameId,
@@ -106,16 +168,17 @@ function broadcastClueState(eventType = 'clue_sync') {
     passedAnswer: state.isPassing ? (state.passedAnswer || (currentClue ? currentClue.answer : '')) : '',
     isCorrect: state.isCorrect,
     correctAnswer: state.isCorrect ? (state.correctAnswer || (currentClue ? currentClue.answer : '')) : '',
-    lastCorrectAnswer: '', // When each next prompt is displayed, previous answer is hidden
+    lastCorrectAnswer: '',
     clueIndex: state.clueIndex,
-    cluesCount: state.clues.length,
-    // Stable clue pairings for host and players:
+    cluesCount: cluesLen,
     promptAnswer: currentClue ? currentClue.answer : '',
     promptId: currentClue ? currentClue.id : '',
     promptImage: isPromptHidden ? '' : (currentClue ? currentClue.image : ''),
+    preloadImage: currentClue ? currentClue.image : '',
+    nextImage: nextClue ? nextClue.image : '',
     nextAnswer: nextClue ? nextClue.answer : '',
     winner: state.winner,
-    isTie: (state.status === 'tie'),
+    isTie: state.status === 'tie',
     tieCount: state.tieCount || 0,
     territory: state.territory,
     activeChallenger: state.activeChallenger,
@@ -125,8 +188,19 @@ function broadcastClueState(eventType = 'clue_sync') {
     grandChampion: state.grandChampion || null,
     passPenaltySeconds: state.passPenaltySeconds
   };
+}
 
-  sendSse(payload);
+function broadcastClueState(eventType = 'clue_sync') {
+  sendSse(buildClueStatePayload(eventType));
+}
+
+function findTerritoryPlayer(info) {
+  if (!info || !state.territory || !Array.isArray(state.territory.players)) return null;
+  const targetName = String(info.name || '').trim().toLowerCase();
+  return state.territory.players.find(p =>
+    (info.id && p.id === info.id) ||
+    p.name.trim().toLowerCase() === targetName
+  ) || null;
 }
 
 // Resolves duel outcome on the Floor Territory grid:
@@ -136,41 +210,27 @@ function resolveDuelTerritory() {
   if (!state.territory || !state.territory.players || !state.territory.grid) return;
 
   const winnerNum = state.winner; // 1 or 2
-  const winnerInfo = winnerNum === 1 ? state.p1 : state.p2;
-  const loserInfo = winnerNum === 1 ? state.p2 : state.p1;
-
-  if (!winnerInfo || !loserInfo) return;
-
-  const winnerPlayer = state.territory.players.find(p => 
-    (winnerInfo.id && p.id === winnerInfo.id) || 
-    p.name.trim().toLowerCase() === winnerInfo.name.trim().toLowerCase()
-  );
-  const loserPlayer = state.territory.players.find(p => 
-    (loserInfo.id && p.id === loserInfo.id) || 
-    p.name.trim().toLowerCase() === loserInfo.name.trim().toLowerCase()
-  );
+  const winnerPlayer = findTerritoryPlayer(winnerNum === 1 ? state.p1 : state.p2);
+  const loserPlayer = findTerritoryPlayer(winnerNum === 1 ? state.p2 : state.p1);
 
   if (!winnerPlayer || !loserPlayer) {
-    console.warn('[Territory] Winner or loser contestant not found in territory roster:', winnerInfo.name, loserInfo.name);
+    console.warn('[Territory] Winner or loser contestant not found in territory roster');
     return;
   }
 
   // Category Inheritance Rule:
-  // - If challenger wins (winnerNum === 1): challenger keeps their original category!
-  // - If defender wins (winnerNum === 2): defender adopts the category of the challenger!
-  const isChallengerWinner = (winnerNum === 1);
-  if (!isChallengerWinner) {
-    const prevCat = winnerPlayer.categoryTitle || winnerPlayer.category;
+  // - Challenger wins (winnerNum === 1): challenger keeps their original category
+  // - Defender wins (winnerNum === 2): defender adopts the challenger's category
+  if (winnerNum !== 1) {
     winnerPlayer.category = loserPlayer.category;
     winnerPlayer.categoryTitle = loserPlayer.categoryTitle;
-    console.log(`[Territory] Defender ${winnerPlayer.name} won and adopted challenger ${loserPlayer.name}'s category: ${winnerPlayer.categoryTitle || winnerPlayer.category} (was ${prevCat})`);
-  } else {
-    console.log(`[Territory] Challenger ${winnerPlayer.name} won and retains original category: ${winnerPlayer.categoryTitle || winnerPlayer.category}`);
   }
 
-  // 1. All squares belonging to loser on the grid are conquered by the winner
+  const loserNameLower = loserPlayer.name.trim().toLowerCase();
+  let ownedCount = 0;
+
   state.territory.grid.forEach(sq => {
-    if (sq.playerId === loserPlayer.id || sq.playerName.trim().toLowerCase() === loserPlayer.name.trim().toLowerCase()) {
+    if (sq.playerId === loserPlayer.id || sq.playerName.trim().toLowerCase() === loserNameLower) {
       sq.playerId = winnerPlayer.id;
       sq.playerName = winnerPlayer.name;
       sq.playerCategory = winnerPlayer.category;
@@ -180,21 +240,18 @@ function resolveDuelTerritory() {
       sq.playerCategory = winnerPlayer.category;
       sq.playerCategoryTitle = winnerPlayer.categoryTitle;
     }
+    if (sq.playerId === winnerPlayer.id) ownedCount++;
   });
 
-  // 2. Remove loser from territory players roster
-  state.territory.players = state.territory.players.filter(p => 
-    p.id !== loserPlayer.id && 
-    p.name.trim().toLowerCase() !== loserPlayer.name.trim().toLowerCase()
+  state.territory.players = state.territory.players.filter(p =>
+    p.id !== loserPlayer.id &&
+    p.name.trim().toLowerCase() !== loserNameLower
   );
 
-  // 3. Update winner's territory count
-  const ownedCount = state.territory.grid.filter(sq => sq.playerId === winnerPlayer.id).length;
   winnerPlayer.territoryCount = ownedCount;
   winnerPlayer.hasDueled = true;
 
-  const isFloorConquered = (state.territory.players.length === 1 || ownedCount === state.territory.grid.length);
-  if (isFloorConquered) {
+  if (state.territory.players.length === 1 || ownedCount === state.territory.grid.length) {
     state.isFloorConquered = true;
     state.grandChampion = {
       id: winnerPlayer.id,
@@ -204,70 +261,52 @@ function resolveDuelTerritory() {
       color: winnerPlayer.color,
       territoryCount: ownedCount
     };
-    console.log(`[GRAND CHAMPION] 🏆 ${winnerPlayer.name} has captured the ENTIRE FLOOR! (100% of ${ownedCount} squares)`);
   } else {
     state.isFloorConquered = false;
     state.grandChampion = null;
   }
 
   state.duelTerritoryResolved = true;
-  console.log(`[Territory] Duel resolved: ${winnerPlayer.name} takes the floor! ${loserPlayer.name} eliminated. ${winnerPlayer.name} now holds ${ownedCount} squares. Remaining contestants: ${state.territory.players.length}`);
 }
 
 // High-Precision Server Clock Loop (ticks every 100ms)
 setInterval(() => {
-  if (state.status === 'running') {
-    if (state.isCorrect) {
-      // Clocks are paused during the brief correct reveal
-      state.lastTickTime = null;
-      return;
-    }
-    const now = Date.now();
-    if (!state.lastTickTime) {
-      state.lastTickTime = now;
-    }
-    const deltaSec = (now - state.lastTickTime) / 1000;
-    state.lastTickTime = now;
-
-    const player = state.activePlayer === 1 ? state.p1 : state.p2;
-    player.timeRemaining = Math.max(0, player.timeRemaining - deltaSec);
-
-    // Timeout (Game Over)
-    if (player.timeRemaining <= 0) {
-      state.status = 'gameover';
-      state.winner = state.activePlayer === 1 ? 2 : 1;
-      state.lastTickTime = null;
-      resolveDuelTerritory();
-      broadcastClueState('timeout');
-      return;
-    }
-
-    // Lightweight timer tick ONLY (NEVER touches or modifies prompt/answer):
-    sendSse({
-      eventType: 'tick',
-      p1Time: state.p1.timeRemaining,
-      p2Time: state.p2.timeRemaining,
-      activePlayer: state.activePlayer
-    });
-  } else {
+  if (state.status !== 'running') {
     state.lastTickTime = null;
+    return;
   }
+  if (state.isCorrect) {
+    state.lastTickTime = null;
+    return;
+  }
+
+  const now = Date.now();
+  const deltaSec = state.lastTickTime ? (now - state.lastTickTime) / 1000 : 0;
+  state.lastTickTime = now;
+
+  const player = state.activePlayer === 1 ? state.p1 : state.p2;
+  player.timeRemaining = Math.max(0, player.timeRemaining - deltaSec);
+
+  if (player.timeRemaining <= 0) {
+    state.status = 'gameover';
+    state.winner = state.activePlayer === 1 ? 2 : 1;
+    state.lastTickTime = null;
+    resolveDuelTerritory();
+    broadcastClueState('timeout');
+    return;
+  }
+
+  sendSse({
+    eventType: 'tick',
+    p1Time: state.p1.timeRemaining,
+    p2Time: state.p2.timeRemaining,
+    activePlayer: state.activePlayer
+  });
 }, 100);
 
 // 3-Second Start Countdown Engine
 function startDuelCountdown() {
-  if (countdownTimer) clearInterval(countdownTimer);
-  if (passTimer) clearInterval(passTimer);
-  if (correctTimer) clearTimeout(correctTimer);
-  countdownTimer = null;
-  passTimer = null;
-  correctTimer = null;
-  state.isPassing = false;
-  state.passRemaining = 0;
-  state.passedAnswer = '';
-  state.isCorrect = false;
-  state.correctAnswer = '';
-  state.lastCorrectAnswer = '';
+  clearDuelTimers();
   state.status = 'countdown';
   state.countdownVal = 3;
   broadcastClueState('countdown_start');
@@ -291,182 +330,94 @@ function startDuelCountdown() {
   }, 1000);
 }
 
-// Territory Adjacency Helper: finds competitors whose squares share an orthogonal edge with challenger
+// Territory Adjacency Helper
 function getAdjacentCompetitors(challengerId, territory) {
   if (!territory || !territory.grid || !territory.players) return [];
-  const cols = territory.cols;
-  const rows = territory.rows;
-  const challengerSquares = territory.grid.filter(sq => sq.playerId === challengerId);
+  const { cols, rows, grid, players } = territory;
+  const challengerSquares = grid.filter(sq => sq.playerId === challengerId);
   if (challengerSquares.length === 0) return [];
 
-  const map = new Map();
-  challengerSquares.forEach(cs => {
-    const r = Math.floor(cs.squareIndex / cols);
-    const c = cs.squareIndex % cols;
-    const neighbors = [
-      { r: r - 1, c: c },
-      { r: r + 1, c: c },
-      { r: r, c: c - 1 },
-      { r: r, c: c + 1 }
-    ];
-    neighbors.forEach(n => {
-      if (n.r >= 0 && n.r < rows && n.c >= 0 && n.c < cols) {
-        const neighborIdx = n.r * cols + n.c;
-        const neighborSq = territory.grid[neighborIdx];
-        if (neighborSq && neighborSq.playerId && neighborSq.playerId !== challengerId) {
-          const competitor = territory.players.find(p => p.id === neighborSq.playerId);
-          if (competitor && competitor.active !== false) {
-            if (!map.has(competitor.id)) {
-              map.set(competitor.id, {
-                id: competitor.id,
-                name: competitor.name,
-                category: competitor.category || '',
-                categoryTitle: competitor.categoryTitle || competitor.category || '',
-                color: competitor.color,
-                territoryCount: competitor.territoryCount || 1,
-                squareIndices: []
-              });
-            }
-            map.get(competitor.id).squareIndices.push(neighborIdx);
-          }
-        }
-      }
-    });
-  });
+  const playerById = new Map(players.map(p => [p.id, p]));
+  const neighborMap = new Map();
 
-  // Fallback to diagonal if no orthogonal neighbors
-  if (map.size === 0) {
-    challengerSquares.forEach(cs => {
+  const collectNeighbors = (offsets) => {
+    for (const cs of challengerSquares) {
       const r = Math.floor(cs.squareIndex / cols);
       const c = cs.squareIndex % cols;
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          const nr = r + dr;
-          const nc = c + dc;
-          if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-            const idx = nr * cols + nc;
-            const sq = territory.grid[idx];
-            if (sq && sq.playerId && sq.playerId !== challengerId) {
-              const comp = territory.players.find(p => p.id === sq.playerId);
-              if (comp && comp.active !== false && !map.has(comp.id)) {
-                map.set(comp.id, {
+      for (const [dr, dc] of offsets) {
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+          const neighborIdx = nr * cols + nc;
+          const neighborSq = grid[neighborIdx];
+          if (neighborSq && neighborSq.playerId && neighborSq.playerId !== challengerId) {
+            const comp = playerById.get(neighborSq.playerId);
+            if (comp && comp.active !== false) {
+              if (!neighborMap.has(comp.id)) {
+                neighborMap.set(comp.id, {
                   id: comp.id,
                   name: comp.name,
                   category: comp.category || '',
                   categoryTitle: comp.categoryTitle || comp.category || '',
                   color: comp.color,
                   territoryCount: comp.territoryCount || 1,
-                  squareIndices: [idx]
+                  squareIndices: []
                 });
               }
+              neighborMap.get(comp.id).squareIndices.push(neighborIdx);
             }
           }
         }
       }
-    });
+    }
+  };
+
+  // Orthogonal edges first, fallback to 8-directional if isolated
+  collectNeighbors([[-1, 0], [1, 0], [0, -1], [0, 1]]);
+  if (neighborMap.size === 0) {
+    collectNeighbors([[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]);
   }
 
-  return Array.from(map.values());
+  return Array.from(neighborMap.values());
 }
 
-// Floor Randomizer Helper:
-// The randomizer can only land on players that have 1 territory and have not already dueled.
+// Floor Randomizer Helper
 function selectRandomChallengerFromFloor(territory) {
   if (!territory || !territory.players || territory.players.length < 2) return null;
   const activePlayers = territory.players.filter(p => p.active !== false);
   if (activePlayers.length < 2) return null;
 
-  // Rule: "The randomizer can only land on players that have 1 territory. It cannot select players who have already dueled"
-  const eligible1Territory = activePlayers.filter(p => (p.territoryCount || 1) === 1 && !p.hasDueled);
+  let pool = activePlayers.filter(p => (p.territoryCount || 1) === 1 && !p.hasDueled);
+  if (pool.length === 0) pool = activePlayers.filter(p => (p.territoryCount || 1) === 1);
+  if (pool.length === 0) pool = activePlayers;
 
-  let candidatePool = eligible1Territory;
-  if (candidatePool.length === 0) {
-    // If all remaining 1-territory contestants have dueled, fallback to 1-territory
-    candidatePool = activePlayers.filter(p => (p.territoryCount || 1) === 1);
-  }
-  if (candidatePool.length === 0) {
-    // Endgame fallback: all active players
-    candidatePool = activePlayers;
-  }
-
-  // Prefer candidates with adjacent competitors to challenge
-  const withNeighbors = candidatePool.filter(p => getAdjacentCompetitors(p.id, territory).length > 0);
-  const finalPool = withNeighbors.length > 0 ? withNeighbors : candidatePool;
-
-  const chosen = finalPool[Math.floor(Math.random() * finalPool.length)];
-  return chosen;
+  const withNeighbors = pool.filter(p => getAdjacentCompetitors(p.id, territory).length > 0);
+  const finalPool = withNeighbors.length > 0 ? withNeighbors : pool;
+  return finalPool[Math.floor(Math.random() * finalPool.length)];
 }
 
-// Helper to switch active category into server state
+// Switch active category into server state
 function loadCategoryIntoState(gameId) {
-  if (!gameId) return false;
-  const id = String(gameId).toLowerCase().trim();
+  const pack = getGamePack(gameId);
+  if (!pack) return false;
 
-  if (id === 'nba-wnba' && nbaGame) {
-    state.title = nbaGame.title;
-    state.gameId = nbaGame.id;
-    state.clues = [...nbaGame.clues];
-    state.roundTime = nbaGame.defaultTimer || 45;
-  } else if (id === 'car-logos' && carLogosGame) {
-    state.title = carLogosGame.title;
-    state.gameId = carLogosGame.id;
-    state.clues = [...carLogosGame.clues];
-    state.roundTime = carLogosGame.defaultTimer || 45;
-  } else if (id === 'marvel-characters' && marvelGame) {
-    state.title = marvelGame.title;
-    state.gameId = marvelGame.id;
-    state.clues = [...marvelGame.clues];
-    state.roundTime = marvelGame.defaultTimer || 45;
-  } else if (id === 'dog-breeds' && dogBreedsGame) {
-    state.title = dogBreedsGame.title;
-    state.gameId = dogBreedsGame.id;
-    state.clues = [...dogBreedsGame.clues];
-    state.roundTime = dogBreedsGame.defaultTimer || 45;
-  } else {
-    try {
-      const jsonFile = path.join(__dirname, 'games', `${id}.json`);
-      if (fs.existsSync(jsonFile)) {
-        const parsed = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
-        state.title = parsed.title;
-        state.gameId = parsed.id;
-        state.clues = [...parsed.clues];
-        state.roundTime = parsed.defaultTimer || 45;
-      }
-    } catch (e) {
-      console.warn('Could not load game from json', id, e.message);
-      return false;
-    }
-  }
-
+  state.title = pack.title;
+  state.gameId = pack.id;
+  state.clues = [...pack.clues];
+  state.roundTime = pack.defaultTimer || 45;
   state.p1.maxTime = state.roundTime;
   state.p1.timeRemaining = state.roundTime;
   state.p2.maxTime = state.roundTime;
   state.p2.timeRemaining = state.roundTime;
-  console.log(`[Category Loaded for Duel] ${state.title} (${state.clues.length} clues)`);
   return true;
 }
 
 // Resolves duel tie when all prompts are completed without any player's clock reaching 0
 function handleDuelTie() {
-  if (countdownTimer) clearInterval(countdownTimer);
-  if (passTimer) clearInterval(passTimer);
-  if (correctTimer) clearTimeout(correctTimer);
-  countdownTimer = null;
-  passTimer = null;
-  correctTimer = null;
-
+  clearDuelTimers();
   state.status = 'tie';
-  state.lastTickTime = null;
-  state.isPassing = false;
-  state.passRemaining = 0;
-  state.isCorrect = false;
-  state.correctAnswer = '';
-  state.lastCorrectAnswer = '';
   state.winner = null;
   state.tieCount = (state.tieCount || 0) + 1;
-
-  console.log(`[Duel Tie] Both contestants completed all ${state.clues.length} prompts in "${state.title}"! Clocks: ${state.p1.name}=${state.p1.timeRemaining.toFixed(1)}s, ${state.p2.name}=${state.p2.timeRemaining.toFixed(1)}s. Tiebreaker category required.`);
 
   sendSse({
     eventType: 'duel_tie',
@@ -483,42 +434,56 @@ function handleDuelTie() {
   broadcastClueState('duel_tie');
 }
 
-// Host Command Processor
-function handleHostCommand(cmd, payload = {}) {
-  if (cmd === 'start_duel' || cmd === 'start_game') {
+function spinFloorRandomizer() {
+  if (!state.territory || !state.territory.players || state.territory.players.length < 2) return;
+  const chosenChallenger = selectRandomChallengerFromFloor(state.territory);
+  if (!chosenChallenger) return;
+
+  const adjacent = getAdjacentCompetitors(chosenChallenger.id, state.territory);
+  state.activeChallenger = chosenChallenger;
+  state.adjacentDefenders = adjacent;
+  state.isReigningWinner = false;
+
+  sendSse({
+    eventType: 'randomizer_spin',
+    challenger: chosenChallenger,
+    adjacentDefenders: adjacent,
+    territory: state.territory
+  });
+}
+
+// Modular Host Command Dispatch Table
+const COMMAND_HANDLERS = {
+  start_duel() {
     if (state.status === 'ready') {
       startDuelCountdown();
-      return;
     } else if (state.status === 'paused') {
       state.status = 'running';
       state.lastTickTime = Date.now();
       broadcastClueState('resume');
-      return;
     }
-  }
-  else if (cmd === 'correct') {
+  },
+
+  start_game() {
+    COMMAND_HANDLERS.start_duel();
+  },
+
+  correct() {
     if (state.status === 'gameover' || state.status === 'tie') return;
-    if (state.status === 'ready') {
-      startDuelCountdown();
-      return;
-    }
+    if (state.status === 'ready') return startDuelCountdown();
     if (state.status === 'paused') {
       state.status = 'running';
       state.lastTickTime = Date.now();
-      broadcastClueState('resume');
-      return;
+      return broadcastClueState('resume');
     }
-    if (state.status === 'countdown' || state.isPassing || state.isCorrect) {
-      return; // Ignore correct action during countdown, pass, or correct reveal
-    }
+    if (state.status === 'countdown' || state.isPassing || state.isCorrect) return;
 
-    // 1. Capture the answer of the clue that was just answered correctly
     const currentClue = state.clues[state.clueIndex] || null;
     const ans = currentClue ? currentClue.answer : '';
     state.isCorrect = true;
     state.correctAnswer = ans;
     state.lastCorrectAnswer = ans;
-    state.lastTickTime = null; // Pause clock during 1s correct answer display
+    state.lastTickTime = null;
 
     sendSse({
       eventType: 'correct_start',
@@ -540,37 +505,26 @@ function handleHostCommand(cmd, payload = {}) {
       }
       state.isCorrect = false;
       state.correctAnswer = '';
-      state.lastCorrectAnswer = ''; // When next prompt is displayed, hide previous answer!
-
-      // Switch active player turn
+      state.lastCorrectAnswer = '';
       state.activePlayer = state.activePlayer === 1 ? 2 : 1;
 
-      // Check if all clues have been exhausted (Tie condition)
       if (state.clues.length > 0 && state.clueIndex + 1 >= state.clues.length) {
         handleDuelTie();
         return;
       }
-
-      // Advance to next prompt!
-      if (state.clues.length > 0) {
-        state.clueIndex++;
-      }
+      if (state.clues.length > 0) state.clueIndex++;
       state.lastTickTime = Date.now();
       broadcastClueState('correct_complete');
     }, 1000);
-  } 
-  else if (cmd === 'pass') {
+  },
+
+  pass() {
     if (state.status !== 'running' || state.isPassing || state.isCorrect) return;
 
-    if (correctTimer) clearTimeout(correctTimer);
-    correctTimer = null;
+    if (correctTimer) { clearTimeout(correctTimer); correctTimer = null; }
     state.isCorrect = false;
     state.correctAnswer = '';
 
-    // DO NOT subtract 3 seconds immediately from clock!
-    // Clock continues to tick down naturally during the 3-second recovery delay.
-    // The current prompt is removed immediately, the answer is displayed to all players,
-    // and 3 seconds later the next prompt is introduced.
     const currentClue = state.clues[state.clueIndex] || null;
     state.passedAnswer = currentClue ? currentClue.answer : '';
     state.lastCorrectAnswer = '';
@@ -607,27 +561,22 @@ function handleHostCommand(cmd, payload = {}) {
         state.passRemaining = 0;
         state.passedAnswer = '';
         state.lastCorrectAnswer = '';
-        // Check if all clues have been exhausted (Tie condition)
+
         if (state.clues.length > 0 && state.clueIndex + 1 >= state.clues.length) {
           handleDuelTie();
           return;
         }
-
-        // 3 seconds later: introduce next prompt and hide previous answer!
-        if (state.clues.length > 0) {
-          state.clueIndex++;
-        }
+        if (state.clues.length > 0) state.clueIndex++;
         broadcastClueState('pass_complete');
       }
     }, 1000);
-  } 
-  else if (cmd === 'toggle_pause') {
-    if (state.status === 'gameover') return;
+  },
+
+  toggle_pause() {
+    if (state.status === 'gameover' || state.status === 'tie') return;
     if (state.status === 'countdown') {
-      if (countdownTimer) clearInterval(countdownTimer);
-      countdownTimer = null;
+      clearDuelTimers();
       state.status = 'ready';
-      state.countdownVal = 0;
       broadcastClueState('reset');
       return;
     }
@@ -640,194 +589,93 @@ function handleHostCommand(cmd, payload = {}) {
       state.lastTickTime = Date.now();
       broadcastClueState('resume');
     }
-  } 
-  else if (cmd === 'reset') {
-    if (countdownTimer) clearInterval(countdownTimer);
-    if (passTimer) clearInterval(passTimer);
-    if (correctTimer) clearTimeout(correctTimer);
-    countdownTimer = null;
-    passTimer = null;
-    correctTimer = null;
-    state.countdownVal = 0;
-    state.isPassing = false;
-    state.passRemaining = 0;
-    state.passedAnswer = '';
-    state.isCorrect = false;
-    state.correctAnswer = '';
-    state.lastCorrectAnswer = '';
-    state.status = 'ready';
-    state.p1.timeRemaining = state.roundTime;
-    state.p2.timeRemaining = state.roundTime;
-    state.activePlayer = 1;
-    state.clueIndex = 0;
-    state.winner = null;
-    state.tieCount = 0;
-    state.lastTickTime = null;
+  },
+
+  reset() {
+    resetDuelRoundState({ resetTieCount: true });
     broadcastClueState('reset');
-  } 
-  else if (cmd === 'select_game') {
-    if (countdownTimer) clearInterval(countdownTimer);
-    if (passTimer) clearInterval(passTimer);
-    if (correctTimer) clearTimeout(correctTimer);
-    countdownTimer = null;
-    passTimer = null;
-    correctTimer = null;
-    state.countdownVal = 0;
-    state.isPassing = false;
-    state.passRemaining = 0;
-    state.isCorrect = false;
-    state.correctAnswer = '';
-    state.lastCorrectAnswer = '';
+  },
+
+  select_game(payload) {
     loadCategoryIntoState(payload.gameId);
-    state.status = 'ready';
-    state.p1.timeRemaining = state.roundTime;
-    state.p2.timeRemaining = state.roundTime;
-    state.clueIndex = 0;
-    state.winner = null;
-    console.log(`[Category Selected] "${state.title}" loaded for duel. Tiebreaker: ${Boolean(state.tieCount > 0)}`);
+    resetDuelRoundState({ resetTieCount: false });
     broadcastClueState('game_change');
-  } 
-  else if (cmd === 'sync_custom_game') {
-    if (payload.game && Array.isArray(payload.game.clues)) {
-      if (countdownTimer) clearInterval(countdownTimer);
-      if (passTimer) clearInterval(passTimer);
-      if (correctTimer) clearTimeout(correctTimer);
-      countdownTimer = null;
-      passTimer = null;
-      correctTimer = null;
-      state.isPassing = false;
-      state.passRemaining = 0;
-      state.isCorrect = false;
-      state.correctAnswer = '';
-      state.lastCorrectAnswer = '';
-      state.title = payload.game.title || "Custom Duel";
-      state.gameId = payload.game.id || 'custom-' + Date.now();
-      state.clues = [...payload.game.clues];
-      state.roundTime = payload.game.defaultTimer || 45;
-      state.p1.maxTime = state.roundTime;
-      state.p1.timeRemaining = state.roundTime;
-      state.p2.maxTime = state.roundTime;
-      state.p2.timeRemaining = state.roundTime;
-      state.status = 'ready';
-      state.clueIndex = 0;
-      state.winner = null;
-      broadcastClueState('game_change');
-    }
-  }
-  else if (cmd === 'sync_territory') {
-    if (payload.territory) {
-      state.territory = payload.territory;
-      state.activeChallenger = null;
-      state.adjacentDefenders = [];
-      state.isReigningWinner = false;
-      state.isFloorConquered = false;
-      state.grandChampion = null;
-      state.duelTerritoryResolved = false;
-      broadcastClueState('territory_update');
-    }
-  }
-  else if (cmd === 'trigger_randomizer') {
-    if (!state.territory || !state.territory.players || state.territory.players.length < 2) {
-      console.warn('Cannot trigger randomizer: territory has fewer than 2 contestants');
-      return;
-    }
-    const chosenChallenger = selectRandomChallengerFromFloor(state.territory);
-    if (!chosenChallenger) {
-      console.warn('Cannot trigger randomizer: no eligible contestants');
-      return;
-    }
-    const adjacent = getAdjacentCompetitors(chosenChallenger.id, state.territory);
+  },
 
-    state.activeChallenger = chosenChallenger;
-    state.adjacentDefenders = adjacent;
-    state.isReigningWinner = false;
-
-    sendSse({
-      eventType: 'randomizer_spin',
-      challenger: chosenChallenger,
-      adjacentDefenders: adjacent,
-      territory: state.territory
+  sync_custom_game(payload) {
+    if (!payload.game || !Array.isArray(payload.game.clues)) return;
+    state.title = payload.game.title || 'Custom Duel';
+    state.gameId = payload.game.id || ('custom-' + Date.now());
+    state.clues = [...payload.game.clues];
+    state.roundTime = payload.game.defaultTimer || 45;
+    state.p1.maxTime = state.roundTime;
+    state.p2.maxTime = state.roundTime;
+    GAMES_MAP.set(String(state.gameId).toLowerCase(), {
+      id: state.gameId,
+      title: state.title,
+      defaultTimer: state.roundTime,
+      clues: state.clues
     });
-  }
-  else if (cmd === 'select_defender') {
+    resetDuelRoundState({ resetTieCount: false });
+    broadcastClueState('game_change');
+  },
+
+  sync_territory(payload) {
+    if (!payload.territory) return;
+    state.territory = payload.territory;
+    state.activeChallenger = null;
+    state.adjacentDefenders = [];
+    state.isReigningWinner = false;
+    state.isFloorConquered = false;
+    state.grandChampion = null;
+    state.duelTerritoryResolved = false;
+    broadcastClueState('territory_update');
+  },
+
+  trigger_randomizer() {
+    spinFloorRandomizer();
+  },
+
+  return_to_floor() {
+    spinFloorRandomizer();
+  },
+
+  select_defender(payload) {
     const challengerName = payload.challengerName || (state.activeChallenger ? state.activeChallenger.name : 'Player 1');
     const defenderName = payload.defenderName || (payload.defender ? payload.defender.name : 'Player 2');
-    let challengerId = payload.challengerId || (state.activeChallenger ? state.activeChallenger.id : null);
-    let defenderId = payload.defenderId || (payload.defender ? payload.defender.id : null);
+    const challengerId = payload.challengerId || (state.activeChallenger ? state.activeChallenger.id : null);
+    const defenderId = payload.defenderId || (payload.defender ? payload.defender.id : null);
 
-    let challengerPlayer = null;
-    let defenderPlayer = null;
+    const challengerPlayer = findTerritoryPlayer({ id: challengerId, name: challengerName });
+    const defenderPlayer = findTerritoryPlayer({ id: defenderId, name: defenderName });
 
-    if (state.territory && state.territory.players) {
-      challengerPlayer = state.territory.players.find(p => 
-        (challengerId && p.id === challengerId) || 
-        p.name.trim().toLowerCase() === String(challengerName).trim().toLowerCase()
-      );
-      defenderPlayer = state.territory.players.find(p => 
-        (defenderId && p.id === defenderId) || 
-        p.name.trim().toLowerCase() === String(defenderName).trim().toLowerCase()
-      );
+    if (challengerPlayer) challengerPlayer.hasDueled = true;
+    if (defenderPlayer) defenderPlayer.hasDueled = true;
 
-      if (challengerPlayer) {
-        challengerId = challengerPlayer.id;
-        challengerPlayer.hasDueled = true;
-      }
-      if (defenderPlayer) {
-        defenderId = defenderPlayer.id;
-        defenderPlayer.hasDueled = true;
-      }
-    }
-
-    // Rule: The duel will be on the defender's category!
     const defenderCat = (defenderPlayer && (defenderPlayer.category || defenderPlayer.categoryId)) || payload.category;
-    if (defenderCat) {
-      loadCategoryIntoState(defenderCat);
-    }
+    if (defenderCat) loadCategoryIntoState(defenderCat);
 
-    if (countdownTimer) clearInterval(countdownTimer);
-    if (passTimer) clearInterval(passTimer);
-    if (correctTimer) clearTimeout(correctTimer);
-    countdownTimer = null;
-    passTimer = null;
-    correctTimer = null;
-    state.countdownVal = 0;
-    state.isPassing = false;
-    state.passRemaining = 0;
-    state.passedAnswer = '';
-    state.isCorrect = false;
-    state.correctAnswer = '';
-    state.lastCorrectAnswer = '';
+    resetDuelRoundState({ resetTieCount: true });
 
-    // Challenger is Player 1
-    state.p1.id = challengerId;
+    state.p1.id = challengerPlayer ? challengerPlayer.id : challengerId;
     state.p1.name = challengerPlayer ? challengerPlayer.name : String(challengerName).trim();
     state.p1.category = challengerPlayer ? (challengerPlayer.category || '') : '';
     state.p1.categoryTitle = challengerPlayer ? (challengerPlayer.categoryTitle || challengerPlayer.category || '') : '';
-    state.p1.timeRemaining = state.roundTime;
 
-    // Defender is Player 2
-    state.p2.id = defenderId;
+    state.p2.id = defenderPlayer ? defenderPlayer.id : defenderId;
     state.p2.name = defenderPlayer ? defenderPlayer.name : String(defenderName).trim();
     state.p2.category = defenderPlayer ? (defenderPlayer.category || '') : '';
     state.p2.categoryTitle = defenderPlayer ? (defenderPlayer.categoryTitle || defenderPlayer.category || '') : '';
-    state.p2.timeRemaining = state.roundTime;
 
-    // Rule: The challenger will be the first player to go in the duel
-    state.activePlayer = 1;
-    state.clueIndex = 0;
-    state.winner = null;
-    state.tieCount = 0;
-    state.status = 'ready';
-    state.lastTickTime = null;
     state.activeChallenger = null;
     state.adjacentDefenders = [];
     state.isReigningWinner = false;
     state.duelTerritoryResolved = false;
 
-    console.log(`[Duel Prepared] Challenger: ${state.p1.name} vs Defender: ${state.p2.name} on DEFENDER CATEGORY: "${state.title}" (Challenger plays first)`);
     broadcastClueState('duel_players_set');
-  }
-  else if (cmd === 'cancel_challenger') {
+  },
+
+  cancel_challenger() {
     state.activeChallenger = null;
     state.adjacentDefenders = [];
     state.isReigningWinner = false;
@@ -835,43 +683,17 @@ function handleHostCommand(cmd, payload = {}) {
       eventType: 'challenger_cancelled',
       territory: state.territory
     });
-  }
-  else if (cmd === 'return_to_territory') {
-    if (countdownTimer) clearInterval(countdownTimer);
-    if (passTimer) clearInterval(passTimer);
-    if (correctTimer) clearTimeout(correctTimer);
-    countdownTimer = null;
-    passTimer = null;
-    correctTimer = null;
-    state.countdownVal = 0;
-    state.isPassing = false;
-    state.passRemaining = 0;
-    state.passedAnswer = '';
-    state.isCorrect = false;
-    state.correctAnswer = '';
-    state.lastCorrectAnswer = '';
+  },
 
-    // Identify the winner of the duel that just concluded
-    let winnerPlayer = null;
-    if (state.winner && state.territory && state.territory.players) {
-      const winnerInfo = state.winner === 1 ? state.p1 : state.p2;
-      winnerPlayer = state.territory.players.find(p => 
-        (winnerInfo.id && p.id === winnerInfo.id) || 
-        p.name.trim().toLowerCase() === winnerInfo.name.trim().toLowerCase()
-      );
-    }
+  return_to_territory() {
+    const winnerPlayer = state.winner
+      ? findTerritoryPlayer(state.winner === 1 ? state.p1 : state.p2)
+      : null;
 
-    state.status = 'ready';
-    state.clueIndex = 0;
-    state.activePlayer = 1;
-    state.winner = null;
-    state.tieCount = 0;
-    state.lastTickTime = null;
+    resetDuelRoundState({ resetTieCount: true });
     state.duelTerritoryResolved = false;
-    state.p1.timeRemaining = state.roundTime;
-    state.p2.timeRemaining = state.roundTime;
 
-    if (winnerPlayer && state.territory.players.length > 1) {
+    if (winnerPlayer && state.territory && state.territory.players.length > 1) {
       state.activeChallenger = winnerPlayer;
       state.adjacentDefenders = getAdjacentCompetitors(winnerPlayer.id, state.territory);
       state.isReigningWinner = true;
@@ -890,30 +712,13 @@ function handleHostCommand(cmd, payload = {}) {
       activeChallenger: state.activeChallenger,
       adjacentDefenders: state.adjacentDefenders,
       isReigningWinner: state.isReigningWinner,
-      isFloorConquered: isFloorConquered,
-      grandChampion: grandChampion,
+      isFloorConquered,
+      grandChampion,
       status: 'ready'
     });
-  }
-  else if (cmd === 'return_to_floor') {
-    const chosenChallenger = selectRandomChallengerFromFloor(state.territory);
-    if (!chosenChallenger) {
-      console.warn('Cannot return to floor: no eligible contestants');
-      return;
-    }
-    const adjacent = getAdjacentCompetitors(chosenChallenger.id, state.territory);
-    state.activeChallenger = chosenChallenger;
-    state.adjacentDefenders = adjacent;
-    state.isReigningWinner = false;
+  },
 
-    sendSse({
-      eventType: 'randomizer_spin',
-      challenger: chosenChallenger,
-      adjacentDefenders: adjacent,
-      territory: state.territory
-    });
-  }
-  else if (cmd === 'set_clock') {
+  set_clock(payload) {
     if (payload.p1Time !== undefined) state.p1.timeRemaining = Math.max(0, Number(payload.p1Time));
     if (payload.p2Time !== undefined) state.p2.timeRemaining = Math.max(0, Number(payload.p2Time));
     sendSse({
@@ -922,62 +727,27 @@ function handleHostCommand(cmd, payload = {}) {
       p2Time: state.p2.timeRemaining,
       activePlayer: state.activePlayer
     });
-  }
-  else if (cmd === 'set_duel_players') {
-    if (countdownTimer) clearInterval(countdownTimer);
-    if (passTimer) clearInterval(passTimer);
-    if (correctTimer) clearTimeout(correctTimer);
-    countdownTimer = null;
-    passTimer = null;
-    correctTimer = null;
-    state.countdownVal = 0;
-    state.isPassing = false;
-    state.passRemaining = 0;
-    state.passedAnswer = '';
-    state.isCorrect = false;
-    state.correctAnswer = '';
-    state.lastCorrectAnswer = '';
-    if (payload.p1Name) {
-      state.p1.name = String(payload.p1Name).trim();
-    }
-    if (payload.p2Name) {
-      state.p2.name = String(payload.p2Name).trim();
-    }
+  },
+
+  set_duel_players(payload) {
+    if (payload.p1Name) state.p1.name = String(payload.p1Name).trim();
+    if (payload.p2Name) state.p2.name = String(payload.p2Name).trim();
     if (payload.gameId && payload.gameId !== state.gameId) {
-      const gId = payload.gameId;
-      if (gId === 'nba-wnba' && nbaGame) {
-        state.title = nbaGame.title;
-        state.gameId = nbaGame.id;
-        state.clues = [...nbaGame.clues];
-      } else if (gId === 'car-logos' && carLogosGame) {
-        state.title = carLogosGame.title;
-        state.gameId = carLogosGame.id;
-        state.clues = [...carLogosGame.clues];
-      } else if (gId === 'marvel-characters' && marvelGame) {
-        state.title = marvelGame.title;
-        state.gameId = marvelGame.id;
-        state.clues = [...marvelGame.clues];
-      } else if (gId === 'dog-breeds' && dogBreedsGame) {
-        state.title = dogBreedsGame.title;
-        state.gameId = dogBreedsGame.id;
-        state.clues = [...dogBreedsGame.clues];
-      }
+      loadCategoryIntoState(payload.gameId);
     }
-    state.p1.timeRemaining = state.roundTime;
-    state.p2.timeRemaining = state.roundTime;
-    state.activePlayer = 1;
-    state.clueIndex = 0;
-    state.winner = null;
-    state.tieCount = 0;
-    state.status = 'ready';
-    state.lastTickTime = null;
+    resetDuelRoundState({ resetTieCount: true });
     state.activeChallenger = null;
     state.adjacentDefenders = [];
     broadcastClueState('duel_players_set');
   }
+};
+
+function handleHostCommand(cmd, payload = {}) {
+  const handler = COMMAND_HANDLERS[cmd];
+  if (handler) handler(payload);
 }
 
-// MIME Types
+// MIME Types & Cache Policy
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -990,6 +760,8 @@ const MIME_TYPES = {
   '.webp': 'image/webp',
   '.ico': 'image/x-icon'
 };
+
+const CACHEABLE_IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.svg', '.webp', '.ico']);
 
 function getLocalIpAddresses() {
   const interfaces = os.networkInterfaces();
@@ -1006,7 +778,6 @@ function getLocalIpAddresses() {
 
 // HTTP Server
 const server = http.createServer((req, res) => {
-  // Enable CORS for mobile browsers & local network devices
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -1029,46 +800,8 @@ const server = http.createServer((req, res) => {
     });
     res.write('\n');
     sseClients.add(res);
-
-    // Send immediate full state on connect
-    const currentClue = state.clues[state.clueIndex] || null;
-    const nextClue = state.clues[(state.clueIndex + 1) % state.clues.length] || null;
-    const isPromptHidden = (state.status === 'ready' || state.status === 'countdown' || state.isPassing || state.isCorrect);
-    const initialData = {
-      eventType: 'initial_state',
-      title: state.title,
-      gameId: state.gameId,
-      p1: state.p1,
-      p2: state.p2,
-      activePlayer: state.activePlayer,
-      status: state.status,
-      countdownVal: state.countdownVal,
-      isPassing: state.isPassing,
-      passRemaining: state.passRemaining,
-      passedAnswer: state.isPassing ? (state.passedAnswer || '') : '',
-      isCorrect: state.isCorrect,
-      correctAnswer: state.isCorrect ? (state.correctAnswer || '') : '',
-      lastCorrectAnswer: '',
-      clueIndex: state.clueIndex,
-      cluesCount: state.clues.length,
-      promptAnswer: currentClue ? currentClue.answer : '',
-      promptId: currentClue ? currentClue.id : '',
-      promptImage: isPromptHidden ? '' : (currentClue ? currentClue.image : ''),
-      nextAnswer: nextClue ? nextClue.answer : '',
-      winner: state.winner,
-      territory: state.territory,
-      activeChallenger: state.activeChallenger,
-      adjacentDefenders: state.adjacentDefenders,
-      isReigningWinner: state.isReigningWinner || false,
-      isFloorConquered: state.isFloorConquered || false,
-      grandChampion: state.grandChampion || null,
-      passPenaltySeconds: state.passPenaltySeconds
-    };
-    res.write(`data: ${JSON.stringify(initialData)}\n\n`);
-
-    req.on('close', () => {
-      sseClients.delete(res);
-    });
+    res.write(`data: ${JSON.stringify(buildClueStatePayload('initial_state'))}\n\n`);
+    req.on('close', () => sseClients.delete(res));
     return;
   }
 
@@ -1090,14 +823,13 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // --- API: Territory Endpoint ---
+  // --- API: Territory & State Endpoints ---
   if (pathname === '/api/territory' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(state.territory || {}));
     return;
   }
 
-  // --- API: State Snapshot Endpoint ---
   if (pathname === '/api/state' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(state));
@@ -1106,9 +838,7 @@ const server = http.createServer((req, res) => {
 
   // --- Static File Serving ---
   let reqPath = decodeURI(pathname);
-  if (reqPath === '/' || reqPath === '') {
-    reqPath = '/index.html';
-  }
+  if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
 
   const filePath = path.join(PUBLIC_DIR, reqPath);
   if (!filePath.startsWith(PUBLIC_DIR)) {
@@ -1126,10 +856,13 @@ const server = http.createServer((req, res) => {
 
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const cacheControl = CACHEABLE_IMAGE_EXTS.has(ext)
+      ? 'public, max-age=3600'
+      : 'no-cache';
 
     res.writeHead(200, {
       'Content-Type': contentType,
-      'Cache-Control': 'no-cache'
+      'Cache-Control': cacheControl
     });
 
     fs.createReadStream(filePath).pipe(res);
@@ -1150,11 +883,5 @@ server.listen(PORT, '0.0.0.0', () => {
   }
   console.log(`\n📱 Host Controller View (Mobile Remote):`);
   console.log(`   http://${primaryIp}:${PORT}/host.html`);
-  console.log('========================================================');
-  console.log('Host Shortcuts (Desktop):');
-  console.log('  [SPACE]  Correct answer (switches timer immediately)');
-  console.log('  [TAB]    Pass (penalty & advances prompt)');
-  console.log('  [ESC]    Pause / Resume game');
-  console.log('  [R]      Reset round');
   console.log('========================================================\n');
 });

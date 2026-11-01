@@ -247,45 +247,67 @@
     }
   }
 
-  // Animation Frame Game Loop
+  // Animation Frame Game Loop & Image Preloader
   let animationId = null;
   let lastSecondPlayed = null;
+  const preloadedImages = new Set();
+
+  function preloadClueImage(src) {
+    if (!src || preloadedImages.has(src)) return;
+    preloadedImages.add(src);
+    const img = new Image();
+    img.src = src;
+  }
+
+  function ensureGameLoop() {
+    if (!animationId && state.status === 'running') {
+      animationId = requestAnimationFrame(gameLoop);
+    }
+  }
 
   function gameLoop(timestamp) {
-    if (state.status === 'running') {
-      if (!state.lastFrameTime) {
-        state.lastFrameTime = timestamp;
-      }
-      const deltaSec = (timestamp - state.lastFrameTime) / 1000;
-      state.lastFrameTime = timestamp;
-
-      // Active player timer countdown
-      const player = state.activePlayer === 1 ? state.p1 : state.p2;
-      player.timeRemaining = Math.max(0, player.timeRemaining - deltaSec);
-
-      // Sound ticking
-      const currentWholeSec = Math.ceil(player.timeRemaining);
-      if (currentWholeSec !== lastSecondPlayed && currentWholeSec > 0) {
-        lastSecondPlayed = currentWholeSec;
-        if (player.timeRemaining <= 10) {
-          window.soundEngine.playUrgentTick();
-        } else {
-          window.soundEngine.playTick();
-        }
-      }
-
-      // Check timeout (Game Over)
-      if (player.timeRemaining <= 0) {
-        handleTimeout(state.activePlayer);
-        return;
-      }
-
-      updateTimerUI();
-      broadcastSync();
-    } else {
+    if (state.status !== 'running') {
       state.lastFrameTime = null;
+      animationId = null;
+      return;
     }
 
+    if (state.isCorrect) {
+      state.lastFrameTime = null;
+      animationId = requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    if (!state.lastFrameTime) {
+      state.lastFrameTime = timestamp;
+    }
+    const deltaSec = (timestamp - state.lastFrameTime) / 1000;
+    state.lastFrameTime = timestamp;
+
+    // Active player timer countdown
+    const player = state.activePlayer === 1 ? state.p1 : state.p2;
+    player.timeRemaining = Math.max(0, player.timeRemaining - deltaSec);
+
+    // Sound ticking
+    const currentWholeSec = Math.ceil(player.timeRemaining);
+    if (currentWholeSec !== lastSecondPlayed && currentWholeSec > 0) {
+      lastSecondPlayed = currentWholeSec;
+      if (player.timeRemaining <= 10) {
+        window.soundEngine.playUrgentTick();
+      } else {
+        window.soundEngine.playTick();
+      }
+    }
+
+    // Check timeout (Game Over)
+    if (player.timeRemaining <= 0) {
+      animationId = null;
+      handleTimeout(state.activePlayer);
+      return;
+    }
+
+    updateTimerUI();
+    broadcastSync();
     animationId = requestAnimationFrame(gameLoop);
   }
 
@@ -299,9 +321,7 @@
     el.pauseModal.classList.remove('active');
     updateArenaUI();
     broadcastSync();
-    if (!animationId) {
-      animationId = requestAnimationFrame(gameLoop);
-    }
+    ensureGameLoop();
   }
 
   function startRunning() {
@@ -720,10 +740,16 @@
     if (state.clues.length > 0 && state.clues[state.clueIndex]) {
       const cur = state.clues[state.clueIndex];
       const clueId = cur.id || ('clue_' + state.clueIndex);
-      if (el.clueImage.getAttribute('data-clue-id') !== clueId) {
+      if (cur.image && el.clueImage.getAttribute('data-clue-id') !== clueId) {
         el.clueImage.setAttribute('data-clue-id', clueId);
         el.clueImage.src = cur.image;
       }
+      // Preload next 2 clues in background for instant 0ms transitions
+      const next1 = state.clues[state.clueIndex + 1];
+      const next2 = state.clues[state.clueIndex + 2];
+      if (next1 && next1.image) preloadClueImage(next1.image);
+      if (next2 && next2.image) preloadClueImage(next2.image);
+
       el.clueCounter.textContent = `${state.clueIndex + 1} / ${state.clues.length}`;
       if (el.hostAnswerText) el.hostAnswerText.textContent = cur.answer;
     } else {
@@ -1101,7 +1127,20 @@
           return;
         }
 
+        if (d.preloadImage) preloadClueImage(d.preloadImage);
+        if (d.nextImage) preloadClueImage(d.nextImage);
+
+        if (d.gameId && d.gameId !== state.gameId && typeof GameRegistry !== 'undefined') {
+          const pack = GameRegistry.getById(d.gameId);
+          if (pack && Array.isArray(pack.clues)) {
+            state.gameId = pack.id;
+            state.title = pack.title || state.title;
+            state.clues = [...pack.clues];
+          }
+        }
+
         if (d.eventType === 'duel_players_set') {
+          if (d.title) state.title = d.title;
           state.p1 = d.p1 || state.p1;
           state.p2 = d.p2 || state.p2;
           state.status = 'ready';
@@ -1112,6 +1151,8 @@
           state.isCorrect = false;
           state.correctAnswer = '';
           state.lastCorrectAnswer = '';
+          if (el.tieModal) el.tieModal.classList.remove('active');
+          if (el.victoryModal) el.victoryModal.classList.remove('active');
           updateArenaUI();
           switchToView('arena');
           return;
@@ -1126,10 +1167,13 @@
           if (window.soundEngine?.playCountdownBeep) {
             window.soundEngine.playCountdownBeep(true);
           }
+          ensureGameLoop();
         } else if (d.eventType === 'pause') {
           el.pauseModal.classList.add('active');
         } else if (d.eventType === 'resume') {
+          state.status = 'running';
           el.pauseModal.classList.remove('active');
+          ensureGameLoop();
         } else if (d.eventType === 'reset') {
           state.isPassing = false;
           state.isCorrect = false;
@@ -1158,6 +1202,7 @@
         state.p2 = d.p2 || state.p2;
         state.activePlayer = d.activePlayer || state.activePlayer;
         state.status = d.status || state.status;
+        if (state.status === 'running') ensureGameLoop();
         state.countdownVal = d.countdownVal !== undefined ? d.countdownVal : state.countdownVal;
         state.isPassing = d.isPassing !== undefined ? d.isPassing : state.isPassing;
         state.isCorrect = d.isCorrect !== undefined ? d.isCorrect : state.isCorrect;
@@ -1747,8 +1792,13 @@
 
     el.territoryGrid.style.gridTemplateColumns = `repeat(${territoryGame.cols}, minmax(0, 1fr))`;
 
-    // 1. Group squares by player to determine merged territory
+    // 1. Group squares by player and index players by ID for O(1) lookup
+    const playerById = new Map(territoryGame.players.map(p => [p.id, p]));
     const playerSquaresMap = new Map();
+    const tilesByPlayer = new Map();
+    const badgeByPlayer = new Map();
+    const fragment = document.createDocumentFragment();
+
     territoryGame.grid.forEach(sq => {
       if (!playerSquaresMap.has(sq.playerId)) {
         playerSquaresMap.set(sq.playerId, []);
@@ -1785,7 +1835,10 @@
       tile.dataset.playerId = sq.playerId;
       tile.dataset.squareIndex = idx;
 
-      const owner = territoryGame.players.find(p => p.id === sq.playerId);
+      if (!tilesByPlayer.has(sq.playerId)) tilesByPlayer.set(sq.playerId, []);
+      tilesByPlayer.get(sq.playerId).push(tile);
+
+      const owner = playerById.get(sq.playerId);
       const tileColor = owner ? owner.color : (sq.color || '#00f0ff');
       const playerName = owner ? owner.name : sq.playerName;
 
@@ -1816,17 +1869,17 @@
       numSpan.textContent = `#${idx + 1}`;
       tile.appendChild(numSpan);
 
-      // Synchronized Hover across all tiles of this player and their central badge
+      // Synchronized Hover across all tiles of this player and their central badge (O(1) cached references)
       tile.addEventListener('mouseenter', () => {
-        el.territoryGrid.querySelectorAll(`.territory-tile[data-player-id="${sq.playerId}"]`)
-          .forEach(t => t.classList.add('is-hovered-territory'));
-        const badge = el.territoryGrid.querySelector(`.territory-central-badge[data-player-id="${sq.playerId}"]`);
+        const playerTiles = tilesByPlayer.get(sq.playerId) || [];
+        playerTiles.forEach(t => t.classList.add('is-hovered-territory'));
+        const badge = badgeByPlayer.get(sq.playerId);
         if (badge) badge.classList.add('is-hovered-badge');
       });
       tile.addEventListener('mouseleave', () => {
-        el.territoryGrid.querySelectorAll(`.territory-tile[data-player-id="${sq.playerId}"]`)
-          .forEach(t => t.classList.remove('is-hovered-territory'));
-        const badge = el.territoryGrid.querySelector(`.territory-central-badge[data-player-id="${sq.playerId}"]`);
+        const playerTiles = tilesByPlayer.get(sq.playerId) || [];
+        playerTiles.forEach(t => t.classList.remove('is-hovered-territory'));
+        const badge = badgeByPlayer.get(sq.playerId);
         if (badge) badge.classList.remove('is-hovered-badge');
       });
 
@@ -1840,7 +1893,7 @@
           tile.title = `Adjacent competitor: ${playerName} (Category: ${catText}) - Click to Challenge!`;
 
           tile.addEventListener('click', () => {
-            const defender = territoryGame.players.find(p => p.id === sq.playerId);
+            const defender = playerById.get(sq.playerId);
             if (defender && activeChallenger) {
               const defCat = defender.categoryTitle || defender.category || 'General';
               if (confirm(`Challenge ${defender.name} to a duel on category: "${defCat}"?`)) {
@@ -1860,20 +1913,21 @@
       } else {
         tile.addEventListener('click', () => {
           window.soundEngine?.playTick();
-          el.territoryGrid.querySelectorAll(`.territory-tile[data-player-id="${sq.playerId}"]`).forEach(t => {
+          const playerTiles = tilesByPlayer.get(sq.playerId) || [];
+          playerTiles.forEach(t => {
             t.style.filter = 'brightness(1.5)';
             setTimeout(() => t.style.filter = '', 180);
           });
         });
       }
 
-      el.territoryGrid.appendChild(tile);
+      fragment.appendChild(tile);
     });
 
     // 4. Render each player's central badge at their optimal clearance position
     // Works reliably on ALL grid sizes and territory shapes (L-shapes, T-shapes, straight bars, 2x2, etc.)
     playerSquaresMap.forEach((squares, pId) => {
-      const player = territoryGame.players.find(p => p.id === pId);
+      const player = playerById.get(pId);
       if (!player) return;
 
       const count = player.territoryCount || squares.length;
@@ -1889,6 +1943,7 @@
       badgeWrap.dataset.playerId = pId;
       badgeWrap.style.left = `${optimal.posX}%`;
       badgeWrap.style.top = `${optimal.posY}%`;
+      badgeByPlayer.set(pId, badgeWrap);
 
       const card = document.createElement('div');
       card.className = 'central-badge-card';
@@ -1934,8 +1989,10 @@
       }
 
       badgeWrap.appendChild(card);
-      el.territoryGrid.appendChild(badgeWrap);
+      fragment.appendChild(badgeWrap);
     });
+
+    el.territoryGrid.appendChild(fragment);
   }
 
   // Header Nav & View Switcher
@@ -2654,6 +2711,6 @@
   updateArenaUI();
   updateLandingSavedStatus();
   switchToView('landing'); // Always the first page a user lands on!
-  animationId = requestAnimationFrame(gameLoop);
+  ensureGameLoop();
 
 })();
