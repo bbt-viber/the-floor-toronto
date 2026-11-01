@@ -189,6 +189,7 @@
     fileInput: document.getElementById('fileInput'),
     clueListGrid: document.getElementById('clueListGrid'),
     clueCountBadge: document.getElementById('clueCountBadge'),
+    btnLoadNba: document.getElementById('btnLoadNba'),
     btnLoadCarLogos: document.getElementById('btnLoadCarLogos'),
     btnLoadMarvel: document.getElementById('btnLoadMarvel'),
     btnExportJson: document.getElementById('btnExportJson'),
@@ -1107,7 +1108,8 @@
     return [
       { id: 'car-logos', title: 'Car Logos' },
       { id: 'marvel-characters', title: 'Marvel Characters' },
-      { id: 'dog-breeds', title: 'Dog Breeds' }
+      { id: 'dog-breeds', title: 'Dog Breeds' },
+      { id: 'nba-wnba', title: 'NBA & WNBA' }
     ];
   }
 
@@ -1981,7 +1983,7 @@
 
       const icon = document.createElement('div');
       icon.className = 'game-card-icon';
-      icon.textContent = game.id === 'car-logos' ? '🚗' : (game.id === 'marvel-characters' ? '🦸' : (game.id === 'dog-breeds' ? '🐕' : '🎯'));
+      icon.textContent = game.id === 'nba-wnba' ? '🏀' : (game.id === 'car-logos' ? '🚗' : (game.id === 'marvel-characters' ? '🦸' : (game.id === 'dog-breeds' ? '🐕' : '🎯')));
 
       const badge = document.createElement('div');
       badge.className = 'game-card-badge';
@@ -2224,6 +2226,20 @@
         }
       };
       reader.readAsDataURL(file);
+    });
+  }
+ 
+  // Load NBA & WNBA Pack
+  if (el.btnLoadNba) {
+    el.btnLoadNba.addEventListener('click', () => {
+      if (typeof GAME_NBA_WNBA !== 'undefined') {
+        if (confirm('Load NBA & WNBA Pack? (Replaces current clues)')) {
+          state.clues = [...GAME_NBA_WNBA.clues];
+          state.title = GAME_NBA_WNBA.title;
+          renderSetupForm();
+          persistCurrentGame();
+        }
+      }
     });
   }
 

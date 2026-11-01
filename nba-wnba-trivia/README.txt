@@ -7,51 +7,51 @@ the city name is kept, and the artwork is left intact.
 
 DIFFICULTY (by how likely a casual fan is to name the team)
 
-Easy (15)
-- Chicago Bulls
-- Boston Celtics
-- Golden State Warriors
-- Los Angeles Lakers
-- Miami Heat
-- Dallas Mavericks
-- Toronto Raptors
-- Milwaukee Bucks
-- San Antonio Spurs
-- Phoenix Suns
-- New York Knicks
-- Minnesota Timberwolves
-- Memphis Grizzlies
-- Charlotte Hornets
-- New York Liberty
+Easy (1–15)
+1. Chicago Bulls
+2. Boston Celtics
+3. Golden State Warriors
+4. Los Angeles Lakers
+5. Miami Heat
+6. Dallas Mavericks
+7. Toronto Raptors
+8. Milwaukee Bucks
+9. San Antonio Spurs
+10. Phoenix Suns
+11. New York Knicks
+12. Minnesota Timberwolves
+13. Memphis Grizzlies
+14. Charlotte Hornets
+15. New York Liberty
 
-Medium (15)
-- New Orleans Pelicans
-- Denver Nuggets
-- Atlanta Hawks
-- Minnesota Lynx
-- Oklahoma City Thunder
-- Indiana Pacers
-- Philadelphia 76ers
-- Sacramento Kings
-- Los Angeles Sparks
-- Seattle Storm
-- Cleveland Cavaliers
-- Las Vegas Aces
-- Los Angeles Clippers
-- Orlando Magic
-- Utah Jazz
+Medium (16–30)
+16. New Orleans Pelicans
+17. Denver Nuggets
+18. Atlanta Hawks
+19. Minnesota Lynx
+20. Oklahoma City Thunder
+21. Indiana Pacers
+22. Philadelphia 76ers
+23. Sacramento Kings
+24. Los Angeles Sparks
+25. Seattle Storm
+26. Cleveland Cavaliers
+27. Las Vegas Aces
+28. Los Angeles Clippers
+29. Orlando Magic
+30. Utah Jazz
 
-Hard (10)
-- Brooklyn Nets
-- Detroit Pistons
-- Atlanta Dream
-- Connecticut Sun
-- Indiana Fever
-- Phoenix Mercury
-- Chicago Sky
-- Golden State Valkyries
-- Dallas Wings
-- Washington Mystics
+Hard (31–40)
+31. Brooklyn Nets
+32. Detroit Pistons
+33. Atlanta Dream
+34. Connecticut Sun
+35. Indiana Fever
+36. Phoenix Mercury
+37. Chicago Sky
+38. Golden State Valkyries
+39. Dallas Wings
+40. Washington Mystics
 
 Notes
 - A few logos are built around a single stylized letter or initials that

@@ -13,6 +13,13 @@ const PUBLIC_DIR = __dirname;
 let dogBreedsGame = null;
 let marvelGame = null;
 let carLogosGame = null;
+let nbaGame = null;
+
+try {
+  nbaGame = require('./games/nba-wnba.js');
+} catch (e) {
+  console.warn('Could not load nba-wnba.js', e.message);
+}
 
 try {
   marvelGame = require('./games/marvel-characters.js');
@@ -394,7 +401,12 @@ function loadCategoryIntoState(gameId) {
   if (!gameId) return false;
   const id = String(gameId).toLowerCase().trim();
 
-  if (id === 'car-logos' && carLogosGame) {
+  if (id === 'nba-wnba' && nbaGame) {
+    state.title = nbaGame.title;
+    state.gameId = nbaGame.id;
+    state.clues = [...nbaGame.clues];
+    state.roundTime = nbaGame.defaultTimer || 45;
+  } else if (id === 'car-logos' && carLogosGame) {
     state.title = carLogosGame.title;
     state.gameId = carLogosGame.id;
     state.clues = [...carLogosGame.clues];
@@ -878,7 +890,11 @@ function handleHostCommand(cmd, payload = {}) {
     }
     if (payload.gameId && payload.gameId !== state.gameId) {
       const gId = payload.gameId;
-      if (gId === 'car-logos' && carLogosGame) {
+      if (gId === 'nba-wnba' && nbaGame) {
+        state.title = nbaGame.title;
+        state.gameId = nbaGame.id;
+        state.clues = [...nbaGame.clues];
+      } else if (gId === 'car-logos' && carLogosGame) {
         state.title = carLogosGame.title;
         state.gameId = carLogosGame.id;
         state.clues = [...carLogosGame.clues];

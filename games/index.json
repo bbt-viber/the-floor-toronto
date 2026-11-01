@@ -31,5 +31,16 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #2c1810 0%, #6f4e37 50%, #e6a15c 100%)",
     "file": "dog-breeds.json"
+  },
+  {
+    "id": "nba-wnba",
+    "title": "NBA & WNBA",
+    "description": "Identify the basketball team from its iconic logo — with nicknames removed!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Sports & Basketball",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #1d428a 0%, #c8102e 50%, #f9a01b 100%)",
+    "file": "nba-wnba.json"
   }
 ]
