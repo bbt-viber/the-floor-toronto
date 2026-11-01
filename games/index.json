@@ -64,5 +64,16 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%)",
     "file": "taylor-swift.json"
+  },
+  {
+    "id": "friends-trivia",
+    "title": "Friends Trivia",
+    "description": "Identify the iconic character, prop, alter ego, or location from the hit TV show Friends!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "TV & Pop Culture",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #7b2cbf 0%, #3a0ca3 50%, #4361ee 100%)",
+    "file": "friends-trivia.json"
   }
 ]

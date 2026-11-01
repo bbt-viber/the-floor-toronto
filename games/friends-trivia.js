@@ -1,0 +1,445 @@
+// Friends Trivia Game Pack - 40 Visual Trivia Prompts
+const GAME_FRIENDS_TRIVIA = {
+  "id": "friends-trivia",
+  "title": "Friends Trivia",
+  "description": "Identify the iconic character, prop, alter ego, or location from the hit TV show Friends!",
+  "category": "TV & Pop Culture",
+  "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+  "cluesCount": 40,
+  "defaultTimer": 45,
+  "bannerColor": "linear-gradient(135deg, #7b2cbf 0%, #3a0ca3 50%, #4361ee 100%)",
+  "clues": [
+    {
+      "id": "clue_friends_rachel_green",
+      "answer": "Rachel Green",
+      "aliases": [
+        "Rachel"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Rachel Green.png",
+      "hint": "Fashion enthusiast and Central Perk waitress played by Jennifer Aniston"
+    },
+    {
+      "id": "clue_friends_ross_geller",
+      "answer": "Ross Geller",
+      "aliases": [
+        "Ross",
+        "Dr. Geller"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Ross Geller.png",
+      "hint": "Paleontologist and Monica's older brother played by David Schwimmer"
+    },
+    {
+      "id": "clue_friends_monica_geller",
+      "answer": "Monica Geller",
+      "aliases": [
+        "Monica"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Monica Geller.png",
+      "hint": "Chef with obsessive cleaning habits played by Courteney Cox"
+    },
+    {
+      "id": "clue_friends_chandler_bing",
+      "answer": "Chandler Bing",
+      "aliases": [
+        "Chandler"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Chandler Bing.png",
+      "hint": "Sarcastic data analyst and Monica's husband played by Matthew Perry"
+    },
+    {
+      "id": "clue_friends_joey_tribbiani",
+      "answer": "Joey Tribbiani",
+      "aliases": [
+        "Joey"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Joey Tribbiani.png",
+      "hint": "Struggling actor famous for 'How you doin'?' played by Matt LeBlanc"
+    },
+    {
+      "id": "clue_friends_phoebe_buffay",
+      "answer": "Phoebe Buffay",
+      "aliases": [
+        "Phoebe"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Phoebe Buffay.png",
+      "hint": "Eccentric masseuse and singer of 'Smelly Cat' played by Lisa Kudrow"
+    },
+    {
+      "id": "clue_friends_central_perk",
+      "answer": "Central Perk",
+      "aliases": [
+        "Central Perk Coffeehouse"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Central Perk.png",
+      "hint": "The iconic Greenwich Village coffeehouse where the gang hangs out on the orange couch"
+    },
+    {
+      "id": "clue_friends_monicas_apartment",
+      "answer": "Monica's Apartment",
+      "aliases": [
+        "Monica and Rachel's Apartment"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Monica's Apartment.png",
+      "hint": "The purple-walled rent-controlled apartment inherited from Grandma Geller"
+    },
+    {
+      "id": "clue_friends_opening_credits",
+      "answer": "Opening Credits",
+      "aliases": [
+        "The Fountain",
+        "Friends Opening Credits",
+        "Opening Fountain"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Opening Credits.png",
+      "hint": "The famous opening sequence featuring the cast splashing with umbrellas around the fountain"
+    },
+    {
+      "id": "clue_friends_fat_monica",
+      "answer": "Fat Monica",
+      "aliases": [
+        "Young Monica"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Fat Monica.png",
+      "hint": "Monica's high-school alter ego seen in Thanksgiving flashbacks"
+    },
+    {
+      "id": "clue_friends_the_chick_and_the_duck",
+      "answer": "The Chick and the Duck",
+      "aliases": [
+        "Chick and Duck",
+        "The Chick and Duck",
+        "Duck and Chick"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/The Chick and the Duck.png",
+      "hint": "Joey and Chandler's beloved feathered bachelor apartment pets"
+    },
+    {
+      "id": "clue_friends_marcel_the_monkey",
+      "answer": "Marcel the Monkey",
+      "aliases": [
+        "Marcel",
+        "Marcel Monkey"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Marcel the Monkey.png",
+      "hint": "Ross's pet white-throated capuchin monkey who loved 'The Lion Sleeps Tonight'"
+    },
+    {
+      "id": "clue_friends_the_yellow_door_frame",
+      "answer": "The Yellow Door Frame",
+      "aliases": [
+        "Yellow Door Frame",
+        "Yellow Peephole Frame",
+        "Peephole Frame"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/The Yellow Door Frame.png",
+      "hint": "The ornate picture frame mounted around the peephole on Monica's purple door"
+    },
+    {
+      "id": "clue_friends_the_foosball_table",
+      "answer": "The Foosball Table",
+      "aliases": [
+        "Foosball Table",
+        "Foosball"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/The Foosball Table.png",
+      "hint": "Joey and Chandler's beloved apartment gaming table that replaced the kitchen table"
+    },
+    {
+      "id": "clue_friends_hugsy_the_penguin",
+      "answer": "Hugsy the Penguin",
+      "aliases": [
+        "Hugsy"
+      ],
+      "difficulty": "Easy",
+      "image": "friends-trivia/Hugsy the Penguin.png",
+      "hint": "Joey's bedtime penguin pal dressed in an aviator jacket, goggles, and scarf"
+    },
+    {
+      "id": "clue_friends_gunther",
+      "answer": "Gunther",
+      "aliases": [
+        "Gunther Barista"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Gunther.png",
+      "hint": "Central Perk's bleached-blonde barista who harbors an unrequited crush on Rachel"
+    },
+    {
+      "id": "clue_friends_janice",
+      "answer": "Janice",
+      "aliases": [
+        "Janice Litman-Goralnik",
+        "Janice Hosenstein"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Janice.png",
+      "hint": "Chandler's on-and-off girlfriend famous for her nasal laugh and 'OH. MY. GOD!'"
+    },
+    {
+      "id": "clue_friends_mike_hannigan",
+      "answer": "Mike Hannigan",
+      "aliases": [
+        "Mike"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Mike Hannigan.png",
+      "hint": "Phoebe's piano-playing husband played by Paul Rudd"
+    },
+    {
+      "id": "clue_friends_dr_richard_burke",
+      "answer": "Dr. Richard Burke",
+      "aliases": [
+        "Richard Burke",
+        "Richard"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Dr. Richard Burke.png",
+      "hint": "Ophthalmologist, Geller family friend, and Monica's older boyfriend played by Tom Selleck"
+    },
+    {
+      "id": "clue_friends_carol_willick",
+      "answer": "Carol Willick",
+      "aliases": [
+        "Carol"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Carol Willick.png",
+      "hint": "Ross's ex-wife and Ben's mother who left him for Susan Bunch"
+    },
+    {
+      "id": "clue_friends_joey_and_chandlers_apartment",
+      "answer": "Joey and Chandler's Apartment",
+      "aliases": [
+        "Chandler and Joey's Apartment",
+        "The Guys' Apartment"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Joey and Chandler's Apartment.png",
+      "hint": "Apartment 19 across the hall from Monica and Rachel, home of the foosball table"
+    },
+    {
+      "id": "clue_friends_jack_and_judys_house",
+      "answer": "Jack and Judy's House",
+      "aliases": [
+        "The Geller House",
+        "Geller House",
+        "Jack and Judy House"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Jack and Judy's House.png",
+      "hint": "Ross and Monica's childhood home in Long Island seen in Thanksgiving flashbacks"
+    },
+    {
+      "id": "clue_friends_the_montauk_beach_house",
+      "answer": "The Montauk Beach House",
+      "aliases": [
+        "Montauk Beach House",
+        "The Beach House",
+        "Montauk"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/The Montauk Beach House.png",
+      "hint": "The rainy seaside home where Joey got buried as a sand mermaid and Ross chose between Rachel and Bonnie"
+    },
+    {
+      "id": "clue_friends_dr_drake_ramoray",
+      "answer": "Dr. Drake Ramoray",
+      "aliases": [
+        "Drake Ramoray"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Dr. Drake Ramoray.png",
+      "hint": "Joey's fictional neurosurgeon alter ego on the soap opera Days of Our Lives"
+    },
+    {
+      "id": "clue_friends_the_holiday_armadillo",
+      "answer": "The Holiday Armadillo",
+      "aliases": [
+        "Holiday Armadillo"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/The Holiday Armadillo.png",
+      "hint": "Ross's improvised Christmas/Hanukkah costume when Santa costumes were rented out"
+    },
+    {
+      "id": "clue_friends_the_magna_doodle",
+      "answer": "The Magna Doodle",
+      "aliases": [
+        "Magna Doodle"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/The Magna Doodle.png",
+      "hint": "The drawing board on Joey and Chandler's front door featuring changing hidden messages"
+    },
+    {
+      "id": "clue_friends_pat_the_dog",
+      "answer": "Pat the Dog",
+      "aliases": [
+        "The Dog Statue",
+        "White Dog Statue"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Pat the Dog.png",
+      "hint": "The large white ceramic greyhound statue Joey bought when he got rich on Days of Our Lives"
+    },
+    {
+      "id": "clue_friends_mrs_whiskerson",
+      "answer": "Mrs. Whiskerson",
+      "aliases": [
+        "The Hairless Cat",
+        "Rachel's Cat",
+        "Sphynx Cat"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/Mrs. Whiskerson.png",
+      "hint": "The purebred $1,000 hairless Sphynx cat that Rachel bought and later sold to Gunther"
+    },
+    {
+      "id": "clue_friends_the_recliner_chairs",
+      "answer": "The Recliner Chairs",
+      "aliases": [
+        "The Recliners",
+        "Barcaloungers",
+        "La-Z-Boys",
+        "Joey and Chandler's Recliners"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/The Recliner Chairs.png",
+      "hint": "Joey and Chandler's matching black leather armchairs facing the TV"
+    },
+    {
+      "id": "clue_friends_the_geller_cup",
+      "answer": "The Geller Cup",
+      "aliases": [
+        "Geller Cup"
+      ],
+      "difficulty": "Medium",
+      "image": "friends-trivia/The Geller Cup.png",
+      "hint": "The childhood touch-football trophy consisting of a troll doll nailed to a 2x4 piece of wood"
+    },
+    {
+      "id": "clue_friends_mr_heckles",
+      "answer": "Mr. Heckles",
+      "aliases": [
+        "Heckles"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/Mr. Heckles.png",
+      "hint": "Monica and Rachel's eccentric downstairs neighbor who constantly complained about noise"
+    },
+    {
+      "id": "clue_friends_estelle_leonard",
+      "answer": "Estelle Leonard",
+      "aliases": [
+        "Estelle"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/Estelle Leonard.png",
+      "hint": "Joey's chain-smoking talent agent with voluminous teased blonde hair"
+    },
+    {
+      "id": "clue_friends_frank_buffay_jr",
+      "answer": "Frank Buffay Jr.",
+      "aliases": [
+        "Frank Jr."
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/Frank Buffay Jr..png",
+      "hint": "Phoebe's younger half-brother played by Giovanni Ribisi who loves melting things"
+    },
+    {
+      "id": "clue_friends_ursula_buffay",
+      "answer": "Ursula Buffay",
+      "aliases": [
+        "Ursula"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/Ursula Buffay.png",
+      "hint": "Phoebe's uncaring identical twin sister who works as a waitress at Riff's"
+    },
+    {
+      "id": "clue_friends_the_days_of_our_lives_set",
+      "answer": "The Days of Our Lives Set",
+      "aliases": [
+        "Days of Our Lives Set",
+        "Days of Our Lives Studio"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/The Days of Our Lives Set.png",
+      "hint": "The television soap opera production soundstage where Joey films Dr. Drake Ramoray"
+    },
+    {
+      "id": "clue_friends_the_barbados_resort",
+      "answer": "The Barbados Resort",
+      "aliases": [
+        "Barbados Resort",
+        "Barbados"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/The Barbados Resort.png",
+      "hint": "The tropical hotel hosting Ross's keynote paleontology conference where humidity frizzed Monica's hair"
+    },
+    {
+      "id": "clue_friends_regina_phalange",
+      "answer": "Regina Phalange",
+      "aliases": [
+        "Dr. Regina Phalange"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/Regina Phalange.png",
+      "hint": "Phoebe's go-to alter-ego alias first used when calling London during Ross's wedding"
+    },
+    {
+      "id": "clue_friends_the_poking_device",
+      "answer": "The Poking Device",
+      "aliases": [
+        "Giant Poking Device",
+        "The Giant Poking Device"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/The Poking Device.png",
+      "hint": "The long pole crafted from taped chopsticks used to check on Ugly Naked Guy across the street"
+    },
+    {
+      "id": "clue_friends_phoebes_yellow_cab",
+      "answer": "Phoebe's Yellow Cab",
+      "aliases": [
+        "Phoebe's Cab",
+        "Phoebe's Taxi",
+        "Yellow Cab"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/Phoebe's Yellow Cab.png",
+      "hint": "The vintage Checker Marathon taxi cab inherited from Phoebe's grandmother"
+    },
+    {
+      "id": "clue_friends_the_mr_beaumont",
+      "answer": "The Mr. Beaumont",
+      "aliases": [
+        "Mr. Beaumont",
+        "The Beaumont"
+      ],
+      "difficulty": "Hard",
+      "image": "friends-trivia/The Mr. Beaumont.png",
+      "hint": "Joey's sailboat that he accidentally bought at a charity auction for $20,000"
+    }
+  ]
+};
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = GAME_FRIENDS_TRIVIA;
+}
