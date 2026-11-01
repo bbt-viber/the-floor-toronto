@@ -188,8 +188,8 @@
 
     /* Giant Touch Action Buttons */
     .host-actions-grid {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-top: 6px;
     }
@@ -197,18 +197,22 @@
     .btn-host-action {
       border: none;
       border-radius: var(--radius-lg);
-      padding: 22px 20px;
-      font-size: 1.6rem;
+      padding: 22px 14px;
+      font-size: 1.35rem;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       cursor: pointer;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
       transition: transform 0.1s, filter 0.15s;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      min-height: 110px;
     }
 
     .btn-host-action:active {
@@ -784,18 +788,18 @@
         </button>
       </div>
 
-      <!-- Giant Thumb-Friendly Touch Controls (Active during Duel) -->
+      <!-- Giant Thumb-Friendly Touch Controls (Active during Duel: Pass on Left, Correct on Right) -->
       <div id="duelActionsGrid" class="host-actions-grid" style="display: none;">
-        <!-- Correct Button -->
+        <!-- Pass Button (Left) -->
+        <button id="btnHostPass" class="btn-host-action btn-host-pass">
+          <span id="hostPassLabel">↷ PASS</span>
+          <span class="hotkey-hint">TAB</span>
+        </button>
+
+        <!-- Correct Button (Right) -->
         <button id="btnHostCorrect" class="btn-host-action btn-host-correct">
           <span>✓ CORRECT</span>
           <span class="hotkey-hint">SPACE</span>
-        </button>
-
-        <!-- Pass Button -->
-        <button id="btnHostPass" class="btn-host-action btn-host-pass">
-          <span id="hostPassLabel">↷ PASS (3s Delay)</span>
-          <span class="hotkey-hint">TAB</span>
         </button>
       </div>
 
