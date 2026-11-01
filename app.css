@@ -2219,5 +2219,147 @@ body {
   margin-bottom: 12px;
 }
 
+/* ==================== DUEL TIE MODAL & ANIMATIONS ==================== */
+.tie-card {
+  max-width: 620px;
+  background: radial-gradient(circle at center, rgba(30, 20, 50, 0.98), rgba(10, 10, 25, 0.98));
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 50px rgba(245, 158, 11, 0.35), 0 0 100px rgba(239, 68, 68, 0.25), inset 0 0 30px rgba(245, 158, 11, 0.15);
+  position: relative;
+  overflow: hidden;
+  animation: tieModalAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes tieModalAppear {
+  0% { transform: scale(0.7) translateY(40px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.tie-clash-anim {
+  font-size: 4rem;
+  line-height: 1;
+  display: inline-block;
+  margin-bottom: 8px;
+  animation: tieClashPulse 1.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.8));
+}
+
+@keyframes tieClashPulse {
+  0% { transform: scale(0.95) rotate(-6deg); filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.5)); }
+  50% { transform: scale(1.15) rotate(6deg); filter: drop-shadow(0 0 35px rgba(239, 68, 68, 0.9)); }
+  100% { transform: scale(1.02) rotate(-3deg); filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.8)); }
+}
+
+.tie-eyebrow {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #ffca28;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(255, 202, 40, 0.6);
+}
+
+.tie-title {
+  font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+  font-weight: 950;
+  letter-spacing: 2px;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, #fff 0%, #fde047 50%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(249, 115, 22, 0.5));
+}
+
+.tie-subtitle {
+  font-size: 1.05rem;
+  color: #e2e8f0;
+  margin: 0 auto 20px auto;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.tie-times-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.tie-time-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 14px;
+  min-width: 130px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.tie-time-badge.p1 {
+  border-color: var(--p1-color);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+}
+
+.tie-time-badge.p2 {
+  border-color: var(--p2-color);
+  box-shadow: 0 0 20px rgba(255, 0, 127, 0.25);
+}
+
+.tie-player-lbl {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 2px;
+}
+
+.tie-time-val {
+  font-size: 1.6rem;
+  font-weight: 900;
+  font-family: monospace;
+  color: #ffffff;
+}
+
+.tie-time-badge.p1 .tie-time-val { color: var(--p1-color); }
+.tie-time-badge.p2 .tie-time-val { color: var(--p2-color); }
+
+.tie-vs-badge {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+.tie-awaiting-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 26px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1.5px solid #f59e0b;
+  border-radius: 999px;
+  color: #fde047;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+}
+
+.tie-spin-icon {
+  display: inline-block;
+  animation: tieSpin 2s linear infinite;
+}
+
+@keyframes tieSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 
 

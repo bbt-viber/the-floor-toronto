@@ -115,6 +115,8 @@ function broadcastClueState(eventType = 'clue_sync') {
     promptImage: isPromptHidden ? '' : (currentClue ? currentClue.image : ''),
     nextAnswer: nextClue ? nextClue.answer : '',
     winner: state.winner,
+    isTie: (state.status === 'tie'),
+    tieCount: state.tieCount || 0,
     territory: state.territory,
     activeChallenger: state.activeChallenger,
     adjacentDefenders: state.adjacentDefenders,
@@ -445,6 +447,42 @@ function loadCategoryIntoState(gameId) {
   return true;
 }
 
+// Resolves duel tie when all prompts are completed without any player's clock reaching 0
+function handleDuelTie() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  if (passTimer) clearInterval(passTimer);
+  if (correctTimer) clearTimeout(correctTimer);
+  countdownTimer = null;
+  passTimer = null;
+  correctTimer = null;
+
+  state.status = 'tie';
+  state.lastTickTime = null;
+  state.isPassing = false;
+  state.passRemaining = 0;
+  state.isCorrect = false;
+  state.correctAnswer = '';
+  state.lastCorrectAnswer = '';
+  state.winner = null;
+  state.tieCount = (state.tieCount || 0) + 1;
+
+  console.log(`[Duel Tie] Both contestants completed all ${state.clues.length} prompts in "${state.title}"! Clocks: ${state.p1.name}=${state.p1.timeRemaining.toFixed(1)}s, ${state.p2.name}=${state.p2.timeRemaining.toFixed(1)}s. Tiebreaker category required.`);
+
+  sendSse({
+    eventType: 'duel_tie',
+    status: 'tie',
+    title: state.title,
+    cluesCount: state.clues.length,
+    p1: state.p1,
+    p2: state.p2,
+    p1Time: state.p1.timeRemaining,
+    p2Time: state.p2.timeRemaining,
+    tieCount: state.tieCount
+  });
+
+  broadcastClueState('duel_tie');
+}
+
 // Host Command Processor
 function handleHostCommand(cmd, payload = {}) {
   if (cmd === 'start_duel' || cmd === 'start_game') {
@@ -459,7 +497,7 @@ function handleHostCommand(cmd, payload = {}) {
     }
   }
   else if (cmd === 'correct') {
-    if (state.status === 'gameover') return;
+    if (state.status === 'gameover' || state.status === 'tie') return;
     if (state.status === 'ready') {
       startDuelCountdown();
       return;
@@ -506,9 +544,16 @@ function handleHostCommand(cmd, payload = {}) {
 
       // Switch active player turn
       state.activePlayer = state.activePlayer === 1 ? 2 : 1;
+
+      // Check if all clues have been exhausted (Tie condition)
+      if (state.clues.length > 0 && state.clueIndex + 1 >= state.clues.length) {
+        handleDuelTie();
+        return;
+      }
+
       // Advance to next prompt!
       if (state.clues.length > 0) {
-        state.clueIndex = (state.clueIndex + 1) % state.clues.length;
+        state.clueIndex++;
       }
       state.lastTickTime = Date.now();
       broadcastClueState('correct_complete');
@@ -562,9 +607,15 @@ function handleHostCommand(cmd, payload = {}) {
         state.passRemaining = 0;
         state.passedAnswer = '';
         state.lastCorrectAnswer = '';
+        // Check if all clues have been exhausted (Tie condition)
+        if (state.clues.length > 0 && state.clueIndex + 1 >= state.clues.length) {
+          handleDuelTie();
+          return;
+        }
+
         // 3 seconds later: introduce next prompt and hide previous answer!
         if (state.clues.length > 0) {
-          state.clueIndex = (state.clueIndex + 1) % state.clues.length;
+          state.clueIndex++;
         }
         broadcastClueState('pass_complete');
       }
@@ -610,6 +661,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.activePlayer = 1;
     state.clueIndex = 0;
     state.winner = null;
+    state.tieCount = 0;
     state.lastTickTime = null;
     broadcastClueState('reset');
   } 
@@ -632,6 +684,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.p2.timeRemaining = state.roundTime;
     state.clueIndex = 0;
     state.winner = null;
+    console.log(`[Category Selected] "${state.title}" loaded for duel. Tiebreaker: ${Boolean(state.tieCount > 0)}`);
     broadcastClueState('game_change');
   } 
   else if (cmd === 'sync_custom_game') {
@@ -763,6 +816,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.activePlayer = 1;
     state.clueIndex = 0;
     state.winner = null;
+    state.tieCount = 0;
     state.status = 'ready';
     state.lastTickTime = null;
     state.activeChallenger = null;
@@ -811,6 +865,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.clueIndex = 0;
     state.activePlayer = 1;
     state.winner = null;
+    state.tieCount = 0;
     state.lastTickTime = null;
     state.duelTerritoryResolved = false;
     state.p1.timeRemaining = state.roundTime;
@@ -913,6 +968,7 @@ function handleHostCommand(cmd, payload = {}) {
     state.activePlayer = 1;
     state.clueIndex = 0;
     state.winner = null;
+    state.tieCount = 0;
     state.status = 'ready';
     state.lastTickTime = null;
     state.activeChallenger = null;

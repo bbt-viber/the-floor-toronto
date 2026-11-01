@@ -190,6 +190,56 @@ class GameSoundEngine {
     osc.start(t);
     osc.stop(t + (isFinal ? 0.65 : 0.3));
   }
+
+  playTie() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    // Dramatic two-tone clash chord followed by rising suspense arpeggio
+    const clashFreqs = [220.00, 311.13, 440.00, 622.25]; // A3, Eb4 (tritone tension), A4, Eb5
+    const resolveFreqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 triumph
+    const t = this.ctx.currentTime;
+
+    // Phase 1: Heavy dramatic tension clash
+    clashFreqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, t);
+
+      gain.gain.setValueAtTime(0.001, t);
+      gain.gain.linearRampToValueAtTime(0.2, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.65);
+    });
+
+    // Phase 2: Rising suspense bells (Tiebreaker Fanfare)
+    resolveFreqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const noteTime = t + 0.45 + (idx * 0.12);
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, noteTime);
+
+      gain.gain.setValueAtTime(0.001, noteTime);
+      gain.gain.linearRampToValueAtTime(0.25, noteTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.8);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + 0.85);
+    });
+  }
 }
 
 const soundEngine = new GameSoundEngine();

@@ -175,6 +175,14 @@
     btnRematch: document.getElementById('btnRematch'),
     btnBackToSetup: document.getElementById('btnBackToSetup'),
 
+    tieModal: document.getElementById('tieModal'),
+    tieTitle: document.getElementById('tieTitle'),
+    tieDetails: document.getElementById('tieDetails'),
+    tieP1Name: document.getElementById('tieP1Name'),
+    tieP2Name: document.getElementById('tieP2Name'),
+    tieP1Time: document.getElementById('tieP1Time'),
+    tieP2Time: document.getElementById('tieP2Time'),
+
     pauseModal: document.getElementById('pauseModal'),
     btnResume: document.getElementById('btnResume'),
 
@@ -349,6 +357,8 @@
     const loserName = losingPlayerId === 1 ? state.p1.name : state.p2.name;
     const winningTime = (state.winner === 1 ? state.p1.timeRemaining : state.p2.timeRemaining).toFixed(1);
 
+    if (el.tieModal) el.tieModal.classList.remove('active');
+
     window.soundEngine.playTimeout();
     setTimeout(() => {
       window.soundEngine.playVictory();
@@ -359,6 +369,101 @@
     el.victoryDetails.textContent = `${loserName}'s clock reached 0.0s! ${winnerName} takes the floor with ${winningTime}s remaining!`;
     el.victoryModal.classList.add('active');
 
+    updateArenaUI();
+    broadcastSync();
+  }
+
+  // Dramatic sparks explosion effect for duel tie
+  function triggerTieSparks() {
+    const canvas = document.getElementById('confettiCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const sparks = [];
+    const colors = ['#f59e0b', '#ef4444', '#fde047', '#ffca28', '#ffffff'];
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    for (let i = 0; i < 180; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 8 + 2;
+      sparks.push({
+        x: centerX,
+        y: centerY,
+        radius: Math.random() * 4 + 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        velX: Math.cos(angle) * speed,
+        velY: Math.sin(angle) * speed,
+        alpha: 1,
+        decay: Math.random() * 0.015 + 0.008
+      });
+    }
+
+    let frames = 0;
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      sparks.forEach(s => {
+        s.x += s.velX;
+        s.y += s.velY;
+        s.velY += 0.08; // gravity
+        s.alpha = Math.max(0, s.alpha - s.decay);
+
+        ctx.save();
+        ctx.globalAlpha = s.alpha;
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      frames++;
+      if (frames < 200 && state.status === 'tie') {
+        requestAnimationFrame(render);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+    requestAnimationFrame(render);
+  }
+
+  // Declares a duel tie with full animation and awaits host tiebreaker selection
+  function handleDuelTie(data = {}) {
+    state.status = 'tie';
+    state.winner = null;
+    if (state.timerId) cancelAnimationFrame(state.timerId);
+    state.timerId = null;
+    if (state.passTimer) clearInterval(state.passTimer);
+    state.passTimer = null;
+    if (state.correctTimer) clearTimeout(state.correctTimer);
+    state.correctTimer = null;
+    state.isPassing = false;
+    state.isCorrect = false;
+
+    if (window.soundEngine?.playTie) {
+      window.soundEngine.playTie();
+    } else if (window.soundEngine?.playVictory) {
+      window.soundEngine.playVictory();
+    }
+
+    if (el.tieP1Name) el.tieP1Name.textContent = (data.p1?.name || state.p1.name);
+    if (el.tieP2Name) el.tieP2Name.textContent = (data.p2?.name || state.p2.name);
+    const p1T = data.p1Time !== undefined ? data.p1Time : state.p1.timeRemaining;
+    const p2T = data.p2Time !== undefined ? data.p2Time : state.p2.timeRemaining;
+    if (el.tieP1Time) el.tieP1Time.textContent = formatTime(p1T) + 's';
+    if (el.tieP2Time) el.tieP2Time.textContent = formatTime(p2T) + 's';
+    if (el.tieDetails) {
+      const cnt = data.cluesCount || state.clues.length;
+      el.tieDetails.textContent = `All ${cnt} prompts completed! Neither clock reached 0.0s! A tiebreaker category is required.`;
+    }
+
+    if (el.tieModal) el.tieModal.classList.add('active');
+    if (el.victoryModal) el.victoryModal.classList.remove('active');
+    if (el.pauseModal) el.pauseModal.classList.remove('active');
+
+    triggerTieSparks();
     updateArenaUI();
     broadcastSync();
   }
@@ -406,6 +511,13 @@
 
       // Switch turn to opponent
       state.activePlayer = state.activePlayer === 1 ? 2 : 1;
+
+      // Check if all clues have been exhausted (Tie condition)
+      if (state.clues.length > 0 && state.clueIndex + 1 >= state.clues.length) {
+        handleDuelTie();
+        return;
+      }
+
       // Advance to next clue
       nextClue();
 
@@ -474,6 +586,10 @@
           el.stageAnswerPill.style.display = 'none';
           if (el.stageAnswerText) el.stageAnswerText.textContent = '';
         }
+        if (state.clues.length > 0 && state.clueIndex + 1 >= state.clues.length) {
+          handleDuelTie();
+          return;
+        }
         nextClue();
         updateArenaUI();
         broadcastSync();
@@ -524,6 +640,7 @@
     state.winner = null;
 
     el.victoryModal.classList.remove('active');
+    if (el.tieModal) el.tieModal.classList.remove('active');
     el.pauseModal.classList.remove('active');
     if (el.pauseLabel) el.pauseLabel.textContent = 'START (ESC / SPACE)';
 
@@ -704,6 +821,8 @@
         else if (msg.cmd === 'pass') handlePass();
         else if (msg.cmd === 'pause') togglePause();
         else if (msg.cmd === 'reset') resetRound();
+      } else if (msg.type === 'DUEL_TIE' || (msg.payload && msg.payload.status === 'tie')) {
+        handleDuelTie(msg.payload);
       }
     };
   }
@@ -1019,11 +1138,18 @@
           if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
           if (el.correctOverlay) el.correctOverlay.style.display = 'none';
           if (el.passOverlay) el.passOverlay.style.display = 'none';
+          if (el.tieModal) el.tieModal.classList.remove('active');
           el.victoryModal.classList.remove('active');
           el.pauseModal.classList.remove('active');
         } else if (d.eventType === 'timeout') {
           handleTimeout(d.winner === 1 ? 2 : 1);
           return;
+        } else if (d.eventType === 'duel_tie' || d.status === 'tie') {
+          handleDuelTie(d);
+          return;
+        } else if (d.eventType === 'game_change' || d.eventType === 'duel_players_set') {
+          if (el.tieModal) el.tieModal.classList.remove('active');
+          if (el.victoryModal) el.victoryModal.classList.remove('active');
         }
 
         // 6. Full Clue Synchronization

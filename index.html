@@ -351,6 +351,35 @@
     </div>
   </div>
 
+  <!-- ==================== DUEL TIE MODAL ==================== -->
+  <div id="tieModal" class="modal-overlay">
+    <div class="modal-card tie-card">
+      <div class="tie-clash-anim">⚔️</div>
+      <div class="tie-eyebrow">⚡ ALL PROMPTS COMPLETED ⚡</div>
+      <h2 id="tieTitle" class="tie-title">IT'S A TIE!</h2>
+      <p id="tieDetails" class="tie-subtitle">Neither contestant's clock reached 0.0s! A tiebreaker category is required.</p>
+
+      <div class="tie-times-row">
+        <div class="tie-time-badge p1">
+          <span id="tieP1Name" class="tie-player-lbl">Player 1</span>
+          <span id="tieP1Time" class="tie-time-val">0.0s</span>
+        </div>
+        <div class="tie-vs-badge">VS</div>
+        <div class="tie-time-badge p2">
+          <span id="tieP2Name" class="tie-player-lbl">Player 2</span>
+          <span id="tieP2Time" class="tie-time-val">0.0s</span>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 24px;">
+        <div class="tie-awaiting-badge">
+          <span class="tie-spin-icon">⏳</span>
+          <span>Awaiting Host to Select Tiebreaker Category</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== GRAND CHAMPION CELEBRATION MODAL ==================== -->
   <div id="grandChampionModal" class="modal-overlay">
     <div class="modal-card champion-celebration-card">

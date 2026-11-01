@@ -584,6 +584,68 @@
       background: linear-gradient(135deg, rgba(255, 211, 105, 0.35) 0%, rgba(255, 159, 28, 0.5) 100%);
       box-shadow: 0 0 30px rgba(255, 211, 105, 0.7);
     }
+
+    /* Duel Tie Host Card & Button */
+    .host-tie-card {
+      background: radial-gradient(circle at center, rgba(40, 25, 10, 0.95), rgba(20, 10, 10, 0.98));
+      border: 2px solid #f59e0b;
+      border-radius: var(--radius-lg);
+      padding: 20px 16px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.35);
+      animation: tiePulseCard 2s infinite ease-in-out;
+    }
+
+    @keyframes tiePulseCard {
+      0%, 100% { border-color: #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.35); }
+      50% { border-color: #ef4444; box-shadow: 0 0 40px rgba(239, 68, 68, 0.55); }
+    }
+
+    .host-tie-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #ffca28;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .host-tie-subtitle {
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .btn-host-tiebreaker {
+      width: 100%;
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+      border: 2px solid #fde047;
+      color: #ffffff;
+      border-radius: var(--radius-md);
+      padding: 16px 14px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+    }
+
+    .btn-host-tiebreaker:hover, .btn-host-tiebreaker:active {
+      transform: scale(1.02);
+      box-shadow: 0 0 35px rgba(253, 224, 71, 0.85);
+    }
   </style>
 </head>
 <body>
@@ -709,6 +771,19 @@
         <span class="hotkey-hint">Sync all screens back to the Floor</span>
       </button>
 
+      <!-- Duel Tie Card (Shown when all prompts are exhausted without clock timeout) -->
+      <div id="hostTieCard" class="host-tie-card" style="display: none;">
+        <div style="font-size: 2.2rem; margin-bottom: 6px;">⚔️</div>
+        <div class="host-tie-title">⚔️ DUEL ENDED IN A TIE!</div>
+        <div class="host-tie-subtitle">
+          All <span id="hostTieCount">40</span> prompts completed! Neither clock reached 0.0s. Select a category from the library for the Tiebreaker Duel.
+        </div>
+        <button id="btnHostSelectTiebreaker" class="btn-host-tiebreaker">
+          <span>📚 SELECT TIEBREAKER CATEGORY</span>
+          <span class="hotkey-hint">Opens Category Library</span>
+        </button>
+      </div>
+
       <!-- Giant Thumb-Friendly Touch Controls (Active during Duel) -->
       <div id="duelActionsGrid" class="host-actions-grid" style="display: none;">
         <!-- Correct Button -->
@@ -737,7 +812,7 @@
   <!-- Category Switcher Modal -->
   <div id="categoryModal" class="category-modal">
     <div class="category-modal-card">
-      <h3 style="font-size: 1.3rem; margin-bottom: 14px; color: #fff;">Switch Game Category</h3>
+      <h3 id="categoryModalTitle" style="font-size: 1.3rem; margin-bottom: 14px; color: #fff;">Switch Game Category</h3>
       <button class="category-item-btn" onclick="selectGame('nba-wnba')">
         <span>🏀 NBA & WNBA</span>
         <span style="font-size: 0.8rem; color: var(--gold);">40 Clues</span>
@@ -814,6 +889,9 @@
       btnHostStartDuel: document.getElementById('btnHostStartDuel'),
       startDuelLabel: document.getElementById('startDuelLabel'),
       btnHostReturnToTerritory: document.getElementById('btnHostReturnToTerritory'),
+      hostTieCard: document.getElementById('hostTieCard'),
+      hostTieCount: document.getElementById('hostTieCount'),
+      btnHostSelectTiebreaker: document.getElementById('btnHostSelectTiebreaker'),
       duelActionsGrid: document.getElementById('duelActionsGrid'),
       btnHostCorrect: document.getElementById('btnHostCorrect'),
       btnHostPass: document.getElementById('btnHostPass'),
@@ -822,6 +900,7 @@
       btnHostReset: document.getElementById('btnHostReset'),
       btnCategoryModal: document.getElementById('btnCategoryModal'),
       categoryModal: document.getElementById('categoryModal'),
+      categoryModalTitle: document.getElementById('categoryModalTitle'),
       btnCloseModal: document.getElementById('btnCloseModal')
     };
 
@@ -1152,7 +1231,7 @@
       if (d.status === 'ready') {
         el.btnHostStartDuel.style.display = 'flex';
         el.btnHostStartDuel.disabled = false;
-        el.startDuelLabel.textContent = '🚀 START GAME';
+        el.startDuelLabel.textContent = (d.tieCount > 0) ? '🚀 START TIEBREAKER DUEL' : '🚀 START GAME';
         el.duelActionsGrid.style.display = 'none';
         el.answerTag.textContent = '🎯 FIRST CLUE:';
         el.btnHostPause.textContent = '▶ START (ESC)';
@@ -1203,6 +1282,35 @@
         el.btnHostStartDuel.style.display = 'none';
         el.duelActionsGrid.style.display = 'none';
         if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'flex';
+      } else if (d.status === 'tie') {
+        el.btnHostStartDuel.style.display = 'none';
+        el.duelActionsGrid.style.display = 'none';
+        if (el.btnHostReturnToTerritory) el.btnHostReturnToTerritory.style.display = 'none';
+        if (el.hostTieCard) {
+          el.hostTieCard.style.display = 'flex';
+          if (el.hostTieCount) el.hostTieCount.textContent = d.cluesCount || 40;
+        }
+        el.turnBanner.className = 'turn-banner';
+        el.turnBanner.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(239, 68, 68, 0.35))';
+        el.turnBanner.style.border = '2px solid #f59e0b';
+        el.turnBanner.style.color = '#fde047';
+        el.turnBanner.textContent = '⚔️ DUEL TIED! SELECT TIEBREAKER TOPIC';
+        el.answerTag.textContent = '⚔️ DUEL TIED:';
+        el.masterAnswer.textContent = 'TIEBREAKER REQUIRED';
+        if (el.categoryModalTitle) el.categoryModalTitle.textContent = '⚔️ Select Tiebreaker Category';
+        vibrate([100, 50, 100]);
+        if (!el.categoryModal.classList.contains('active')) {
+          setTimeout(() => {
+            if (currentStatus === 'tie' && !el.categoryModal.classList.contains('active')) {
+              el.categoryModal.classList.add('active');
+            }
+          }, 1200);
+        }
+      }
+
+      if (d.status && d.status !== 'tie') {
+        if (el.hostTieCard) el.hostTieCard.style.display = 'none';
+        if (el.categoryModalTitle) el.categoryModalTitle.textContent = 'Switch Game Category';
       }
 
       if (d.status && d.status !== 'gameover') {
@@ -1392,6 +1500,13 @@
     });
 
     // Category Modal
+    if (el.btnHostSelectTiebreaker) {
+      el.btnHostSelectTiebreaker.addEventListener('click', () => {
+        vibrate(40);
+        el.categoryModal.classList.add('active');
+      });
+    }
+
     el.btnCategoryModal.addEventListener('click', () => {
       el.categoryModal.classList.add('active');
     });
