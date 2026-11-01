@@ -1,0 +1,402 @@
+// Taylor Swift Game Pack - 40 Visual Trivia Prompts
+const GAME_TAYLOR_SWIFT = {
+  "id": "taylor-swift",
+  "title": "Taylor Swift",
+  "description": "Identify the partner/ex, album cover, or iconic music video from Taylor Swift's legendary career!",
+  "category": "Music & Pop Culture",
+  "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+  "cluesCount": 40,
+  "defaultTimer": 45,
+  "bannerColor": "linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%)",
+  "clues": [
+    {
+      "id": "clue_taylor_travis_kelce",
+      "answer": "Travis Kelce",
+      "aliases": [
+        "Kelce"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Travis Kelce.png",
+      "hint": "Kansas City Chiefs tight end and Taylor Swift's partner"
+    },
+    {
+      "id": "clue_taylor_harry_styles",
+      "answer": "Harry Styles",
+      "aliases": [
+        "Styles"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Harry Styles.png",
+      "hint": "Former One Direction member and British pop superstar"
+    },
+    {
+      "id": "clue_taylor_taylor_lautner",
+      "answer": "Taylor Lautner",
+      "aliases": [
+        "Lautner"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Taylor Lautner.png",
+      "hint": "Twilight actor who played Jacob Black"
+    },
+    {
+      "id": "clue_taylor_joe_jonas",
+      "answer": "Joe Jonas",
+      "aliases": [
+        "Jonas"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Joe Jonas.png",
+      "hint": "Jonas Brothers member and DNCE frontman"
+    },
+    {
+      "id": "clue_taylor_1989",
+      "answer": "1989",
+      "aliases": [
+        "1989 Album",
+        "1989 Taylor's Version"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/1989.png",
+      "hint": "Fifth studio album featuring Polaroid cover artwork"
+    },
+    {
+      "id": "clue_taylor_red",
+      "answer": "Red",
+      "aliases": [
+        "Red Album",
+        "Red Taylor's Version"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Red.png",
+      "hint": "Fourth studio album featuring Taylor wearing a burgundy newsboy cap in a vintage car"
+    },
+    {
+      "id": "clue_taylor_fearless",
+      "answer": "Fearless",
+      "aliases": [
+        "Fearless Album",
+        "Fearless Taylor's Version"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Fearless.png",
+      "hint": "Sophomore country-pop album featuring Taylor with flowing golden curls"
+    },
+    {
+      "id": "clue_taylor_lover",
+      "answer": "Lover",
+      "aliases": [
+        "Lover Album"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Lover.png",
+      "hint": "Seventh studio album with pastel pink, blue, and yellow cloud sky aesthetic"
+    },
+    {
+      "id": "clue_taylor_shake_it_off",
+      "answer": "Shake It Off",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Shake It Off.png",
+      "hint": "Lead single from 1989 featuring Taylor dancing in cheerleader and ballerina outfits"
+    },
+    {
+      "id": "clue_taylor_blank_space",
+      "answer": "Blank Space",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Blank Space.png",
+      "hint": "Second single from 1989 set in a lavish Long Island mansion with cake and sports car"
+    },
+    {
+      "id": "clue_taylor_love_story",
+      "answer": "Love Story",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Love Story.png",
+      "hint": "Breakout 2008 single based on Shakespeare's Romeo and Juliet"
+    },
+    {
+      "id": "clue_taylor_you_belong_with_me",
+      "answer": "You Belong With Me",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/You Belong With Me.png",
+      "hint": "Fearless music video featuring Taylor holding notepad signs through her bedroom window"
+    },
+    {
+      "id": "clue_taylor_bad_blood",
+      "answer": "Bad Blood",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Bad Blood.png",
+      "hint": "Star-studded action movie-style music video featuring an all-star superhero squad"
+    },
+    {
+      "id": "clue_taylor_anti_hero",
+      "answer": "Anti-Hero",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/Anti-Hero.png",
+      "hint": "Lead single from Midnights with the famous 'It's me, hi, I'm the problem, it's me' lyric"
+    },
+    {
+      "id": "clue_taylor_22",
+      "answer": "22",
+      "aliases": [
+        "Twenty Two"
+      ],
+      "difficulty": "Easy",
+      "image": "taylor-swift-trivia/22.png",
+      "hint": "Red music video featuring red heart-shaped sunglasses and 'Not a lot going on at the moment' shirt"
+    },
+    {
+      "id": "clue_taylor_joe_alwyn",
+      "answer": "Joe Alwyn",
+      "aliases": [
+        "Alwyn"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Joe Alwyn.png",
+      "hint": "English actor who dated Taylor for six years and co-wrote songs as William Bowery"
+    },
+    {
+      "id": "clue_taylor_jake_gyllenhaal",
+      "answer": "Jake Gyllenhaal",
+      "aliases": [
+        "Gyllenhaal"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Jake Gyllenhaal.png",
+      "hint": "Acclaimed actor who inspired the Red album and 'All Too Well' scarf"
+    },
+    {
+      "id": "clue_taylor_calvin_harris",
+      "answer": "Calvin Harris",
+      "aliases": [
+        "Adam Wiles"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Calvin Harris.png",
+      "hint": "Scottish DJ and music producer who collaborated on 'This Is What You Came For'"
+    },
+    {
+      "id": "clue_taylor_tom_hiddleston",
+      "answer": "Tom Hiddleston",
+      "aliases": [
+        "Hiddleston"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Tom Hiddleston.png",
+      "hint": "British actor famous for playing Marvel's Loki and the 'I Heart T.S.' tank top"
+    },
+    {
+      "id": "clue_taylor_folklore",
+      "answer": "Folklore",
+      "aliases": [
+        "Folklore Album"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Folklore.png",
+      "hint": "Eighth studio album recorded in isolation featuring black-and-white forest imagery"
+    },
+    {
+      "id": "clue_taylor_evermore",
+      "answer": "Evermore",
+      "aliases": [
+        "Evermore Album"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Evermore.png",
+      "hint": "Ninth studio album sister record featuring Taylor facing away into a winter forest in a plaid coat"
+    },
+    {
+      "id": "clue_taylor_speak_now",
+      "answer": "Speak Now",
+      "aliases": [
+        "Speak Now Album",
+        "Speak Now Taylor's Version"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Speak Now.png",
+      "hint": "Third studio album featuring Taylor posing in an ethereal purple tulle gown"
+    },
+    {
+      "id": "clue_taylor_reputation",
+      "answer": "Reputation",
+      "aliases": [
+        "Reputation Album"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Reputation.png",
+      "hint": "Sixth studio album featuring newspaper headlines repeating her name"
+    },
+    {
+      "id": "clue_taylor_the_tortured_poets_department",
+      "answer": "The Tortured Poets Department",
+      "aliases": [
+        "TTPD",
+        "Tortured Poets Department",
+        "Tortured Poets"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/The Tortured Poets Department.png",
+      "hint": "Eleventh studio album featuring black-and-white bedroom lounge portrait"
+    },
+    {
+      "id": "clue_taylor_the_life_of_a_showgirl",
+      "answer": "The Life of a Showgirl",
+      "aliases": [
+        "Showgirl"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/The Life of a Showgirl.png",
+      "hint": "Album cover with title removed"
+    },
+    {
+      "id": "clue_taylor_cruel_summer",
+      "answer": "Cruel Summer",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Cruel Summer.png",
+      "hint": "Fan-favourite Lover track that became a massive global smash single years later"
+    },
+    {
+      "id": "clue_taylor_we_are_never_ever_getting_back_together",
+      "answer": "We Are Never Ever Getting Back Together",
+      "aliases": [
+        "WANEGBT"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/We Are Never Ever Getting Back Together.png",
+      "hint": "Lead single from Red filmed in a single continuous tracking shot with band in animal costumes"
+    },
+    {
+      "id": "clue_taylor_i_knew_you_were_trouble",
+      "answer": "I Knew You Were Trouble",
+      "aliases": [
+        "IKYWT",
+        "Trouble"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/I Knew You Were Trouble.png",
+      "hint": "Dubstep-influenced pop song from Red set in the desert with pink-tipped hair"
+    },
+    {
+      "id": "clue_taylor_look_what_you_made_me_do",
+      "answer": "Look What You Made Me Do",
+      "aliases": [
+        "LWYMMD"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/Look What You Made Me Do.png",
+      "hint": "Lead single from Reputation featuring the bathtub of diamonds and zombie Taylor"
+    },
+    {
+      "id": "clue_taylor_all_too_well",
+      "answer": "All Too Well",
+      "aliases": [
+        "All Too Well 10 Minute Version",
+        "All Too Well The Short Film"
+      ],
+      "difficulty": "Medium",
+      "image": "taylor-swift-trivia/All Too Well.png",
+      "hint": "Acclaimed short film starring Sadie Sink and Dylan O'Brien directed by Taylor Swift"
+    },
+    {
+      "id": "clue_taylor_john_mayer",
+      "answer": "John Mayer",
+      "aliases": [
+        "Mayer"
+      ],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/John Mayer.png",
+      "hint": "Grammy-winning guitarist and singer who inspired 'Dear John'"
+    },
+    {
+      "id": "clue_taylor_conor_kennedy",
+      "answer": "Conor Kennedy",
+      "aliases": [
+        "Kennedy"
+      ],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Conor Kennedy.png",
+      "hint": "Grandson of Robert F. Kennedy who dated Taylor in summer 2012"
+    },
+    {
+      "id": "clue_taylor_lucas_till",
+      "answer": "Lucas Till",
+      "aliases": [
+        "Till"
+      ],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Lucas Till.png",
+      "hint": "Actor who starred in the 'You Belong With Me' music video and Hannah Montana: The Movie"
+    },
+    {
+      "id": "clue_taylor_matty_healy",
+      "answer": "Matty Healy",
+      "aliases": [
+        "Healy",
+        "Matt Healy"
+      ],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Matty Healy.png",
+      "hint": "Frontman of English indie pop band The 1975"
+    },
+    {
+      "id": "clue_taylor_wildest_dreams",
+      "answer": "Wildest Dreams",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Wildest Dreams.png",
+      "hint": "1989 track music video set on a 1950s African movie safari set with Scott Eastwood"
+    },
+    {
+      "id": "clue_taylor_style",
+      "answer": "Style",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Style.png",
+      "hint": "1989 track featuring artistic double-exposure silhouettes with Dominic Sherwood"
+    },
+    {
+      "id": "clue_taylor_delicate",
+      "answer": "Delicate",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Delicate.png",
+      "hint": "Reputation single music video where Taylor turns invisible and dances barefoot through a hotel and rain"
+    },
+    {
+      "id": "clue_taylor_cardigan",
+      "answer": "Cardigan",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Cardigan.png",
+      "hint": "Lead single from Folklore featuring a glowing grand piano acting as a portal between enchanted worlds"
+    },
+    {
+      "id": "clue_taylor_tim_mcgraw",
+      "answer": "Tim McGraw",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Tim McGraw.png",
+      "hint": "Taylor Swift's 2006 debut single named after the famous country music star"
+    },
+    {
+      "id": "clue_taylor_out_of_the_woods",
+      "answer": "Out of the Woods",
+      "aliases": [
+        "OOTW"
+      ],
+      "difficulty": "Hard",
+      "image": "taylor-swift-trivia/Out of the Woods.png",
+      "hint": "1989 track music video filmed in New Zealand featuring wolves, snow, and a muddy beach in a blue dress"
+    }
+  ]
+};
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = GAME_TAYLOR_SWIFT;
+}

@@ -53,5 +53,16 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #d91b5c 0%, #7b1fa2 50%, #f59e0b 100%)",
     "file": "candy-bar-trivia.json"
+  },
+  {
+    "id": "taylor-swift",
+    "title": "Taylor Swift",
+    "description": "Identify the partner/ex, album cover, or iconic music video from Taylor Swift's legendary career!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Music & Pop Culture",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%)",
+    "file": "taylor-swift.json"
   }
 ]
