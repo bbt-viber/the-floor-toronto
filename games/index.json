@@ -86,5 +86,16 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%)",
     "file": "drinks-trivia.json"
+  },
+  {
+    "id": "hip-hop-rnb-trivia",
+    "title": "Hip Hop & R&B",
+    "description": "Name the iconic artist behind legendary Hip Hop and R&B hits from the song title and release year!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Music & Pop Culture",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #111111 0%, #d4af37 50%, #e63946 100%)",
+    "file": "hip-hop-rnb-trivia.json"
   }
 ]
