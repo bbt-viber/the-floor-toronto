@@ -75,5 +75,16 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #7b2cbf 0%, #3a0ca3 50%, #4361ee 100%)",
     "file": "friends-trivia.json"
+  },
+  {
+    "id": "drinks-trivia",
+    "title": "Drinks Trivia",
+    "description": "Identify the iconic drink, cocktail, soda, or coffee from its glass, garnish, or distinctive bottle!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Food & Beverages",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%)",
+    "file": "drinks-trivia.json"
   }
 ]

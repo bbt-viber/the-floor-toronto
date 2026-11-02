@@ -1,0 +1,425 @@
+{
+  "id": "drinks-trivia",
+  "title": "Drinks Trivia",
+  "description": "Identify the iconic drink, cocktail, soda, or coffee from its glass, garnish, or distinctive bottle!",
+  "category": "Food & Beverages",
+  "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+  "cluesCount": 40,
+  "defaultTimer": 45,
+  "bannerColor": "linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%)",
+  "clues": [
+    {
+      "id": "clue_drinks_coca_cola",
+      "answer": "Coca-Cola",
+      "aliases": [
+        "Coke",
+        "Coca Cola"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Coca-Cola.png",
+      "hint": "Iconic glass contour bottle on red with the signature white wave"
+    },
+    {
+      "id": "clue_drinks_pepsi",
+      "answer": "Pepsi",
+      "aliases": [
+        "Pepsi Cola"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Pepsi.png",
+      "hint": "Blue can featuring the red, white, and blue globe logo"
+    },
+    {
+      "id": "clue_drinks_sprite",
+      "answer": "Sprite",
+      "aliases": [
+        "Sprite Lemon-Lime"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Sprite.png",
+      "hint": "Green can with 'LEMON-LIME' descriptor and yellow/green graphics"
+    },
+    {
+      "id": "clue_drinks_orange_juice",
+      "answer": "Orange Juice",
+      "aliases": [
+        "OJ",
+        "Fresh Orange Juice"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Orange Juice.png",
+      "hint": "Glass of freshly squeezed citrus juice with whole oranges"
+    },
+    {
+      "id": "clue_drinks_lemonade",
+      "answer": "Lemonade",
+      "aliases": [
+        "Fresh Lemonade"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Lemonade.png",
+      "hint": "Glass pitcher and tumbler served with sliced fresh lemons"
+    },
+    {
+      "id": "clue_drinks_iced_tea",
+      "answer": "Iced Tea",
+      "aliases": [
+        "Ice Tea",
+        "Sweet Tea"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Iced Tea.png",
+      "hint": "Amber glass served with ice cubes and a lemon slice"
+    },
+    {
+      "id": "clue_drinks_coffee",
+      "answer": "Coffee",
+      "aliases": [
+        "Black Coffee",
+        "Drip Coffee"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Coffee.png",
+      "hint": "Top-down view of a cup of black coffee ringed by roasted coffee beans"
+    },
+    {
+      "id": "clue_drinks_cappuccino",
+      "answer": "Cappuccino",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Cappuccino.png",
+      "hint": "Cup with thick steamed milk foam dusted in cocoa powder"
+    },
+    {
+      "id": "clue_drinks_hot_chocolate",
+      "answer": "Hot Chocolate",
+      "aliases": [
+        "Hot Cocoa",
+        "Cocoa"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Hot Chocolate.png",
+      "hint": "Mug topped with whipped cream and mini marshmallows"
+    },
+    {
+      "id": "clue_drinks_milkshake",
+      "answer": "Milkshake",
+      "aliases": [
+        "Shake",
+        "Strawberry Milkshake"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Milkshake.png",
+      "hint": "Strawberry shake topped with whipped cream and a maraschino cherry"
+    },
+    {
+      "id": "clue_drinks_beer",
+      "answer": "Beer",
+      "aliases": [
+        "Lager",
+        "Ale",
+        "Draft Beer"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Beer.png",
+      "hint": "Chilled glass mug filled with golden brew and a thick foamy head"
+    },
+    {
+      "id": "clue_drinks_red_wine",
+      "answer": "Red Wine",
+      "aliases": [
+        "Wine",
+        "Cabernet"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Red Wine.png",
+      "hint": "Rich crimson wine being poured into an elegant stemmed wine glass"
+    },
+    {
+      "id": "clue_drinks_champagne",
+      "answer": "Champagne",
+      "aliases": [
+        "Sparkling Wine",
+        "Prosecco"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Champagne.png",
+      "hint": "Sparkling golden wine being poured into slender glass flutes"
+    },
+    {
+      "id": "clue_drinks_margarita",
+      "answer": "Margarita",
+      "aliases": [
+        "Marg"
+      ],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Margarita.png",
+      "hint": "Cocktail served in a salt-rimmed glass with a fresh lime wheel"
+    },
+    {
+      "id": "clue_drinks_mojito",
+      "answer": "Mojito",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "drinks-trivia/Mojito.png",
+      "hint": "Refreshing highball cocktail filled with mint leaves and fresh lime"
+    },
+    {
+      "id": "clue_drinks_diet_coke",
+      "answer": "Diet Coke",
+      "aliases": [
+        "Diet Coca-Cola",
+        "Diet Coca Cola"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Diet Coke.png",
+      "hint": "Silver can featuring thin red vertical stripe and 'NO SUGAR NO CALORIES'"
+    },
+    {
+      "id": "clue_drinks_fanta_orange",
+      "answer": "Fanta Orange",
+      "aliases": [
+        "Fanta",
+        "Orange Fanta"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Fanta Orange.png",
+      "hint": "Orange can featuring green leaf accent, citrus slice, and 'ORANGE'"
+    },
+    {
+      "id": "clue_drinks_red_bull",
+      "answer": "Red Bull",
+      "aliases": [
+        "Red Bull Energy Drink"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Red Bull.png",
+      "hint": "Slim blue and silver can with the opposing two-bulls logo and 'ENERGY DRINK'"
+    },
+    {
+      "id": "clue_drinks_gatorade",
+      "answer": "Gatorade",
+      "aliases": [
+        "Gatorade Thirst Quencher"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Gatorade.png",
+      "hint": "Orange sports drink bottle with the G-and-lightning-bolt logo and 'THIRST QUENCHER'"
+    },
+    {
+      "id": "clue_drinks_espresso",
+      "answer": "Espresso",
+      "aliases": [
+        "Espresso Shot"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Espresso.png",
+      "hint": "Small demitasse cup with rich golden crema on top"
+    },
+    {
+      "id": "clue_drinks_latte",
+      "answer": "Latte",
+      "aliases": [
+        "Caffè Latte",
+        "Cafe Latte"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Latte.png",
+      "hint": "Four cups showcasing intricate steamed-milk latte art from a top-down angle"
+    },
+    {
+      "id": "clue_drinks_matcha_green_tea",
+      "answer": "Matcha Green Tea",
+      "aliases": [
+        "Matcha",
+        "Green Tea",
+        "Matcha Tea"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Matcha Green Tea.png",
+      "hint": "Ceramic bowl of bright green powdered tea with bamboo whisk and powder tin"
+    },
+    {
+      "id": "clue_drinks_berry_smoothie",
+      "answer": "Berry Smoothie",
+      "aliases": [
+        "Smoothie",
+        "Raspberry Smoothie"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Berry Smoothie.png",
+      "hint": "Deep red blended smoothie served with fresh whole raspberries"
+    },
+    {
+      "id": "clue_drinks_bubble_tea",
+      "answer": "Bubble Tea",
+      "aliases": [
+        "Boba",
+        "Boba Tea",
+        "Milk Tea"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Bubble Tea.png",
+      "hint": "Iced drink with chewy black tapioca pearls visible at the bottom"
+    },
+    {
+      "id": "clue_drinks_gin_and_tonic",
+      "answer": "Gin and Tonic",
+      "aliases": [
+        "G&T",
+        "Gin & Tonic"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Gin and Tonic.png",
+      "hint": "Balloon glass of fizzy drink flanked by dry gin and tonic water bottles"
+    },
+    {
+      "id": "clue_drinks_martini",
+      "answer": "Martini",
+      "aliases": [
+        "Dry Martini",
+        "Gin Martini",
+        "Vodka Martini"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Martini.png",
+      "hint": "Stemmed glass with green cocktail olives"
+    },
+    {
+      "id": "clue_drinks_bloody_mary",
+      "answer": "Bloody Mary",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Bloody Mary.png",
+      "hint": "Tall savoury red drink with a celery stalk, bacon strip, and olive skewer"
+    },
+    {
+      "id": "clue_drinks_pina_colada",
+      "answer": "Piña Colada",
+      "aliases": [
+        "Pina Colada"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Piña Colada.png",
+      "hint": "Tropical cocktail in a hurricane glass with pineapple wedge, cherry, and coconut rim"
+    },
+    {
+      "id": "clue_drinks_caesar",
+      "answer": "Caesar",
+      "aliases": [
+        "Bloody Caesar"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Caesar.png",
+      "hint": "Spiced-rim highball with celery, lime, and vodka bottle plus Clamato jug in background"
+    },
+    {
+      "id": "clue_drinks_tequila_shot",
+      "answer": "Tequila Shot",
+      "aliases": [
+        "Tequila Shots",
+        "Tequila"
+      ],
+      "difficulty": "Medium",
+      "image": "drinks-trivia/Tequila Shot.png",
+      "hint": "Three salt-rimmed shot glasses served with fresh lime wedges"
+    },
+    {
+      "id": "clue_drinks_old_fashioned",
+      "answer": "Old Fashioned",
+      "aliases": [
+        "Old-Fashioned"
+      ],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Old Fashioned.png",
+      "hint": "Amber whiskey cocktail in a rocks glass garnished with a cherry and orange peel"
+    },
+    {
+      "id": "clue_drinks_negroni",
+      "answer": "Negroni",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Negroni.png",
+      "hint": "Deep-red cocktail over a large ice cube garnished with an orange peel"
+    },
+    {
+      "id": "clue_drinks_aperol_spritz",
+      "answer": "Aperol Spritz",
+      "aliases": [
+        "Spritz",
+        "Aperol"
+      ],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Aperol Spritz.png",
+      "hint": "Big wine glass of bright orange sparkling spritz with a citrus slice"
+    },
+    {
+      "id": "clue_drinks_cosmopolitan",
+      "answer": "Cosmopolitan",
+      "aliases": [
+        "Cosmo"
+      ],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Cosmopolitan.png",
+      "hint": "Pink cocktail in a martini glass with a lemon twist"
+    },
+    {
+      "id": "clue_drinks_espresso_martini",
+      "answer": "Espresso Martini",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Espresso Martini.png",
+      "hint": "Cocktail coupe with rich coffee foam topped with three coffee beans"
+    },
+    {
+      "id": "clue_drinks_long_island_iced_tea",
+      "answer": "Long Island Iced Tea",
+      "aliases": [
+        "Long Island",
+        "LIIT"
+      ],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Long Island Iced Tea.png",
+      "hint": "Cola being poured into an iced glass surrounded by vodka, rum, triple sec, and tequila bottles"
+    },
+    {
+      "id": "clue_drinks_white_russian",
+      "answer": "White Russian",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/White Russian.png",
+      "hint": "Cream swirling over dark coffee liqueur and vodka in a rocks glass"
+    },
+    {
+      "id": "clue_drinks_irish_coffee",
+      "answer": "Irish Coffee",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Irish Coffee.png",
+      "hint": "Stemmed glass mug of black coffee with cream layer, flanked by Irish whiskey bottle"
+    },
+    {
+      "id": "clue_drinks_jack_daniels",
+      "answer": "Jack Daniel's",
+      "aliases": [
+        "Jack Daniels",
+        "Jack",
+        "JD"
+      ],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Jack Daniel's.png",
+      "hint": "Square bottle with black label, 'Old No.7', and 'Tennessee Whiskey'"
+    },
+    {
+      "id": "clue_drinks_perrier",
+      "answer": "Perrier",
+      "aliases": [
+        "Perrier Water",
+        "Sparkling Water"
+      ],
+      "difficulty": "Hard",
+      "image": "drinks-trivia/Perrier.png",
+      "hint": "Green teardrop sparkling water bottle with oval label shape"
+    }
+  ]
+}
