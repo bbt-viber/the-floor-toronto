@@ -8,7 +8,8 @@ const GAMES_DIRECTORY = [
   typeof GAME_TAYLOR_SWIFT !== 'undefined' ? GAME_TAYLOR_SWIFT : null,
   typeof GAME_FRIENDS_TRIVIA !== 'undefined' ? GAME_FRIENDS_TRIVIA : null,
   typeof GAME_DRINKS_TRIVIA !== 'undefined' ? GAME_DRINKS_TRIVIA : null,
-  typeof GAME_HIP_HOP_RNB_TRIVIA !== 'undefined' ? GAME_HIP_HOP_RNB_TRIVIA : null
+  typeof GAME_HIP_HOP_RNB_TRIVIA !== 'undefined' ? GAME_HIP_HOP_RNB_TRIVIA : null,
+  typeof GAME_BEAUTY_PRODUCTS_TRIVIA !== 'undefined' ? GAME_BEAUTY_PRODUCTS_TRIVIA : null
 ].filter(Boolean);
 
 // Helper functions for accessing and managing games

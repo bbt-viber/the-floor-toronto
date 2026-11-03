@@ -97,5 +97,16 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #111111 0%, #d4af37 50%, #e63946 100%)",
     "file": "hip-hop-rnb-trivia.json"
+  },
+  {
+    "id": "beauty-products-trivia",
+    "title": "Beauty Products",
+    "description": "Identify the essential cosmetic, skincare, haircare, and beauty tool from its picture!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Lifestyle & Self-Care",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #ff758c 0%, #ff7eb3 50%, #fad0c4 100%)",
+    "file": "beauty-products-trivia.json"
   }
 ]
