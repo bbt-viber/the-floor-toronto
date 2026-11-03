@@ -108,5 +108,16 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #ff758c 0%, #ff7eb3 50%, #fad0c4 100%)",
     "file": "beauty-products-trivia.json"
+  },
+  {
+    "id": "phone-apps-trivia",
+    "title": "Phone Apps",
+    "description": "Identify the popular mobile app or game from its phone home screen icon!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Tech & Digital Culture",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #1fa2ff 0%, #12d8fa 50%, #a6ffcb 100%)",
+    "file": "phone-apps-trivia.json"
   }
 ]
