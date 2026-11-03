@@ -186,19 +186,21 @@
       font-weight: 600;
     }
 
-    /* Giant Touch Action Buttons */
+    /* Giant Touch Action Buttons (Duel Controls: Pass on Left, Correct on Right) */
     .host-actions-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       gap: 12px;
       margin-top: 6px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .btn-host-action {
       border: none;
       border-radius: var(--radius-lg);
-      padding: 22px 14px;
-      font-size: 1.35rem;
+      padding: 12px 10px;
+      font-size: 1.15rem;
       font-weight: 900;
       letter-spacing: 0.5px;
       cursor: pointer;
@@ -206,17 +208,62 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       text-align: center;
-      transition: transform 0.1s, filter 0.15s;
+      transition: transform 0.1s, filter 0.15s, opacity 0.15s;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       user-select: none;
       -webkit-tap-highlight-color: transparent;
-      min-height: 110px;
+      height: 96px;
+      min-height: 96px;
+      max-height: 96px;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
-    .btn-host-action:active {
+    .host-actions-grid .btn-host-action {
+      flex: 1 1 0;
+      width: 100%;
+      min-width: 0;
+      height: 96px !important;
+      min-height: 96px !important;
+      max-height: 96px !important;
+      padding: 10px 8px !important;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .host-actions-grid .btn-host-action > span:first-child {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: clamp(0.95rem, 3.8vw, 1.15rem);
+      font-weight: 900;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .host-actions-grid .btn-host-action .hotkey-hint {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      line-height: 1.2;
+      background: rgba(0, 0, 0, 0.28);
+      flex-shrink: 0;
+    }
+
+    .btn-host-action:active:not(:disabled) {
       transform: scale(0.97);
+    }
+
+    .btn-host-action:disabled {
+      cursor: not-allowed;
+      transform: none !important;
     }
 
     .btn-host-correct {
@@ -226,7 +273,7 @@
       box-shadow: 0 6px 25px rgba(0, 230, 118, 0.4);
     }
 
-    .btn-host-correct:active {
+    .btn-host-correct:active:not(:disabled) {
       background: #00b248;
     }
 
@@ -237,7 +284,7 @@
       box-shadow: 0 6px 25px rgba(255, 171, 0, 0.4);
     }
 
-    .btn-host-pass:active {
+    .btn-host-pass:active:not(:disabled) {
       background: #e68200;
     }
 
@@ -245,6 +292,11 @@
       opacity: 0.55;
       pointer-events: none;
       filter: grayscale(0.4);
+    }
+
+    .btn-host-pass.recovering > span:first-child {
+      font-size: clamp(0.72rem, 3.2vw, 0.9rem) !important;
+      letter-spacing: 0;
     }
 
     .btn-host-start {
@@ -1279,7 +1331,7 @@
         el.answerTag.textContent = '🎯 FIRST CLUE:';
       } else if (d.status === 'running') {
         el.btnHostStartDuel.style.display = 'none';
-        el.duelActionsGrid.style.display = 'flex';
+        el.duelActionsGrid.style.display = 'grid';
         el.btnHostPause.textContent = '⏸ PAUSE (ESC)';
         if (d.isPassing) {
           el.btnHostPass.classList.add('recovering');

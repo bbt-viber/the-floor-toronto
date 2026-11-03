@@ -288,7 +288,13 @@
         if (window.soundEngine?.playCountdownBeep) {
           window.soundEngine.playCountdownBeep(true);
         }
-      } else if (d.eventType === 'reset') {
+        window.soundEngine?.startDuelSoundtrack();
+      } else if (d.eventType === 'pause') {
+        window.soundEngine?.pauseDuelSoundtrack();
+      } else if (d.eventType === 'resume') {
+        window.soundEngine?.resumeDuelSoundtrack();
+      } else if (d.eventType === 'reset' || d.status === 'gameover' || d.status === 'ready' || d.status === 'tie') {
+        window.soundEngine?.stopDuelSoundtrack();
         if (el.stageAnswerPill) el.stageAnswerPill.style.display = 'none';
         if (el.correctOverlay) el.correctOverlay.style.display = 'none';
         el.passOverlay.style.display = 'none';

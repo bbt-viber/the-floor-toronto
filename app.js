@@ -323,6 +323,7 @@
     lastSecondPlayed = null;
     if (el.pauseLabel) el.pauseLabel.textContent = 'PAUSE (ESC)';
     el.pauseModal.classList.remove('active');
+    window.soundEngine?.startDuelSoundtrack();
     updateArenaUI();
     broadcastSync();
     ensureGameLoop();
@@ -370,6 +371,7 @@
     state.lastFrameTime = null;
     if (el.pauseLabel) el.pauseLabel.textContent = 'RESUME (ESC)';
     el.pauseModal.classList.add('active');
+    window.soundEngine?.pauseDuelSoundtrack();
     updateArenaUI();
     broadcastSync();
   }
@@ -383,6 +385,7 @@
 
     if (el.tieModal) el.tieModal.classList.remove('active');
 
+    window.soundEngine?.stopDuelSoundtrack();
     window.soundEngine.playTimeout();
     setTimeout(() => {
       window.soundEngine.playVictory();
@@ -457,6 +460,7 @@
   function handleDuelTie(data = {}) {
     state.status = 'tie';
     state.winner = null;
+    window.soundEngine?.stopDuelSoundtrack();
     if (state.timerId) cancelAnimationFrame(state.timerId);
     state.timerId = null;
     if (state.passTimer) clearInterval(state.passTimer);
@@ -644,6 +648,7 @@
   // Host Action: Reset Round (R)
   function resetRound() {
     sendServerCommand('reset');
+    window.soundEngine?.stopDuelSoundtrack();
 
     if (state.countdownTimer) clearInterval(state.countdownTimer);
     if (state.passTimer) clearInterval(state.passTimer);
@@ -1171,14 +1176,18 @@
           if (window.soundEngine?.playCountdownBeep) {
             window.soundEngine.playCountdownBeep(true);
           }
+          window.soundEngine?.startDuelSoundtrack();
           ensureGameLoop();
         } else if (d.eventType === 'pause') {
           el.pauseModal.classList.add('active');
+          window.soundEngine?.pauseDuelSoundtrack();
         } else if (d.eventType === 'resume') {
           state.status = 'running';
           el.pauseModal.classList.remove('active');
+          window.soundEngine?.resumeDuelSoundtrack();
           ensureGameLoop();
         } else if (d.eventType === 'reset') {
+          window.soundEngine?.stopDuelSoundtrack();
           state.isPassing = false;
           state.isCorrect = false;
           state.countdownVal = 0;
@@ -2369,6 +2378,10 @@
 
   // Header Nav & View Switcher
   function switchToView(viewName) {
+    if (viewName !== 'arena') {
+      window.soundEngine?.stopDuelSoundtrack();
+    }
+
     // Hide all views & remove active nav classes
     if (el.viewLanding) el.viewLanding.classList.remove('active');
     if (el.viewTerritory) el.viewTerritory.classList.remove('active');
