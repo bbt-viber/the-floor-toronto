@@ -292,17 +292,6 @@
     const player = state.activePlayer === 1 ? state.p1 : state.p2;
     player.timeRemaining = Math.max(0, player.timeRemaining - deltaSec);
 
-    // Sound ticking
-    const currentWholeSec = Math.ceil(player.timeRemaining);
-    if (currentWholeSec !== lastSecondPlayed && currentWholeSec > 0) {
-      lastSecondPlayed = currentWholeSec;
-      if (player.timeRemaining <= 10) {
-        window.soundEngine.playUrgentTick();
-      } else {
-        window.soundEngine.playTick();
-      }
-    }
-
     // Check timeout (Game Over)
     if (player.timeRemaining <= 0) {
       animationId = null;
