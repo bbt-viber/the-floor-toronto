@@ -13,7 +13,7 @@
       "answer": "Blackstreet",
       "aliases": [],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Blackstreet.png",
+      "image": "hip-hop-rnb-trivia-easier/Blackstreet.png",
       "hint": "\"No Diggity\" (1996)"
     },
     {
@@ -23,20 +23,22 @@
         "Notorious BIG",
         "Biggie",
         "Biggie Smalls",
-        "The Notorious BIG"
+        "The Notorious BIG",
+        "Notorious B.I.G."
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/The Notorious B.I.G..png",
+      "image": "hip-hop-rnb-trivia-easier/The Notorious B.I.G..png",
       "hint": "\"Hypnotize\" (1997)"
     },
     {
       "id": "clue_hhrnb_lauryn_hill",
       "answer": "Lauryn Hill",
       "aliases": [
-        "Ms. Lauryn Hill"
+        "Ms. Lauryn Hill",
+        "Ms Lauryn Hill"
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Lauryn Hill.png",
+      "image": "hip-hop-rnb-trivia-easier/Lauryn Hill.png",
       "hint": "\"Doo Wop (That Thing)\" (1998)"
     },
     {
@@ -44,53 +46,61 @@
       "answer": "TLC",
       "aliases": [],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/TLC.png",
+      "image": "hip-hop-rnb-trivia-easier/TLC.png",
       "hint": "\"No Scrubs\" (1999)"
-    },
-    {
-      "id": "clue_hhrnb_outkast",
-      "answer": "Outkast",
-      "aliases": [
-        "OutKast"
-      ],
-      "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Outkast.png",
-      "hint": "\"Ms. Jackson\" (2000)"
     },
     {
       "id": "clue_hhrnb_nelly",
       "answer": "Nelly",
       "aliases": [],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Nelly.png",
+      "image": "hip-hop-rnb-trivia-easier/Nelly.png",
       "hint": "\"Hot in Herre\" (2002)"
+    },
+    {
+      "id": "clue_hhrnb_outkast",
+      "answer": "Outkast",
+      "aliases": [
+        "OutKast",
+        "Andre 3000",
+        "André 3000",
+        "Big Boi"
+      ],
+      "difficulty": "Easy",
+      "image": "hip-hop-rnb-trivia-easier/Outkast.png",
+      "hint": "\"Hey Ya!\" (2003)"
     },
     {
       "id": "clue_hhrnb_50_cent",
       "answer": "50 Cent",
       "aliases": [
-        "Fifty Cent"
+        "Fifty Cent",
+        "Curtis Jackson"
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/50 Cent.png",
+      "image": "hip-hop-rnb-trivia-easier/50 Cent.png",
       "hint": "\"In Da Club\" (2003)"
     },
     {
       "id": "clue_hhrnb_beyonce",
       "answer": "Beyoncé",
       "aliases": [
-        "Beyonce"
+        "Beyonce",
+        "Beyoncé Knowles",
+        "Queen Bey"
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Beyoncé.png",
+      "image": "hip-hop-rnb-trivia-easier/Beyoncé.png",
       "hint": "\"Crazy in Love\" (2003)"
     },
     {
       "id": "clue_hhrnb_usher",
       "answer": "Usher",
-      "aliases": [],
+      "aliases": [
+        "Usher Raymond"
+      ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Usher.png",
+      "image": "hip-hop-rnb-trivia-easier/Usher.png",
       "hint": "\"Yeah!\" (2004)"
     },
     {
@@ -101,15 +111,17 @@
         "Ye"
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Kanye West.png",
+      "image": "hip-hop-rnb-trivia-easier/Kanye West.png",
       "hint": "\"Gold Digger\" (2005)"
     },
     {
       "id": "clue_hhrnb_rihanna",
       "answer": "Rihanna",
-      "aliases": [],
+      "aliases": [
+        "Riri"
+      ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Rihanna.png",
+      "image": "hip-hop-rnb-trivia-easier/Rihanna.png",
       "hint": "\"Umbrella\" (2007)"
     },
     {
@@ -117,70 +129,46 @@
       "answer": "Jay-Z",
       "aliases": [
         "Jay Z",
-        "JayZ"
+        "JAY-Z",
+        "Shawn Carter"
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Jay-Z.png",
+      "image": "hip-hop-rnb-trivia-easier/Jay-Z.png",
       "hint": "\"Empire State of Mind\" (2009)"
     },
     {
       "id": "clue_hhrnb_kendrick_lamar",
       "answer": "Kendrick Lamar",
       "aliases": [
-        "Kendrick"
+        "Kendrick",
+        "K.Dot",
+        "K Dot"
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Kendrick Lamar.png",
+      "image": "hip-hop-rnb-trivia-easier/Kendrick Lamar.png",
       "hint": "\"HUMBLE.\" (2017)"
     },
     {
       "id": "clue_hhrnb_drake",
       "answer": "Drake",
-      "aliases": [],
+      "aliases": [
+        "Champagne Papi",
+        "Aubrey Graham"
+      ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/Drake.png",
+      "image": "hip-hop-rnb-trivia-easier/Drake.png",
       "hint": "\"God's Plan\" (2018)"
     },
     {
       "id": "clue_hhrnb_the_weeknd",
       "answer": "The Weeknd",
       "aliases": [
-        "Weeknd"
+        "Weeknd",
+        "Abel Tesfaye"
       ],
       "difficulty": "Easy",
-      "image": "hip-hop-rnb-trivia/The Weeknd.png",
+      "image": "hip-hop-rnb-trivia-easier/The Weeknd.png",
       "hint": "\"Blinding Lights\" (2019)"
-    },
-    {
-      "id": "clue_hhrnb_dr_dre",
-      "answer": "Dr. Dre",
-      "aliases": [
-        "Dr Dre",
-        "Dre"
-      ],
-      "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Dr. Dre.png",
-      "hint": "\"Still D.R.E.\" (1999)"
-    },
-    {
-      "id": "clue_hhrnb_eminem",
-      "answer": "Eminem",
-      "aliases": [
-        "Slim Shady"
-      ],
-      "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Eminem.png",
-      "hint": "\"Stan\" (2000)"
-    },
-    {
-      "id": "clue_hhrnb_missy_elliott",
-      "answer": "Missy Elliott",
-      "aliases": [
-        "Missy Elliot"
-      ],
-      "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Missy Elliott.png",
-      "hint": "\"Get Ur Freak On\" (2001)"
     },
     {
       "id": "clue_hhrnb_mary_j_blige",
@@ -189,17 +177,39 @@
         "Mary J Blige"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Mary J. Blige.png",
+      "image": "hip-hop-rnb-trivia-easier/Mary J. Blige.png",
       "hint": "\"Family Affair\" (2001)"
+    },
+    {
+      "id": "clue_hhrnb_eminem",
+      "answer": "Eminem",
+      "aliases": [
+        "Slim Shady",
+        "Marshall Mathers"
+      ],
+      "difficulty": "Medium",
+      "image": "hip-hop-rnb-trivia-easier/Eminem.png",
+      "hint": "\"Lose Yourself\" (2002)"
+    },
+    {
+      "id": "clue_hhrnb_missy_elliott",
+      "answer": "Missy Elliott",
+      "aliases": [
+        "Missy Elliot"
+      ],
+      "difficulty": "Medium",
+      "image": "hip-hop-rnb-trivia-easier/Missy Elliott.png",
+      "hint": "\"Work It\" (2002)"
     },
     {
       "id": "clue_hhrnb_snoop_dogg",
       "answer": "Snoop Dogg",
       "aliases": [
-        "Snoop"
+        "Snoop Doggy Dogg",
+        "Snoop Lion"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Snoop Dogg.png",
+      "image": "hip-hop-rnb-trivia-easier/Snoop Dogg.png",
       "hint": "\"Drop It Like It's Hot\" (2004)"
     },
     {
@@ -209,7 +219,7 @@
         "Mariah"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Mariah Carey.png",
+      "image": "hip-hop-rnb-trivia-easier/Mariah Carey.png",
       "hint": "\"We Belong Together\" (2005)"
     },
     {
@@ -219,29 +229,41 @@
         "JT"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Justin Timberlake.png",
+      "image": "hip-hop-rnb-trivia-easier/Justin Timberlake.png",
       "hint": "\"SexyBack\" (2006)"
     },
     {
-      "id": "clue_hhrnb_soulja_boy",
-      "answer": "Soulja Boy",
+      "id": "clue_hhrnb_flo_rida",
+      "answer": "Flo Rida",
       "aliases": [
-        "Soulja Boy Tell 'Em",
-        "Soulja"
+        "Flo-Rida",
+        "Florida"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Soulja Boy.png",
-      "hint": "\"Crank That (Soulja Boy)\" (2007)"
+      "image": "hip-hop-rnb-trivia-easier/Flo Rida.png",
+      "hint": "\"Low\" (2007)"
     },
     {
       "id": "clue_hhrnb_nicki_minaj",
       "answer": "Nicki Minaj",
       "aliases": [
-        "Nicki"
+        "Onika Maraj"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Nicki Minaj.png",
+      "image": "hip-hop-rnb-trivia-easier/Nicki Minaj.png",
       "hint": "\"Super Bass\" (2011)"
+    },
+    {
+      "id": "clue_hhrnb_macklemore_ryan_lewis",
+      "answer": "Macklemore & Ryan Lewis",
+      "aliases": [
+        "Macklemore and Ryan Lewis",
+        "Macklemore",
+        "Ryan Lewis"
+      ],
+      "difficulty": "Medium",
+      "image": "hip-hop-rnb-trivia-easier/Macklemore & Ryan Lewis.png",
+      "hint": "\"Thrift Shop\" (2012)"
     },
     {
       "id": "clue_hhrnb_pharrell_williams",
@@ -250,97 +272,106 @@
         "Pharrell"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Pharrell Williams.png",
+      "image": "hip-hop-rnb-trivia-easier/Pharrell Williams.png",
       "hint": "\"Happy\" (2013)"
+    },
+    {
+      "id": "clue_hhrnb_john_legend",
+      "answer": "John Legend",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "hip-hop-rnb-trivia-easier/John Legend.png",
+      "hint": "\"All of Me\" (2013)"
     },
     {
       "id": "clue_hhrnb_wiz_khalifa",
       "answer": "Wiz Khalifa",
       "aliases": [
-        "Wiz"
+        "Charlie Puth"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Wiz Khalifa.png",
+      "image": "hip-hop-rnb-trivia-easier/Wiz Khalifa.png",
       "hint": "\"See You Again\" (2015)"
-    },
-    {
-      "id": "clue_hhrnb_childish_gambino",
-      "answer": "Childish Gambino",
-      "aliases": [
-        "Donald Glover"
-      ],
-      "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Childish Gambino.png",
-      "hint": "\"Redbone\" (2016)"
     },
     {
       "id": "clue_hhrnb_cardi_b",
       "answer": "Cardi B",
       "aliases": [
-        "Cardi"
+        "Belcalis Almanzar"
       ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Cardi B.png",
-      "hint": "\"Bodak Yellow\" (2017)"
+      "image": "hip-hop-rnb-trivia-easier/Cardi B.png",
+      "hint": "\"I Like It\" (2018)"
     },
     {
-      "id": "clue_hhrnb_travis_scott",
-      "answer": "Travis Scott",
-      "aliases": [],
+      "id": "clue_hhrnb_post_malone",
+      "answer": "Post Malone",
+      "aliases": [
+        "Posty",
+        "Swae Lee"
+      ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/Travis Scott.png",
-      "hint": "\"Sicko Mode\" (2018)"
+      "image": "hip-hop-rnb-trivia-easier/Post Malone.png",
+      "hint": "\"Sunflower\" (2018)"
     },
     {
-      "id": "clue_hhrnb_sza",
-      "answer": "SZA",
-      "aliases": [],
+      "id": "clue_hhrnb_lil_nas_x",
+      "answer": "Lil Nas X",
+      "aliases": [
+        "Billy Ray Cyrus"
+      ],
       "difficulty": "Medium",
-      "image": "hip-hop-rnb-trivia/SZA.png",
-      "hint": "\"Kill Bill\" (2023)"
+      "image": "hip-hop-rnb-trivia-easier/Lil Nas X.png",
+      "hint": "\"Old Town Road\" (2019)"
     },
     {
       "id": "clue_hhrnb_mark_morrison",
       "answer": "Mark Morrison",
       "aliases": [],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Mark Morrison.png",
+      "image": "hip-hop-rnb-trivia-easier/Mark Morrison.png",
       "hint": "\"Return of the Mack\" (1996)"
     },
     {
       "id": "clue_hhrnb_aaliyah",
       "answer": "Aaliyah",
-      "aliases": [],
+      "aliases": [
+        "Aaliyah Haughton"
+      ],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Aaliyah.png",
+      "image": "hip-hop-rnb-trivia-easier/Aaliyah.png",
       "hint": "\"Are You That Somebody?\" (1998)"
     },
     {
-      "id": "clue_hhrnb_dangelo",
+      "id": "clue_hhrnb_d_angelo",
       "answer": "D'Angelo",
       "aliases": [
         "DAngelo"
       ],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/D'Angelo.png",
+      "image": "hip-hop-rnb-trivia-easier/D'Angelo.png",
       "hint": "\"Untitled (How Does It Feel)\" (2000)"
     },
     {
       "id": "clue_hhrnb_clipse",
       "answer": "Clipse",
       "aliases": [
+        "Pusha T",
+        "No Malice",
         "The Clipse"
       ],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Clipse.png",
+      "image": "hip-hop-rnb-trivia-easier/Clipse.png",
       "hint": "\"Grindin'\" (2002)"
     },
     {
       "id": "clue_hhrnb_mario",
       "answer": "Mario",
-      "aliases": [],
+      "aliases": [
+        "Mario Barrett"
+      ],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Mario.png",
+      "image": "hip-hop-rnb-trivia-easier/Mario.png",
       "hint": "\"Let Me Love You\" (2004)"
     },
     {
@@ -348,34 +379,35 @@
       "answer": "Miguel",
       "aliases": [],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Miguel.png",
+      "image": "hip-hop-rnb-trivia-easier/Miguel.png",
       "hint": "\"Adorn\" (2012)"
-    },
-    {
-      "id": "clue_hhrnb_fka_twigs",
-      "answer": "FKA twigs",
-      "aliases": [
-        "FKA Twigs",
-        "twigs"
-      ],
-      "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/FKA twigs.png",
-      "hint": "\"Two Weeks\" (2014)"
     },
     {
       "id": "clue_hhrnb_desiigner",
       "answer": "Desiigner",
-      "aliases": [],
+      "aliases": [
+        "Designer"
+      ],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Desiigner.png",
+      "image": "hip-hop-rnb-trivia-easier/Desiigner.png",
       "hint": "\"Panda\" (2016)"
+    },
+    {
+      "id": "clue_hhrnb_sza",
+      "answer": "SZA",
+      "aliases": [
+        "Solana Rowe"
+      ],
+      "difficulty": "Hard",
+      "image": "hip-hop-rnb-trivia-easier/SZA.png",
+      "hint": "\"Kill Bill\" (2023)"
     },
     {
       "id": "clue_hhrnb_tommy_richman",
       "answer": "Tommy Richman",
       "aliases": [],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Tommy Richman.png",
+      "image": "hip-hop-rnb-trivia-easier/Tommy Richman.png",
       "hint": "\"Million Dollar Baby\" (2024)"
     },
     {
@@ -383,7 +415,7 @@
       "answer": "Doechii",
       "aliases": [],
       "difficulty": "Hard",
-      "image": "hip-hop-rnb-trivia/Doechii.png",
+      "image": "hip-hop-rnb-trivia-easier/Doechii.png",
       "hint": "\"Anxiety\" (2025)"
     }
   ]
