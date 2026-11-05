@@ -2,6 +2,7 @@
 const GAME_MARVEL_CHARACTERS = {
   "id": "marvel-characters",
   "title": "Marvel Characters",
+  "icon": "🦸",
   "description": "Identify the iconic Marvel character from their blockbuster movie costume, armor, and distinctive look!",
   "category": "Movies & Comics",
   "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
@@ -417,6 +418,11 @@ const GAME_MARVEL_CHARACTERS = {
     }
   ]
 };
+
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_MARVEL_CHARACTERS);
+}
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_MARVEL_CHARACTERS;

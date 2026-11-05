@@ -4,7 +4,11 @@
   "description": "The Floor Toronto - 1v1 Game Show Duel Web App",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "sync": "node scripts/sync-categories.js",
+    "import-category": "node scripts/import-folder.js",
+    "status": "node scripts/push.js --status",
+    "push": "node scripts/push.js"
   },
   "engines": {
     "node": ">=18.0.0"

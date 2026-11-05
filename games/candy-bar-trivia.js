@@ -2,6 +2,7 @@
 const GAME_CANDY_BAR_TRIVIA = {
   "id": "candy-bar-trivia",
   "title": "Candy Bar Trivia",
+  "icon": "🍫",
   "description": "Identify the iconic candy bar or sweet treat from its wrapper and distinctive design — with brand names removed!",
   "category": "Food & Snacks",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -395,6 +396,11 @@ const GAME_CANDY_BAR_TRIVIA = {
   ]
 };
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_CANDY_BAR_TRIVIA);
+}
+
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_CANDY_BAR_TRIVIA;
 }

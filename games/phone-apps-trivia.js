@@ -2,6 +2,7 @@
 const GAME_PHONE_APPS_TRIVIA = {
   "id": "phone-apps-trivia",
   "title": "Phone Apps",
+  "icon": "📱",
   "description": "Identify the popular mobile app or game from its phone home screen icon!",
   "category": "Tech & Digital Culture",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -414,6 +415,11 @@ const GAME_PHONE_APPS_TRIVIA = {
     }
   ]
 };
+
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_PHONE_APPS_TRIVIA);
+}
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_PHONE_APPS_TRIVIA;

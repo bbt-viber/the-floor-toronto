@@ -1,6 +1,7 @@
 {
   "id": "beauty-products-trivia",
   "title": "Beauty Products",
+  "icon": "💄",
   "description": "Identify the essential cosmetic, skincare, haircare, and beauty tool from its picture!",
   "category": "Lifestyle & Self-Care",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",

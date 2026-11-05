@@ -1,6 +1,7 @@
 {
   "id": "car-logos",
   "title": "Car Logos",
+  "icon": "🚗",
   "description": "Identify the automaker from its iconic emblem, badge, or hood ornament — with brand names removed!",
   "category": "Vehicles & Automobiles",
   "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",

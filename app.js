@@ -295,7 +295,11 @@
     // Check timeout (Game Over)
     if (player.timeRemaining <= 0) {
       animationId = null;
-      handleTimeout(state.activePlayer);
+      if (!isServerConnected) {
+        handleTimeout(state.activePlayer);
+      } else {
+        updateTimerUI();
+      }
       return;
     }
 
@@ -366,6 +370,7 @@
   }
 
   function handleTimeout(losingPlayerId) {
+    if (state.status === 'gameover') return;
     state.status = 'gameover';
     state.winner = losingPlayerId === 1 ? 2 : 1;
     const winnerName = state.winner === 1 ? state.p1.name : state.p2.name;
@@ -2535,9 +2540,22 @@
       banner.className = 'game-card-banner';
       banner.style.background = game.bannerColor || 'linear-gradient(135deg, #1e3a8a, #3b82f6)';
 
+      const DEFAULT_CATEGORY_ICONS = {
+        'nba-wnba': '🏀',
+        'car-logos': '🚗',
+        'marvel-characters': '🦸',
+        'dog-breeds': '🐕',
+        'candy-bar-trivia': '🍫',
+        'taylor-swift': '✨',
+        'friends-trivia': '☕',
+        'drinks-trivia': '🍹',
+        'hip-hop-rnb-trivia': '🎤',
+        'beauty-products-trivia': '💄',
+        'phone-apps-trivia': '📱'
+      };
       const icon = document.createElement('div');
       icon.className = 'game-card-icon';
-      icon.textContent = game.id === 'nba-wnba' ? '🏀' : (game.id === 'car-logos' ? '🚗' : (game.id === 'marvel-characters' ? '🦸' : (game.id === 'dog-breeds' ? '🐕' : '🎯')));
+      icon.textContent = game.icon || DEFAULT_CATEGORY_ICONS[game.id] || '🎯';
 
       const badge = document.createElement('div');
       badge.className = 'game-card-badge';

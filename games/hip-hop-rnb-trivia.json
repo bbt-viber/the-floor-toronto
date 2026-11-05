@@ -1,6 +1,7 @@
 {
   "id": "hip-hop-rnb-trivia",
   "title": "Hip Hop & R&B",
+  "icon": "🎤",
   "description": "Name the iconic artist behind legendary Hip Hop and R&B hits from the song title and release year!",
   "category": "Music & Pop Culture",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",

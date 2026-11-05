@@ -1,7 +1,8 @@
-// Hip Hop & R&B Game Pack - 40 Visual Trivia Prompts (Easier Set)
+// Hip Hop & R&B Game Pack - 40 Visual Trivia Prompts
 const GAME_HIP_HOP_RNB_TRIVIA = {
   "id": "hip-hop-rnb-trivia",
   "title": "Hip Hop & R&B",
+  "icon": "🎤",
   "description": "Name the iconic artist behind legendary Hip Hop and R&B hits from the song title and release year!",
   "category": "Music & Pop Culture",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -421,6 +422,11 @@ const GAME_HIP_HOP_RNB_TRIVIA = {
     }
   ]
 };
+
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_HIP_HOP_RNB_TRIVIA);
+}
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_HIP_HOP_RNB_TRIVIA;

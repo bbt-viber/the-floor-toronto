@@ -132,6 +132,16 @@
     const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('the-floor-toronto') : null;
     let isConnectedViaSse = false;
     let currentClueId = null;
+    let p1MaxTime = 45;
+    let p2MaxTime = 45;
+    const preloadedImages = new Set();
+
+    function preloadClueImage(src) {
+      if (!src || preloadedImages.has(src)) return;
+      preloadedImages.add(src);
+      const img = new Image();
+      img.src = src;
+    }
 
     const el = {
       categoryTitle: document.getElementById('categoryTitle'),
@@ -201,7 +211,7 @@
       if (d.eventType === 'tick') {
         if (d.p1Time !== undefined) {
           el.p1TimerDigits.textContent = formatTime(d.p1Time);
-          const p1Pct = Math.max(0, Math.min(100, (d.p1Time / 45) * 100));
+          const p1Pct = Math.max(0, Math.min(100, (d.p1Time / p1MaxTime) * 100));
           el.p1TimerBar.style.width = `${p1Pct}%`;
           if (d.p1Time <= 10 && d.p1Time > 0 && d.activePlayer === 1) {
             el.p1TimerBox.classList.add('urgent');
@@ -211,7 +221,7 @@
         }
         if (d.p2Time !== undefined) {
           el.p2TimerDigits.textContent = formatTime(d.p2Time);
-          const p2Pct = Math.max(0, Math.min(100, (d.p2Time / 45) * 100));
+          const p2Pct = Math.max(0, Math.min(100, (d.p2Time / p2MaxTime) * 100));
           el.p2TimerBar.style.width = `${p2Pct}%`;
           if (d.p2Time <= 10 && d.p2Time > 0 && d.activePlayer === 2) {
             el.p2TimerBox.classList.add('urgent');
@@ -346,9 +356,14 @@
         el.clueImage.style.display = 'block';
       }
 
+      if (d.preloadImage) preloadClueImage(d.preloadImage);
+      if (d.nextImage) preloadClueImage(d.nextImage);
+
       if (d.title) el.categoryTitle.textContent = d.title.toUpperCase();
       if (d.p1?.name) el.p1Name.textContent = d.p1.name;
       if (d.p2?.name) el.p2Name.textContent = d.p2.name;
+      if (d.p1?.maxTime) p1MaxTime = d.p1.maxTime;
+      if (d.p2?.maxTime) p2MaxTime = d.p2.maxTime;
 
       // Active Turn
       if (d.activePlayer === 1) {

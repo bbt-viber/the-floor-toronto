@@ -32,27 +32,44 @@ function persistSavedFloors() {
   }
 }
 
-// Dynamic Category Registry (auto-loads all game packs from ./games)
+// Dynamic Category Registry (auto-loads and hot-reloads game packs from ./games)
 const GAMES_MAP = new Map();
+const GAMES_MTIME = new Map();
+
+function loadGamePackFromFile(fullPath) {
+  const ext = path.extname(fullPath).toLowerCase();
+  const stat = fs.statSync(fullPath);
+  const pack = ext === '.js'
+    ? require(fullPath)
+    : JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+
+  if (pack && pack.id && Array.isArray(pack.clues)) {
+    const id = String(pack.id).toLowerCase().trim();
+    GAMES_MAP.set(id, pack);
+    GAMES_MTIME.set(id, stat.mtimeMs);
+    return pack;
+  }
+  return null;
+}
 
 function loadAllGamePacks() {
   if (!fs.existsSync(GAMES_DIR)) return;
   const files = fs.readdirSync(GAMES_DIR);
+  const jsonSet = new Set(
+    files.filter(f => f.endsWith('.json') && f !== 'index.json').map(f => path.basename(f, '.json'))
+  );
 
   for (const file of files) {
     if (file === 'index.json' || file === 'games-manifest.js') continue;
     const ext = path.extname(file).toLowerCase();
     if (ext !== '.json' && ext !== '.js') continue;
 
-    const fullPath = path.join(GAMES_DIR, file);
-    try {
-      const pack = ext === '.js'
-        ? require(fullPath)
-        : JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+    // Prefer .json over .js to avoid duplicate parsing on startup
+    const base = path.basename(file, ext);
+    if (ext === '.js' && jsonSet.has(base)) continue;
 
-      if (pack && pack.id && Array.isArray(pack.clues)) {
-        GAMES_MAP.set(String(pack.id).toLowerCase().trim(), pack);
-      }
+    try {
+      loadGamePackFromFile(path.join(GAMES_DIR, file));
     } catch (e) {
       console.warn(`[GamesLoader] Could not load ${file}:`, e.message);
     }
@@ -62,22 +79,21 @@ function loadAllGamePacks() {
 function getGamePack(gameId) {
   if (!gameId) return null;
   const id = String(gameId).toLowerCase().trim();
-  if (GAMES_MAP.has(id)) return GAMES_MAP.get(id);
-
-  // Dynamic fallback if a new JSON category was added while server is running
   const jsonFile = path.join(GAMES_DIR, `${id}.json`);
+
+  // Hot-reload if JSON file was added or modified on disk while server is running
   if (fs.existsSync(jsonFile)) {
     try {
-      const parsed = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
-      if (parsed && parsed.id && Array.isArray(parsed.clues)) {
-        GAMES_MAP.set(id, parsed);
-        return parsed;
+      const stat = fs.statSync(jsonFile);
+      if (!GAMES_MAP.has(id) || GAMES_MTIME.get(id) !== stat.mtimeMs) {
+        return loadGamePackFromFile(jsonFile);
       }
     } catch (e) {
-      console.warn(`[GamesLoader] Could not parse ${id}.json:`, e.message);
+      console.warn(`[GamesLoader] Could not hot-reload ${id}.json:`, e.message);
     }
   }
-  return null;
+
+  return GAMES_MAP.get(id) || null;
 }
 
 loadAllGamePacks();
@@ -137,6 +153,18 @@ function sendSse(payload) {
     }
   }
 }
+
+// Periodic SSE heartbeat to prevent cloud proxies / mobile browsers from dropping idle connections
+setInterval(() => {
+  if (sseClients.size === 0) return;
+  for (const res of sseClients) {
+    try {
+      res.write(': keepalive\n\n');
+    } catch (e) {
+      sseClients.delete(res);
+    }
+  }
+}, 25000);
 
 function clearDuelTimers() {
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
@@ -845,7 +873,20 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // --- API: Territory & State Endpoints ---
+  // --- API: Territory, Categories & State Endpoints ---
+  if (pathname === '/api/categories' && req.method === 'GET') {
+    const categories = Array.from(GAMES_MAP.values()).map(p => ({
+      id: p.id,
+      title: p.title,
+      icon: p.icon || '🎯',
+      cluesCount: Array.isArray(p.clues) ? p.clues.length : (p.cluesCount || 40),
+      defaultTimer: p.defaultTimer || 45
+    }));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(categories));
+    return;
+  }
+
   if (pathname === '/api/territory' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(state.territory || {}));
@@ -903,10 +944,17 @@ const server = http.createServer((req, res) => {
   }
 
   // --- Static File Serving ---
-  let reqPath = decodeURI(pathname);
+  let reqPath;
+  try {
+    reqPath = decodeURIComponent(pathname);
+  } catch (e) {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('400 Bad Request');
+    return;
+  }
   if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
 
-  const filePath = path.join(PUBLIC_DIR, reqPath);
+  const filePath = path.resolve(PUBLIC_DIR, '.' + reqPath);
   if (!filePath.startsWith(PUBLIC_DIR)) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     res.end('403 Forbidden');
@@ -925,11 +973,28 @@ const server = http.createServer((req, res) => {
     const cacheControl = CACHEABLE_IMAGE_EXTS.has(ext)
       ? 'public, max-age=3600'
       : 'no-cache';
+    const etag = `W/"${stats.size}-${Math.floor(stats.mtimeMs)}"`;
+
+    if (req.headers['if-none-match'] === etag) {
+      res.writeHead(304, {
+        'ETag': etag,
+        'Cache-Control': cacheControl
+      });
+      res.end();
+      return;
+    }
 
     res.writeHead(200, {
       'Content-Type': contentType,
-      'Cache-Control': cacheControl
+      'Content-Length': stats.size,
+      'Cache-Control': cacheControl,
+      'ETag': etag
     });
+
+    if (req.method === 'HEAD') {
+      res.end();
+      return;
+    }
 
     fs.createReadStream(filePath).pipe(res);
   });

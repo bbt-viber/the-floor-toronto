@@ -2,6 +2,7 @@
 const GAME_BEAUTY_PRODUCTS_TRIVIA = {
   "id": "beauty-products-trivia",
   "title": "Beauty Products",
+  "icon": "💄",
   "description": "Identify the essential cosmetic, skincare, haircare, and beauty tool from its picture!",
   "category": "Lifestyle & Self-Care",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -456,6 +457,11 @@ const GAME_BEAUTY_PRODUCTS_TRIVIA = {
   ]
 };
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_BEAUTY_PRODUCTS_TRIVIA);
+}
+
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_BEAUTY_PRODUCTS_TRIVIA;
 }

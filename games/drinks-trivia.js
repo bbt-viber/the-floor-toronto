@@ -2,6 +2,7 @@
 const GAME_DRINKS_TRIVIA = {
   "id": "drinks-trivia",
   "title": "Drinks Trivia",
+  "icon": "🍹",
   "description": "Identify the iconic drink, cocktail, soda, or coffee from its glass, garnish, or distinctive bottle!",
   "category": "Food & Beverages",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -425,6 +426,11 @@ const GAME_DRINKS_TRIVIA = {
   ]
 };
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_DRINKS_TRIVIA);
+}
+
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_DRINKS_TRIVIA;
 }

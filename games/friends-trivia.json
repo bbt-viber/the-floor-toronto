@@ -1,6 +1,7 @@
 {
   "id": "friends-trivia",
   "title": "Friends Trivia",
+  "icon": "☕",
   "description": "Identify the iconic character, prop, alter ego, or location from the hit TV show Friends!",
   "category": "TV & Pop Culture",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",

@@ -2,6 +2,7 @@
 const GAME_CAR_LOGOS = {
   "id": "car-logos",
   "title": "Car Logos",
+  "icon": "🚗",
   "description": "Identify the automaker from its iconic emblem, badge, or hood ornament — with brand names removed!",
   "category": "Vehicles & Automobiles",
   "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
@@ -346,6 +347,11 @@ const GAME_CAR_LOGOS = {
     }
   ]
 };
+
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_CAR_LOGOS);
+}
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_CAR_LOGOS;

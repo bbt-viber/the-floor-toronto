@@ -70,12 +70,9 @@ Once the prompt table is approved:
    - Every image MUST be around **1200 × 1000 px**. Only select source images whose original resolution is at least ~1000 px on the long edge (never save small 300–600 px thumbnails), then resize/fit to ~1200 px wide (or ~1000 px tall for portrait images).
 6. **File Naming Requirement:** Every image file MUST be named after the exact prompt answer:
    `[category_name]/[Answer].jpg` (e.g. `France.jpg`, `Pistachio.jpg`).
-7. **Local App Integration:**
-   - Creates the game definition files:
-     - `games/[category_name].js`
-     - `games/[category_name].json`
-   - Updates `games/index.json` and `games/games-manifest.js`.
-   - Adds the category to `index.html`, `host.html`, and `server.js` so it is immediately playable locally across both the main stage and mobile host remote.
+7. **Local App Integration (Automated via `scripts/sync-categories.js`):**
+   - Creates `games/[category_name].json` (or runs `node scripts/import-folder.js [category_name]`).
+   - Runs `node scripts/sync-categories.js` to automatically generate `games/[category_name].js`, update `games/index.json` and `games/games-manifest.js`, and synchronize `<script>` tags in `index.html` and category switcher buttons in `host.html`.
 8. **Automatic Transition to Step 3:**
    - Immediately proceed to Step 3 (Blind Visual Validation via Subagent) to automatically execute visual validation once before pausing for the user's review.
 
@@ -107,4 +104,4 @@ Immediately after sourcing the images and setting up the local category in Step 
 
 ### Step 4: Push to GitHub
 Once the user confirms the local photos are approved:
-1. Commits and pushes the new category folder (`[category_name]/`), game files (`games/[category_name].js`, `games/[category_name].json`), and updated manifest/app files (`games/index.json`, `games/games-manifest.js`, `index.html`, `host.html`, `server.js`) to the GitHub repository.
+1. Run `node scripts/push.js "Add [Category Title] category"` to automatically validate and synchronize all category manifests (`games/*.js`, `games/index.json`, `games/games-manifest.js`, `index.html`, `host.html`) and push all new/modified files to `origin/main` on GitHub.

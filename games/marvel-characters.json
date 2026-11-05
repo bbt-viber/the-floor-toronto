@@ -1,6 +1,7 @@
 {
   "id": "marvel-characters",
   "title": "Marvel Characters",
+  "icon": "🦸",
   "description": "Identify the iconic Marvel character from their blockbuster movie costume, armor, and distinctive look!",
   "category": "Movies & Comics",
   "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",

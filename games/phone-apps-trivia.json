@@ -1,6 +1,7 @@
 {
   "id": "phone-apps-trivia",
   "title": "Phone Apps",
+  "icon": "📱",
   "description": "Identify the popular mobile app or game from its phone home screen icon!",
   "category": "Tech & Digital Culture",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",

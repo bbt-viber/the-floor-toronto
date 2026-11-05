@@ -1,7 +1,20 @@
 [
   {
+    "id": "nba-wnba",
+    "title": "NBA & WNBA",
+    "icon": "🏀",
+    "description": "Identify the basketball team from its iconic logo — with nicknames removed!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Sports & Basketball",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #1d428a 0%, #c8102e 50%, #f9a01b 100%)",
+    "file": "nba-wnba.json"
+  },
+  {
     "id": "car-logos",
     "title": "Car Logos",
+    "icon": "🚗",
     "description": "Identify the automaker from its iconic emblem, badge, or hood ornament — with brand names removed!",
     "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
     "category": "Vehicles & Automobiles",
@@ -13,6 +26,7 @@
   {
     "id": "marvel-characters",
     "title": "Marvel Characters",
+    "icon": "🦸",
     "description": "Identify the iconic Marvel character from their blockbuster movie costume, armor, and distinctive look!",
     "difficulty": "Progressive (10 Easy → 15 Medium → 15 Hard)",
     "category": "Movies & Comics",
@@ -24,6 +38,7 @@
   {
     "id": "dog-breeds",
     "title": "Dog Breeds",
+    "icon": "🐕",
     "description": "Identify the dog breed from household favorites to rare and distinctive working, herding, and sighthound breeds!",
     "difficulty": "Progressive (Easy → Obscure)",
     "category": "Animals & Nature",
@@ -33,19 +48,9 @@
     "file": "dog-breeds.json"
   },
   {
-    "id": "nba-wnba",
-    "title": "NBA & WNBA",
-    "description": "Identify the basketball team from its iconic logo — with nicknames removed!",
-    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
-    "category": "Sports & Basketball",
-    "cluesCount": 40,
-    "defaultTimer": 45,
-    "bannerColor": "linear-gradient(135deg, #1d428a 0%, #c8102e 50%, #f9a01b 100%)",
-    "file": "nba-wnba.json"
-  },
-  {
     "id": "candy-bar-trivia",
     "title": "Candy Bar Trivia",
+    "icon": "🍫",
     "description": "Identify the iconic candy bar or sweet treat from its wrapper and distinctive design — with brand names removed!",
     "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
     "category": "Food & Snacks",
@@ -57,6 +62,7 @@
   {
     "id": "taylor-swift",
     "title": "Taylor Swift",
+    "icon": "✨",
     "description": "Identify the partner/ex, album cover, or iconic music video from Taylor Swift's legendary career!",
     "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
     "category": "Music & Pop Culture",
@@ -68,6 +74,7 @@
   {
     "id": "friends-trivia",
     "title": "Friends Trivia",
+    "icon": "☕",
     "description": "Identify the iconic character, prop, alter ego, or location from the hit TV show Friends!",
     "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
     "category": "TV & Pop Culture",
@@ -79,6 +86,7 @@
   {
     "id": "drinks-trivia",
     "title": "Drinks Trivia",
+    "icon": "🍹",
     "description": "Identify the iconic drink, cocktail, soda, or coffee from its glass, garnish, or distinctive bottle!",
     "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
     "category": "Food & Beverages",
@@ -90,6 +98,7 @@
   {
     "id": "hip-hop-rnb-trivia",
     "title": "Hip Hop & R&B",
+    "icon": "🎤",
     "description": "Name the iconic artist behind legendary Hip Hop and R&B hits from the song title and release year!",
     "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
     "category": "Music & Pop Culture",
@@ -101,6 +110,7 @@
   {
     "id": "beauty-products-trivia",
     "title": "Beauty Products",
+    "icon": "💄",
     "description": "Identify the essential cosmetic, skincare, haircare, and beauty tool from its picture!",
     "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
     "category": "Lifestyle & Self-Care",
@@ -112,6 +122,7 @@
   {
     "id": "phone-apps-trivia",
     "title": "Phone Apps",
+    "icon": "📱",
     "description": "Identify the popular mobile app or game from its phone home screen icon!",
     "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
     "category": "Tech & Digital Culture",

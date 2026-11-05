@@ -1,6 +1,7 @@
 {
   "id": "dog-breeds",
   "title": "Dog Breeds",
+  "icon": "🐕",
   "description": "Identify the dog breed from household favorites to rare and distinctive working, herding, and sighthound breeds!",
   "category": "Animals & Nature",
   "difficulty": "Progressive (Easy → Obscure)",

@@ -1,6 +1,7 @@
 {
   "id": "nba-wnba",
   "title": "NBA & WNBA",
+  "icon": "🏀",
   "description": "Identify the basketball team from its iconic logo — with nicknames removed!",
   "category": "Sports & Basketball",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",

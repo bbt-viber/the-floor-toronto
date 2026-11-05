@@ -2,6 +2,7 @@
 const GAME_FRIENDS_TRIVIA = {
   "id": "friends-trivia",
   "title": "Friends Trivia",
+  "icon": "☕",
   "description": "Identify the iconic character, prop, alter ego, or location from the hit TV show Friends!",
   "category": "TV & Pop Culture",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -440,6 +441,11 @@ const GAME_FRIENDS_TRIVIA = {
   ]
 };
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_FRIENDS_TRIVIA);
+}
+
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_FRIENDS_TRIVIA;
 }

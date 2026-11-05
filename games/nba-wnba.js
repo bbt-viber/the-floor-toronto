@@ -2,6 +2,7 @@
 const GAME_NBA_WNBA = {
   "id": "nba-wnba",
   "title": "NBA & WNBA",
+  "icon": "🏀",
   "description": "Identify the basketball team from its iconic logo — with nicknames removed!",
   "category": "Sports & Basketball",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -430,6 +431,11 @@ const GAME_NBA_WNBA = {
     }
   ]
 };
+
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_NBA_WNBA);
+}
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_NBA_WNBA;

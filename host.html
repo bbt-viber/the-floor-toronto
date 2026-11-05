@@ -1440,6 +1440,21 @@
           }
         }).catch(() => {});
 
+        // Sync any newly added runtime categories from server
+        fetch('/api/categories').then(r => r.json()).then(cats => {
+          if (!Array.isArray(cats) || !el.categoryModal) return;
+          const card = el.categoryModal.querySelector('.category-modal-card');
+          if (!card || !el.btnCloseModal) return;
+          cats.forEach(cat => {
+            if (!cat.id || card.querySelector(`button[onclick="selectGame('${cat.id}')"]`)) return;
+            const btn = document.createElement('button');
+            btn.className = 'category-item-btn';
+            btn.setAttribute('onclick', `selectGame('${cat.id}')`);
+            btn.innerHTML = `<span>${cat.icon || '🎯'} ${cat.title}</span><span style="font-size: 0.8rem; color: var(--gold);">${cat.cluesCount || 40} Clues</span>`;
+            card.insertBefore(btn, el.btnCloseModal);
+          });
+        }).catch(() => {});
+
         evtSource = new EventSource('/api/events');
         evtSource.onopen = () => {
           isConnectedViaSse = true;

@@ -1,6 +1,7 @@
 {
   "id": "candy-bar-trivia",
   "title": "Candy Bar Trivia",
+  "icon": "🍫",
   "description": "Identify the iconic candy bar or sweet treat from its wrapper and distinctive design — with brand names removed!",
   "category": "Food & Snacks",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",

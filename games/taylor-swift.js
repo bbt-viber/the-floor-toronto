@@ -2,6 +2,7 @@
 const GAME_TAYLOR_SWIFT = {
   "id": "taylor-swift",
   "title": "Taylor Swift",
+  "icon": "✨",
   "description": "Identify the partner/ex, album cover, or iconic music video from Taylor Swift's legendary career!",
   "category": "Music & Pop Culture",
   "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
@@ -397,6 +398,11 @@ const GAME_TAYLOR_SWIFT = {
   ]
 };
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_TAYLOR_SWIFT);
+}
+
+if (typeof module !== 'undefined' && module.exports) {
   module.exports = GAME_TAYLOR_SWIFT;
 }
