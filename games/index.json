@@ -130,5 +130,17 @@
     "defaultTimer": 45,
     "bannerColor": "linear-gradient(135deg, #1fa2ff 0%, #12d8fa 50%, #a6ffcb 100%)",
     "file": "phone-apps-trivia.json"
+  },
+  {
+    "id": "colours-trivia",
+    "title": "Colours",
+    "icon": "🎨",
+    "description": "Identify the exact colour or shade from a pure edge-to-edge swatch!",
+    "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+    "category": "Art & Design",
+    "cluesCount": 40,
+    "defaultTimer": 45,
+    "bannerColor": "linear-gradient(135deg, #ff0055 0%, #ffd700 35%, #00e676 70%, #2979ff 100%)",
+    "file": "colours-trivia.json"
   }
 ]

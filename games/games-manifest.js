@@ -12,7 +12,8 @@ const GAMES_DIRECTORY = (function () {
     typeof GAME_DRINKS_TRIVIA !== 'undefined' ? GAME_DRINKS_TRIVIA : null,
     typeof GAME_HIP_HOP_RNB_TRIVIA !== 'undefined' ? GAME_HIP_HOP_RNB_TRIVIA : null,
     typeof GAME_BEAUTY_PRODUCTS_TRIVIA !== 'undefined' ? GAME_BEAUTY_PRODUCTS_TRIVIA : null,
-    typeof GAME_PHONE_APPS_TRIVIA !== 'undefined' ? GAME_PHONE_APPS_TRIVIA : null
+    typeof GAME_PHONE_APPS_TRIVIA !== 'undefined' ? GAME_PHONE_APPS_TRIVIA : null,
+    typeof GAME_COLOURS_TRIVIA !== 'undefined' ? GAME_COLOURS_TRIVIA : null
   ].filter(Boolean);
 
   const registered = (typeof window !== 'undefined' && Array.isArray(window.__FLOOR_GAMES__))

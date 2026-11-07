@@ -1,0 +1,361 @@
+// Colours Game Pack - 40 Visual Trivia Prompts
+const GAME_COLOURS_TRIVIA = {
+  "id": "colours-trivia",
+  "title": "Colours",
+  "icon": "🎨",
+  "description": "Identify the exact colour or shade from a pure edge-to-edge swatch!",
+  "category": "Art & Design",
+  "difficulty": "Progressive (15 Easy → 15 Medium → 10 Hard)",
+  "cluesCount": 40,
+  "defaultTimer": 45,
+  "bannerColor": "linear-gradient(135deg, #ff0055 0%, #ffd700 35%, #00e676 70%, #2979ff 100%)",
+  "clues": [
+    {
+      "id": "clue_colours_red",
+      "answer": "Red",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Red.png",
+      "hint": "Hex: #FF0000"
+    },
+    {
+      "id": "clue_colours_orange",
+      "answer": "Orange",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Orange.png",
+      "hint": "Hex: #FFA500"
+    },
+    {
+      "id": "clue_colours_yellow",
+      "answer": "Yellow",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Yellow.png",
+      "hint": "Hex: #FFFF00"
+    },
+    {
+      "id": "clue_colours_green",
+      "answer": "Green",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Green.png",
+      "hint": "Hex: #008000"
+    },
+    {
+      "id": "clue_colours_blue",
+      "answer": "Blue",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Blue.png",
+      "hint": "Hex: #0000FF"
+    },
+    {
+      "id": "clue_colours_purple",
+      "answer": "Purple",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Purple.png",
+      "hint": "Hex: #800080"
+    },
+    {
+      "id": "clue_colours_pink",
+      "answer": "Pink",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Pink.png",
+      "hint": "Hex: #FFC0CB"
+    },
+    {
+      "id": "clue_colours_brown",
+      "answer": "Brown",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Brown.png",
+      "hint": "Hex: #A52A2A"
+    },
+    {
+      "id": "clue_colours_black",
+      "answer": "Black",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Black.png",
+      "hint": "Hex: #000000"
+    },
+    {
+      "id": "clue_colours_white",
+      "answer": "White",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/White.png",
+      "hint": "Hex: #FFFFFF"
+    },
+    {
+      "id": "clue_colours_grey",
+      "answer": "Grey",
+      "aliases": [
+        "Gray"
+      ],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Grey.png",
+      "hint": "Hex: #808080"
+    },
+    {
+      "id": "clue_colours_maroon",
+      "answer": "Maroon",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Maroon.png",
+      "hint": "Hex: #800000"
+    },
+    {
+      "id": "clue_colours_olive",
+      "answer": "Olive",
+      "aliases": [
+        "Olive Green"
+      ],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Olive.png",
+      "hint": "Hex: #808000"
+    },
+    {
+      "id": "clue_colours_teal",
+      "answer": "Teal",
+      "aliases": [],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Teal.png",
+      "hint": "Hex: #008080"
+    },
+    {
+      "id": "clue_colours_navy",
+      "answer": "Navy",
+      "aliases": [
+        "Navy Blue"
+      ],
+      "difficulty": "Easy",
+      "image": "colours-trivia/Navy.png",
+      "hint": "Hex: #000080"
+    },
+    {
+      "id": "clue_colours_magenta",
+      "answer": "Magenta",
+      "aliases": [
+        "Fuchsia"
+      ],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Magenta.png",
+      "hint": "Hex: #FF00FF"
+    },
+    {
+      "id": "clue_colours_cyan",
+      "answer": "Cyan",
+      "aliases": [
+        "Aqua"
+      ],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Cyan.png",
+      "hint": "Hex: #00FFFF"
+    },
+    {
+      "id": "clue_colours_turquoise",
+      "answer": "Turquoise",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Turquoise.png",
+      "hint": "Hex: #40E0D0"
+    },
+    {
+      "id": "clue_colours_coral",
+      "answer": "Coral",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Coral.png",
+      "hint": "Hex: #FF7F50"
+    },
+    {
+      "id": "clue_colours_salmon",
+      "answer": "Salmon",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Salmon.png",
+      "hint": "Hex: #FA8072"
+    },
+    {
+      "id": "clue_colours_lavender",
+      "answer": "Lavender",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Lavender.png",
+      "hint": "Hex: #E6E6FA"
+    },
+    {
+      "id": "clue_colours_indigo",
+      "answer": "Indigo",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Indigo.png",
+      "hint": "Hex: #4B0082"
+    },
+    {
+      "id": "clue_colours_mint_green",
+      "answer": "Mint Green",
+      "aliases": [
+        "Mint"
+      ],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Mint Green.png",
+      "hint": "Hex: #3EB489"
+    },
+    {
+      "id": "clue_colours_peach",
+      "answer": "Peach",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Peach.png",
+      "hint": "Hex: #FFE5B4"
+    },
+    {
+      "id": "clue_colours_beige",
+      "answer": "Beige",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Beige.png",
+      "hint": "Hex: #F5F5DC"
+    },
+    {
+      "id": "clue_colours_khaki",
+      "answer": "Khaki",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Khaki.png",
+      "hint": "Hex: #C3B091"
+    },
+    {
+      "id": "clue_colours_gold",
+      "answer": "Gold",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Gold.png",
+      "hint": "Hex: #FFD700"
+    },
+    {
+      "id": "clue_colours_burgundy",
+      "answer": "Burgundy",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Burgundy.png",
+      "hint": "Hex: #800020"
+    },
+    {
+      "id": "clue_colours_emerald",
+      "answer": "Emerald",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Emerald.png",
+      "hint": "Hex: #50C878"
+    },
+    {
+      "id": "clue_colours_rust",
+      "answer": "Rust",
+      "aliases": [],
+      "difficulty": "Medium",
+      "image": "colours-trivia/Rust.png",
+      "hint": "Hex: #B7410E"
+    },
+    {
+      "id": "clue_colours_chartreuse",
+      "answer": "Chartreuse",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Chartreuse.png",
+      "hint": "Hex: #7FFF00"
+    },
+    {
+      "id": "clue_colours_periwinkle",
+      "answer": "Periwinkle",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Periwinkle.png",
+      "hint": "Hex: #CCCCFF"
+    },
+    {
+      "id": "clue_colours_cerulean",
+      "answer": "Cerulean",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Cerulean.png",
+      "hint": "Hex: #2A52BE"
+    },
+    {
+      "id": "clue_colours_mauve",
+      "answer": "Mauve",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Mauve.png",
+      "hint": "Hex: #E0B0FF"
+    },
+    {
+      "id": "clue_colours_taupe",
+      "answer": "Taupe",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Taupe.png",
+      "hint": "Hex: #483C32"
+    },
+    {
+      "id": "clue_colours_vermilion",
+      "answer": "Vermilion",
+      "aliases": [
+        "Vermillion"
+      ],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Vermilion.png",
+      "hint": "Hex: #E34234"
+    },
+    {
+      "id": "clue_colours_ochre",
+      "answer": "Ochre",
+      "aliases": [
+        "Ocher"
+      ],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Ochre.png",
+      "hint": "Hex: #CC7722"
+    },
+    {
+      "id": "clue_colours_puce",
+      "answer": "Puce",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Puce.png",
+      "hint": "Hex: #CC8899"
+    },
+    {
+      "id": "clue_colours_viridian",
+      "answer": "Viridian",
+      "aliases": [],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Viridian.png",
+      "hint": "Hex: #40826D"
+    },
+    {
+      "id": "clue_colours_aubergine",
+      "answer": "Aubergine",
+      "aliases": [
+        "Eggplant"
+      ],
+      "difficulty": "Hard",
+      "image": "colours-trivia/Aubergine.png",
+      "hint": "Hex: #614051"
+    }
+  ]
+};
+
+if (typeof window !== 'undefined') {
+  window.__FLOOR_GAMES__ = window.__FLOOR_GAMES__ || [];
+  window.__FLOOR_GAMES__.push(GAME_COLOURS_TRIVIA);
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = GAME_COLOURS_TRIVIA;
+}

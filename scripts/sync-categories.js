@@ -28,7 +28,8 @@ const CANONICAL_ORDER = [
   'drinks-trivia',
   'hip-hop-rnb-trivia',
   'beauty-products-trivia',
-  'phone-apps-trivia'
+  'phone-apps-trivia',
+  'colours-trivia'
 ];
 
 const DEFAULT_ICONS = {
@@ -42,7 +43,8 @@ const DEFAULT_ICONS = {
   'drinks-trivia': '🍹',
   'hip-hop-rnb-trivia': '🎤',
   'beauty-products-trivia': '💄',
-  'phone-apps-trivia': '📱'
+  'phone-apps-trivia': '📱',
+  'colours-trivia': '🎨'
 };
 
 function toGlobalVarName(id) {

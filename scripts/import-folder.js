@@ -85,11 +85,20 @@ function parseReadmeTiers(readmeText) {
         tiers[currentTier].push({ answer, hint });
       }
     } else {
-      // Comma-separated list wrapped across lines
+      // Comma-separated or middle-dot (·) separated list wrapped across lines
       const joined = nonEmptyLines.join(' ');
-      const items = joined.split(',').map(s => s.trim()).filter(Boolean);
-      for (const answer of items) {
-        tiers[currentTier].push({ answer, hint: '' });
+      const delimiter = joined.includes('·') ? /\s*·\s*/ : /\s*,\s*/;
+      const items = joined.split(delimiter).map(s => s.trim()).filter(Boolean);
+      for (const rawItem of items) {
+        const hexMatch = rawItem.match(/^(.*?)\s+(#[0-9A-Fa-f]{6})$/);
+        if (hexMatch) {
+          tiers[currentTier].push({
+            answer: hexMatch[1].trim(),
+            hint: `Hex: ${hexMatch[2].toUpperCase()}`
+          });
+        } else {
+          tiers[currentTier].push({ answer: rawItem, hint: '' });
+        }
       }
     }
     buffer = [];
